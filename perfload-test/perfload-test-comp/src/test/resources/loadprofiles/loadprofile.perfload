@@ -1,0 +1,8 @@
+1000;myOperation1;myTarget1;1;1
+2000;myOperation2;myTarget1;2;1
+3000;myOperation1;myTarget2;1;2
+4000;myOperation2;myTarget2;2;1
+5000;myOperation1;myTarget1;1;1
+6000;myOperation2;myTarget1;2;1
+7000;myOperation1;myTarget2;1;2
+8000;myOperation2;myTarget2;2;1

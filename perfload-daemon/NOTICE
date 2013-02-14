@@ -1,0 +1,57 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+mgm perfLoad Daemon
+Copyright 2013 mgm technology partners GmbH
+
+From: 'an unknown organization'
+  - Code Generation Library (http://cglib.sourceforge.net/) cglib:cglib-nodep:jar:2.2
+    License: ASF 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:jar:13.0.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - lambdaj (http://code.google.com/p/lambdaj) com.googlecode.lambdaj:lambdaj:jar:2.3.3
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - "Java Concurrency in Practice" book annotations (http://jcip.net/) net.jcip:jcip-annotations:jar:1.0
+
+  - Hamcrest Core (https://github.com/hamcrest/JavaHamcrest/hamcrest-core) org.hamcrest:hamcrest-core:jar:1.3
+    License: New BSD License  (http://www.opensource.org/licenses/bsd-license.php)
+  - Hamcrest library (https://github.com/hamcrest/JavaHamcrest/hamcrest-library) org.hamcrest:hamcrest-library:jar:1.3
+    License: New BSD License  (http://www.opensource.org/licenses/bsd-license.php)
+
+From: 'JBoss by Red Hat' (http://www.jboss.org)
+  - The Netty Project (http://www.jboss.org/netty/) org.jboss.netty:netty:bundle:3.2.9.Final
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+
+From: 'Joe Walnes, Henri Tremblay, Leonardo Mesquita'
+  - Objenesis (http://objenesis.googlecode.com/svn/docs/index.html) org.objenesis:objenesis:jar:1.2
+    License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'MetaStuff Ltd.' (http://sourceforge.net/projects/dom4j)
+  - dom4j (http://dom4j.org) dom4j:dom4j:jar:1.6.1
+
+
+From: 'mgm technology partners GmbH' (http://www.mgm-tp.com)
+  - mgm perfLoad Client-Server (https://github.com/mgm-tp/perfload-core/perfload-clientserver) com.mgmtp.perfload:perfload-clientserver:jar:4.6.0-SNAPSHOT
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - mgm perfLoad Common (https://github.com/mgm-tp/perfload-core/perfload-common) com.mgmtp.perfload:perfload-common:jar:4.6.0-SNAPSHOT
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'QOS.ch' (http://www.qos.ch)
+  - Logback Classic Module (http://logback.qos.ch) ch.qos.logback:logback-classic:jar:1.0.9
+    License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)    License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.9
+    License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)    License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+  - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.2
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.2
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+
+From: 'The Apache Software Foundation' (http://www.apache.org/)
+  - Commons IO (http://commons.apache.org/io/) commons-io:commons-io:jar:2.4
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Commons Lang (http://commons.apache.org/lang/) org.apache.commons:commons-lang3:jar:3.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+

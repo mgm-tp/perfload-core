@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	Copyright (c) 2013 mgm technology partners GmbH
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	    http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.mgmtp.perfload</groupId>
+		<artifactId>perfload-test</artifactId>
+		<version>4.6.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>perfload-test-it</artifactId>
+	<packaging>jar</packaging>
+	<name>mgm perfLoad Integration Tests</name>
+	<description>mgm perfLoad Integration Tests</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-clientserver</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-daemon</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-console</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>perfload-test-client</artifactId>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<!-- Profile for integration tests -->
+			<id>it</id>
+			<properties>
+				<it.dir>${project.build.directory}/it</it.dir>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>it-copy-testclient-deps</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${it.dir}/console/test-lib</outputDirectory>
+									<includeArtifactIds>perfload-test-client,perfload-web,httpclient,httpcore,commons-codec</includeArtifactIds>
+									<includeTypes>jar</includeTypes>
+									<overWriteReleases>true</overWriteReleases>
+									<overWriteSnapshots>true</overWriteSnapshots>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>reserve-deamon-ports</id>
+								<goals>
+									<goal>reserve-network-port</goal>
+								</goals>
+								<phase>pre-integration-test</phase>
+								<configuration>
+									<portNames>
+										<portName>daemon.1.port</portName>
+										<portName>daemon.2.port</portName>
+									</portNames>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>it-unzip-dist</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Unzip distribution -->
+										<echo>Unzipping distributions...</echo>
+										<unzip src="${basedir}/../../perfload-console/target/perfload-console-${project.version}-dist.zip" dest="${it.dir}" overwrite="true" />
+										<unzip src="${basedir}/../../perfload-client/target/perfload-client-${project.version}-dist.zip" dest="${it.dir}" overwrite="true" />
+										<unzip src="${basedir}/../../perfload-daemon/target/perfload-daemon-${project.version}-dist.zip" dest="${it.dir}" overwrite="true" />
+
+										<!-- Rename *.default.* files to "real" ones -->
+										<echo>Renaming 'default' files...'</echo>
+										<move todir="${it.dir}" includeemptydirs="false">
+											<fileset dir="${it.dir}" />
+											<regexpmapper from="^([^.]+)\.default\.(.+)$" to="\1.\2" />
+										</move>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>it-start-daemons</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Shutting down potentially running daemon at port ${daemon.1.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.1.port}" />
+											<arg value="-shutdown" />
+										</java>
+
+										<echo>Shutting down potentially running daemon at port ${daemon.2.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.2.port}" />
+											<arg value="-shutdown" />
+										</java>
+
+										<echo>Starting daemon at port ${daemon.1.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true" spawn="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.1.port}" />
+											<!-- <jvmarg value="-Xdebug" />
+											<jvmarg value="-Xnoagent" />
+											<jvmarg value="-Djava.compiler=NONE" />
+											<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000" />
+											-->
+										</java>
+
+										<echo>Starting daemon at port ${daemon.2.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true" spawn="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.2.port}" />
+										</java>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>it-run-test</id>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Starting test...</echo>
+										<java jar="${it.dir}/console/lib/perfload-console-${project.version}.jar" dir="${it.dir}/console" fork="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-testplan" />
+											<arg value="testplans/fibonacci.xml" />
+											<arg value="-shutdownDaemons" />
+										</java>
+										<echo>Test finished...</echo>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>it-stop-daemons</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Shutting down daemon at port ${daemon.1.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.1.port}" />
+											<arg value="-shutdown" />
+										</java>
+
+										<echo>Shutting down at port ${daemon.2.port}</echo>
+										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
+											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
+											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
+											<arg value="-port" />
+											<arg value="${daemon.2.port}" />
+											<arg value="-shutdown" />
+										</java>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+						<dependencies>
+							<!-- Lib required for regex mapper -->
+							<dependency>
+								<groupId>org.apache.ant</groupId>
+								<artifactId>ant-nodeps</artifactId>
+								<version>1.8.1</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>it-copy-testplan</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${it.dir}/console/testplans</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${basedir}/config</directory>
+											<filtering>true</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.mortbay.jetty</groupId>
+						<artifactId>maven-jetty-plugin</artifactId>
+						<inherited>false</inherited>
+						<configuration>
+							<connectors>
+								<connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+									<port>9090</port>
+								</connector>
+							</connectors>
+							<stopPort>9999</stopPort>
+							<stopKey>STOP</stopKey>
+							<contextPath>/</contextPath>
+							<webApp>${project.parent.basedir}/perfload-test-app/target/perfload-test-app-${project.version}.war</webApp>
+						</configuration>
+						<executions>
+							<execution>
+								<id>it-start-jetty</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+									<goal>deploy-war</goal>
+								</goals>
+								<configuration>
+									<daemon>true</daemon>
+								</configuration>
+							</execution>
+							<execution>
+								<id>it-stop-jetty</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>integration-test</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>verify</id>
+								<goals>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+			<dependencies>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>perfload-test-app</artifactId>
+					<type>war</type>
+				</dependency>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>perfload-test-client</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+</project>
