@@ -14,7 +14,6 @@ From: 'an unknown organization'
   - lambdaj (http://code.google.com/p/lambdaj) com.googlecode.lambdaj:lambdaj:jar:2.3.3
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - "Java Concurrency in Practice" book annotations (http://jcip.net/) net.jcip:jcip-annotations:jar:1.0
-
   - Hamcrest Core (https://github.com/hamcrest/JavaHamcrest/hamcrest-core) org.hamcrest:hamcrest-core:jar:1.3
     License: New BSD License  (http://www.opensource.org/licenses/bsd-license.php)
   - Hamcrest library (https://github.com/hamcrest/JavaHamcrest/hamcrest-library) org.hamcrest:hamcrest-library:jar:1.3
@@ -27,10 +26,10 @@ From: 'Joe Walnes, Henri Tremblay, Leonardo Mesquita'
 From: 'MetaStuff Ltd.' (http://sourceforge.net/projects/dom4j)
   - dom4j (http://dom4j.org) dom4j:dom4j:jar:1.6.1
 
-
 From: 'QOS.ch' (http://www.qos.ch)
   - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.9
-    License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)    License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+    License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)
+    License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
   - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.2
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
   - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.2
