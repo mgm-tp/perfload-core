@@ -27,9 +27,9 @@ import com.mgmtp.perfload.core.client.config.annotations.ProcessId;
 import com.mgmtp.perfload.core.client.config.annotations.Target;
 import com.mgmtp.perfload.core.client.config.annotations.ThreadId;
 import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
-import com.mgmtp.perfload.core.logging.DefaultResultLogger;
-import com.mgmtp.perfload.core.logging.ResultLogger;
-import com.mgmtp.perfload.core.logging.SimpleLogger;
+import com.mgmtp.perfload.logging.DefaultResultLogger;
+import com.mgmtp.perfload.logging.ResultLogger;
+import com.mgmtp.perfload.logging.SimpleLogger;
 
 /**
  * {@link ResultLogger} implementation for logging test results in perfLoad tests. Extends
@@ -61,7 +61,8 @@ public class LtResultLogger extends DefaultResultLogger {
 	 */
 	@Inject
 	public LtResultLogger(final SimpleLogger fileLogger, @Nullable final InetAddress localAddress, @Layer final String layer,
-			@Operation final String operation, @Target final String target, @DaemonId final int daemonId, @ProcessId final int processId,
+			@Operation final String operation, @Target final String target, @DaemonId final int daemonId,
+			@ProcessId final int processId,
 			@ThreadId final int threadId) {
 		super(fileLogger, localAddress, layer, operation, target, daemonId, processId, threadId);
 	}

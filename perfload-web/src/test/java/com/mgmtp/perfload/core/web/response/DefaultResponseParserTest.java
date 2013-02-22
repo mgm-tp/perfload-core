@@ -31,8 +31,8 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.template.RequestTemplate.DetailExtraction;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * @author rnaegele

@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.mgmtp.perfload.core.common.util.LoggingGobbleCallback;
 import com.mgmtp.perfload.core.common.util.LoggingGobbleCallback.Level;
 import com.mgmtp.perfload.core.common.util.StreamGobbler;
-import com.mgmtp.perfload.core.logging.ResultLogger;
-import com.mgmtp.perfload.core.logging.TimeInterval;
+import com.mgmtp.perfload.logging.ResultLogger;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Driver implementation for running an external script. The process is started and waited for.

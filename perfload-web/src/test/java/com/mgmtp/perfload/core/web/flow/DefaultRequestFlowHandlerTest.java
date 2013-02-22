@@ -55,8 +55,6 @@ import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
-import com.mgmtp.perfload.core.logging.ResultLogger;
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.WebErrorHandler;
 import com.mgmtp.perfload.core.web.event.DefaultLoggingListener;
 import com.mgmtp.perfload.core.web.event.RequestFlowEventListener;
@@ -72,6 +70,8 @@ import com.mgmtp.perfload.core.web.template.DefaultTemplateTransformer;
 import com.mgmtp.perfload.core.web.template.RequestTemplate;
 import com.mgmtp.perfload.core.web.template.RequestTemplate.DetailExtraction;
 import com.mgmtp.perfload.core.web.template.RequestTemplate.HeaderExtraction;
+import com.mgmtp.perfload.logging.ResultLogger;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * @author rnaegele

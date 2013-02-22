@@ -24,10 +24,10 @@ import javax.inject.Singleton;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
-import com.mgmtp.perfload.core.logging.ResultLogger;
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.config.WebLtModule;
 import com.mgmtp.perfload.core.web.response.ResponseInfo;
+import com.mgmtp.perfload.logging.ResultLogger;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Listener for logging time measurements. This listener is registered internally by perfLoad in

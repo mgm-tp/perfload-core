@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.google.common.collect.ImmutableMap;
-import com.mgmtp.perfload.core.logging.TimeInterval;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Pojo for wrapping response information.

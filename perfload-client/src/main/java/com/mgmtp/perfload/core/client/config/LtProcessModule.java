@@ -73,9 +73,9 @@ import com.mgmtp.perfload.core.client.util.concurrent.DelayingExecutorService;
 import com.mgmtp.perfload.core.clientserver.client.Client;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
 import com.mgmtp.perfload.core.common.util.PropertiesUtils;
-import com.mgmtp.perfload.core.logging.ResultLogger;
-import com.mgmtp.perfload.core.logging.SimpleFileLogger;
-import com.mgmtp.perfload.core.logging.SimpleLogger;
+import com.mgmtp.perfload.logging.ResultLogger;
+import com.mgmtp.perfload.logging.SimpleFileLogger;
+import com.mgmtp.perfload.logging.SimpleLogger;
 
 /**
  * Guice module for binding perfLoad's core classes.

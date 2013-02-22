@@ -19,11 +19,11 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.UUID;
 
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.web.request.RequestHandler;
 import com.mgmtp.perfload.core.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.web.template.RequestTemplate;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * @author rnaegele

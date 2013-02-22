@@ -27,14 +27,14 @@ import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
-import com.mgmtp.perfload.core.logging.SimpleLogger;
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.web.config.WebLtModule;
 import com.mgmtp.perfload.core.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.web.request.RequestHandler;
 import com.mgmtp.perfload.core.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.web.template.RequestTemplate;
+import com.mgmtp.perfload.logging.SimpleLogger;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * @author rnaegele
@@ -82,10 +82,12 @@ public class ComponentTestModule extends AbstractLtModule {
 
 	static class MockRequestHandler implements RequestHandler {
 		@Override
-		public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template, final UUID requestId)
+		public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template,
+				final UUID requestId)
 				throws IOException {
 			return new ResponseInfo("GET", "/foo", 200, "OK", Collections.<String, String>emptyMap(), "<html></html>".getBytes(),
-					"UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(), UUID.randomUUID(), requestId);
+					"UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(), UUID.randomUUID(),
+					requestId);
 		}
 	}
 }

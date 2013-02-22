@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
 import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
-import com.mgmtp.perfload.core.logging.TimeInterval;
 import com.mgmtp.perfload.core.web.response.ResponseInfo;
+import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Default {@link HttpClientManager} implementation. This class lazily creates an HttpClient
