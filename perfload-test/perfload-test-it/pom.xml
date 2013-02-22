@@ -89,7 +89,6 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>build-helper-maven-plugin</artifactId>
-						<version>1.7</version>
 						<executions>
 							<execution>
 								<id>reserve-deamon-ports</id>
@@ -106,7 +105,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<inherited>false</inherited>
