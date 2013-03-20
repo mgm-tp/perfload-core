@@ -46,8 +46,6 @@
 			<excludes>
 				<exclude>*.sh</exclude>
 			</excludes>
-			<fileMode>644</fileMode>
-			<lineEnding>unix</lineEnding>
 			<directory>src/scripts</directory>
 			<filtered>true</filtered>
 			<outputDirectory>/</outputDirectory>

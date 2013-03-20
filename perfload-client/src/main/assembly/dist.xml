@@ -26,8 +26,6 @@
 	<files>
 		<file>
 			<source>src/scripts/logback.default.xml</source>
-			<fileMode>644</fileMode>
-			<lineEnding>unix</lineEnding>
 		</file>
 	</files>
 	<fileSets>
