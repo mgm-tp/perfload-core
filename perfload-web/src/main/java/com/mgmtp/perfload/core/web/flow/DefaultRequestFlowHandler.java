@@ -95,7 +95,8 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	 */
 	@Inject
 	DefaultRequestFlowHandler(final List<RequestFlow> requestFlows, final Map<String, RequestHandler> requestHandlers,
-			final HttpClientManager httpClientManager, final TemplateTransformer templateTransformer, final ResponseParser responseParser,
+			final HttpClientManager httpClientManager, final TemplateTransformer templateTransformer,
+			final ResponseParser responseParser,
 			final WaitingTimeManager waitingTimeManager, final PlaceholderContainer placeholderContainer,
 			final Set<RequestFlowEventListener> listeners, final ErrorHandler errorHandler, final UUID executionId) {
 		this.requestFlows = requestFlows;
@@ -137,17 +138,25 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 						// check for interrupt and abort if necessary
 						checkInterrupt();
 
-						// fire event
+						// fire event, also called for skipped requests, because event handler may decide whether to skip
+						// must be called before the template is made executable, so parameters
+						// can be put into the placeholder container
 						fireBeforeRequest(flowIndex, template);
 
 						executableTemplate = templateTransformer.makeExecutable(template, placeholderContainer);
-						log.info("Executing request template: {}", executableTemplate);
+						if (executableTemplate.isSkipped()) {
+							log.info("Skipping request: {}", executableTemplate);
+							continue;
+						}
+
+						log.info("Executing request: {}", executableTemplate);
 
 						// look up request handler for the request's type
 						String type = template.getType();
 						RequestHandler handler = requestHandlers.get(type);
 						if (handler == null) {
-							throw new InvalidRequestHandlerException(String.format("No request handler for type '%s' available.", type));
+							throw new InvalidRequestHandlerException(String.format("No request handler for type '%s' available.",
+									type));
 						}
 
 						responseInfo = handler.execute(httpClientManager, executableTemplate, requestId);
@@ -156,7 +165,8 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 
 							// process response
 							responseParser.validate(responseInfo);
-							responseParser.extractDetails(responseInfo, executableTemplate.getDetailExtractions(), placeholderContainer);
+							responseParser.extractDetails(responseInfo, executableTemplate.getDetailExtractions(),
+									placeholderContainer);
 						}
 					} catch (Exception ex) {
 						exception = ex;
@@ -174,15 +184,17 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 						break;
 					} finally {
 						RequestTemplate template4Event = executableTemplate != null ? executableTemplate : template;
-						// ResponseInfo is null if an exception occurs when the HttpClient executes the request.
-						// In order to make sure that we still get an entry in the measuring log, we need to create one.
-						if (responseInfo == null) {
+						// ResponseInfo is null the request is skipped of if an exception occurs when the HttpClient executes
+						// the request. In order to make sure that we still get an entry in the measuring log in the case of and
+						// exceptiohn, we need to create one. However, it must remain null, when the request is skipped in
+						// order to avoid an entry in the measuring log.
+						if (responseInfo == null && executableTemplate != null && !executableTemplate.isSkipped()) {
 							responseInfo = new ResponseInfo(template4Event.getType(), template4Event.getUri(),
 									System.currentTimeMillis(), executionId, requestId);
 							responseInfo.setUriAlias(template4Event.getUriAlias());
 						}
 
-						// fire event
+						// always fire event, including skipped requests
 						fireAfterRequest(flowIndex, template4Event, exception, responseInfo);
 					}
 				}

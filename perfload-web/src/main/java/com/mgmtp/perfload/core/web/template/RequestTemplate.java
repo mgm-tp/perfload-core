@@ -51,6 +51,7 @@ public final class RequestTemplate {
 	private final List<HeaderExtraction> headerExtractions;
 	private final List<DetailExtraction> detailExtractions;
 	private final Body body;
+	private final String skip;
 
 	/**
 	 * @param type
@@ -65,9 +66,9 @@ public final class RequestTemplate {
 	 * @param detailExtractions
 	 *            A map of details extractions
 	 */
-	public RequestTemplate(final String type, final String uri, final String uriAlias, final SetMultimap<String, String> requestHeaders,
-			final SetMultimap<String, String> requestParameters, final Body body, final List<HeaderExtraction> headerExtractions,
-			final List<DetailExtraction> detailExtractions) {
+	public RequestTemplate(final String type, final String skip, final String uri, final String uriAlias,
+			final SetMultimap<String, String> requestHeaders, final SetMultimap<String, String> requestParameters,
+			final Body body, final List<HeaderExtraction> headerExtractions, final List<DetailExtraction> detailExtractions) {
 		checkArgument(type != null, "Parameter 'type' must not be null.");
 		checkArgument(uri != null, "Parameter 'uri' must not be null.");
 		checkArgument(requestHeaders != null, "Parameter 'requestHeaders' must not be null.");
@@ -75,6 +76,7 @@ public final class RequestTemplate {
 		checkArgument(headerExtractions != null, "Parameter 'headerExtractions' must not be null.");
 		checkArgument(detailExtractions != null, "Parameter 'detailExtractions' must not be null.");
 		this.type = type;
+		this.skip = skip;
 		this.uri = uri;
 		this.uriAlias = uriAlias;
 		this.requestHeaders = ImmutableSetMultimap.copyOf(requestHeaders);
@@ -89,6 +91,17 @@ public final class RequestTemplate {
 	 */
 	public String getType() {
 		return type;
+	}
+
+	/**
+	 * @return the skip
+	 */
+	public String getSkip() {
+		return skip;
+	}
+
+	public boolean isSkipped() {
+		return Boolean.parseBoolean(skip);
 	}
 
 	/**

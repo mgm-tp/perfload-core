@@ -20,6 +20,7 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.toByteArray;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -85,6 +86,7 @@ public final class XmlRequestFlowReader {
 
 		for (Element requestElem : requests) {
 			String type = requestElem.attributeValue("type");
+			String skip = defaultString(emptyToNull(requestElem.attributeValue("skip")), "false");
 			String uri = requestElem.attributeValue("uri");
 			String uriAlias = emptyToNull(requestElem.attributeValue("uriAlias"));
 
@@ -158,7 +160,8 @@ public final class XmlRequestFlowReader {
 				extractDetailsList.add(ed);
 			}
 
-			templates.add(new RequestTemplate(type, uri, uriAlias, headersMultiMap, paramsMultiMap, body, extractHeadersList, extractDetailsList));
+			templates.add(new RequestTemplate(type, skip, uri, uriAlias, headersMultiMap, paramsMultiMap, body,
+					extractHeadersList, extractDetailsList));
 		}
 
 		return new RequestFlow(resourceName, templates);

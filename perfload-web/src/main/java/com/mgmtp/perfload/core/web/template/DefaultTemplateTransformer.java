@@ -76,6 +76,9 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 			resolvedHeaders.put(resolvedKey, resolvedValue);
 		}
 
+		// Resolve placeholders in skip
+		String skip = PlaceholderUtils.resolvePlaceholders(template.getSkip(), placeholderContainer);
+
 		// Resolve placeholders in URI
 		String uri = PlaceholderUtils.resolvePlaceholders(template.getUri(), placeholderContainer);
 
@@ -100,12 +103,13 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 
 		for (DetailExtraction extraction : detailExtractions) {
 			String pattern = PlaceholderUtils.resolvePlaceholders(extraction.getPattern(), placeholderContainer);
-			DetailExtraction transformedExtraction = new DetailExtraction(extraction.getName(), pattern, extraction.getGroupIndex(),
+			DetailExtraction transformedExtraction = new DetailExtraction(extraction.getName(), pattern,
+					extraction.getGroupIndex(),
 					extraction.getDefaultValue(), extraction.isIndexed(), extraction.isFailIfNotFound());
 			transformedDetailsExtractions.add(transformedExtraction);
 		}
 
-		return new RequestTemplate(template.getType(), uri, uriAlias, resolvedHeaders, resolvedParams, body, template.getHeaderExtractions(),
-				transformedDetailsExtractions);
+		return new RequestTemplate(template.getType(), skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
+				template.getHeaderExtractions(), transformedDetailsExtractions);
 	}
 }

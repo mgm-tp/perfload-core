@@ -55,9 +55,9 @@ public class DefaultTemplateTransformerTest {
 
 		HeaderExtraction heActual = new HeaderExtraction("header1", "blubb");
 		DetailExtraction deActual = new DetailExtraction("foo", "${foo}", 1, null, false, false);
-		RequestTemplate template = new RequestTemplate("GET", "testuri", null, headers, params,
-				new Body("blubb ${foo} blubb ${foo} blubb".getBytes(), Charset.forName("UTF-8")), ImmutableList.<HeaderExtraction>of(heActual),
-				ImmutableList.<DetailExtraction>of(deActual));
+		RequestTemplate template = new RequestTemplate("GET", "${skip}", "testuri", null, headers, params,
+				new Body("blubb ${foo} blubb ${foo} blubb".getBytes(), Charset.forName("UTF-8")),
+				ImmutableList.<HeaderExtraction>of(heActual), ImmutableList.<DetailExtraction>of(deActual));
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
 		pc.put("value1", "value1_transformed");
@@ -67,9 +67,12 @@ public class DefaultTemplateTransformerTest {
 		pc.put("indexedValue", "value1");
 		pc.put("indexedParam", "indexedParam");
 		pc.put("foo", ".*?");
+		pc.put("skip", "false");
 
 		TemplateTransformer transformer = new DefaultTemplateTransformer();
 		RequestTemplate executableTemplate = transformer.makeExecutable(template, pc);
+
+		assertEquals(executableTemplate.getSkip(), "false");
 
 		assertEquals(executableTemplate.getBody().getContent(), "blubb .*? blubb .*? blubb".getBytes(Charset.forName("UTF-8")));
 
@@ -96,8 +99,9 @@ public class DefaultTemplateTransformerTest {
 		assertTrue(expextedParams.containsEntry("indexedParam", "value2"));
 
 		ImmutableSetMultimap.<String, String>of();
-		template = new RequestTemplate("GET", "testuri/param1/${value1}/param2/${value2}", null, ImmutableSetMultimap.<String, String>of(),
-				ImmutableSetMultimap.<String, String>of(), null, Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+		template = new RequestTemplate("GET", "true", "testuri/param1/${value1}/param2/${value2}", null,
+				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
 		executableTemplate = transformer.makeExecutable(template, pc);
 
 		assertEquals(executableTemplate.getUri(), "testuri/param1/value1_transformed/param2/${value2}");
