@@ -15,11 +15,13 @@
  */
 package com.mgmtp.perfload.core.web.response;
 
+import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 import static java.util.Arrays.copyOf;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
@@ -53,6 +56,8 @@ public final class ResponseInfo {
 	private long timestamp;
 	private final UUID executionId;
 	private final UUID requestId;
+	
+	private final Set<String> detailExtractionNames = newHashSetWithExpectedSize(3);
 
 	/**
 	 * @param methodType
@@ -115,7 +120,8 @@ public final class ResponseInfo {
 	 * @param requestId
 	 *            the id of the current request
 	 */
-	public ResponseInfo(final String methodType, final String uri, final long timestamp, final UUID executionId, final UUID requestId) {
+	public ResponseInfo(final String methodType, final String uri, final long timestamp, final UUID executionId,
+			final UUID requestId) {
 		this(methodType, uri, -1, null, ImmutableMap.<String, String>of(), null, null, null, timestamp, new TimeInterval(),
 				new TimeInterval(), executionId, requestId);
 	}
@@ -269,6 +275,23 @@ public final class ResponseInfo {
 		this.extraInfo = extraInfo;
 	}
 
+	/**
+	 * Adds the name of a detail extraction performed on this response.
+	 * 
+	 * @param name
+	 *            the detail extraction name as configured in the request flow
+	 */
+	public void addDetailExtractionName(final String name) {
+		detailExtractionNames.add(name);
+	}
+
+	/**
+	 * @return the detailExtractionNames
+	 */
+	public Set<String> getDetailExtractionNames() {
+		return ImmutableSet.copyOf(detailExtractionNames);
+	}
+
 	@Override
 	public String toString() {
 		ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
@@ -281,6 +304,7 @@ public final class ResponseInfo {
 		tsb.append("charset", charset);
 		tsb.append("extraInfo", extraInfo);
 		tsb.append("executionId", executionId);
+		tsb.append("detailExtractionNames", detailExtractionNames);
 		tsb.append("body", getResponseBodyAsString());
 
 		// We don't want line breaks in the result
