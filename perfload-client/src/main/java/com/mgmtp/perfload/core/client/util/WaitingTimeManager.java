@@ -45,7 +45,8 @@ public final class WaitingTimeManager {
 	 *            strategy used to calculate the sleep time before each request
 	 */
 	@Inject
-	public WaitingTimeManager(@Named("wtm.beforeTestStartMillis") final long beforeTestStartMillis, final WaitingTimeStrategy beforeRequestStrategy) {
+	public WaitingTimeManager(@Named("wtm.beforeTestStartMillis") final long beforeTestStartMillis,
+			final WaitingTimeStrategy beforeRequestStrategy) {
 		this.beforeTestStartMillis = beforeTestStartMillis;
 		this.beforeRequestStrategy = beforeRequestStrategy;
 	}

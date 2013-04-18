@@ -25,8 +25,9 @@ import com.mgmtp.perfload.core.common.util.AbortionException;
 public interface ErrorHandler {
 
 	/**
-	 * Handles exceptions thrown during test execution. Implementors may decide whether an exception should lead to the abortion
-	 * of the test. If the test is to be aborted, an {@link AbortionException} must be thrown.
+	 * Handles exceptions thrown during test execution. Implementors may decide whether an exception
+	 * should lead to the abortion of the test. If the test is to be aborted, an
+	 * {@link AbortionException} must be thrown.
 	 * 
 	 * @param th
 	 *            the throwable

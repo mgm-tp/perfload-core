@@ -20,8 +20,8 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 /**
- * A {@link ScheduledFuture} that is {@link Runnable}. Successful execution of the {@link #run()} method causes completion of the
- * {@link Future} and allows access to its results.
+ * A {@link ScheduledFuture} that is {@link Runnable}. Successful execution of the {@link #run()}
+ * method causes completion of the {@link Future} and allows access to its results.
  * 
  * @author rnaegele
  * @param <V>

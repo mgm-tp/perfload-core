@@ -26,9 +26,9 @@ import java.util.Map;
 import org.apache.commons.io.LineIterator;
 
 import com.google.inject.Provides;
+import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
+import com.mgmtp.perfload.core.client.web.config.WebLtModule;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
-import com.mgmtp.perfload.core.web.config.AbstractWebLtModule;
-import com.mgmtp.perfload.core.web.config.WebLtModule;
 
 /**
  * @author rnaegele

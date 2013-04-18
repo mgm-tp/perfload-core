@@ -22,7 +22,6 @@ import java.lang.annotation.Target;
 
 import javax.inject.Scope;
 
-
 /**
  * Scope annotation for {@link ThreadScope}. Types annotated with this annotation are bound in
  * {@link ThreadScope}.

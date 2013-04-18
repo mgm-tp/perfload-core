@@ -29,8 +29,8 @@ import net.jcip.annotations.ThreadSafe;
 
 import com.google.common.collect.ImmutableList;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
-import com.mgmtp.perfload.core.web.event.RequestFlowEvent;
-import com.mgmtp.perfload.core.web.event.RequestFlowEventListener;
+import com.mgmtp.perfload.core.client.web.event.RequestFlowEvent;
+import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
 
 /**
  * @author rnaegele

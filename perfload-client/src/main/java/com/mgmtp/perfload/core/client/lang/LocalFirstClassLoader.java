@@ -22,8 +22,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * {@link URLClassLoader} implementation that tries to load classes locally before delegating to the parent class loader. This is
- * necessary for plugin-like architectures where a class and its dependencies need to be loaded in isolation.
+ * {@link URLClassLoader} implementation that tries to load classes locally before delegating to the
+ * parent class loader. This is necessary for plugin-like architectures where a class and its
+ * dependencies need to be loaded in isolation.
  * 
  * @author rnaegele
  */
@@ -38,8 +39,8 @@ public final class LocalFirstClassLoader extends URLClassLoader {
 	}
 
 	/**
-	 * Loads the class with the specified binary name trying to load it from the local classpath first before delegating to the
-	 * normal class loading mechanism.
+	 * Loads the class with the specified binary name trying to load it from the local classpath
+	 * first before delegating to the normal class loading mechanism.
 	 */
 	@Override
 	protected synchronized Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
@@ -67,8 +68,8 @@ public final class LocalFirstClassLoader extends URLClassLoader {
 	}
 
 	/**
-	 * Finds the resource with the given name trying to load it from the local classpath first before delegating to the normal
-	 * resource loading mechanism.
+	 * Finds the resource with the given name trying to load it from the local classpath first
+	 * before delegating to the normal resource loading mechanism.
 	 */
 	@Override
 	public URL getResource(final String name) {

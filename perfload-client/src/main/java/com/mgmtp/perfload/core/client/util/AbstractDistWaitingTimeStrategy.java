@@ -31,7 +31,7 @@ public abstract class AbstractDistWaitingTimeStrategy implements WaitingTimeStra
 	}
 
 	protected long calculateNormedValue(final double probability) {
-		double rnd = intervalMaxMillis - (probability * (intervalMaxMillis - intervalMinMillis));
+		double rnd = intervalMaxMillis - probability * (intervalMaxMillis - intervalMinMillis);
 		return Math.round(rnd);
 	}
 }

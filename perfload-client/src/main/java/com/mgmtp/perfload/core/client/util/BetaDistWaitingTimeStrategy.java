@@ -32,9 +32,9 @@ public final class BetaDistWaitingTimeStrategy extends AbstractDistWaitingTimeSt
 
 	@Inject
 	public BetaDistWaitingTimeStrategy(@Named("wtm.strategy.betadist.intervalMinMillis") final long intervalMinMillis,
-	        @Named("wtm.strategy.betadist.intervalMaxMillis") final long intervalMaxMillis,
-	        @Named("wtm.strategy.betadist.betaDistParamA") final double betaDistParamA,
-	        @Named("wtm.strategy.betadist.betaDistParamB") final double betaDistParamB) {
+			@Named("wtm.strategy.betadist.intervalMaxMillis") final long intervalMaxMillis,
+			@Named("wtm.strategy.betadist.betaDistParamA") final double betaDistParamA,
+			@Named("wtm.strategy.betadist.betaDistParamB") final double betaDistParamB) {
 		super(intervalMinMillis, intervalMaxMillis);
 		this.betaDistParamA = betaDistParamA;
 		this.betaDistParamB = betaDistParamB;

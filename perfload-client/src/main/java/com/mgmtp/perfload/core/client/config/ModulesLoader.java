@@ -45,8 +45,8 @@ public final class ModulesLoader {
 
 	/**
 	 * @param testplanModule
-	 *            the Guice module configured in the testplan configuration file; must have a public zero-args constructor and
-	 *            extend {@link AbstractLtModule}
+	 *            the Guice module configured in the testplan configuration file; must have a public
+	 *            zero-args constructor and extend {@link AbstractLtModule}
 	 * @param testplanProps
 	 *            testplan properties as specified in the testplan configuration file
 	 * @param client
@@ -57,7 +57,7 @@ public final class ModulesLoader {
 	 *            the one-base id of the process
 	 */
 	public ModulesLoader(final AbstractLtModule testplanModule, final PropertiesMap testplanProps, final Client client,
-	        final int daemonId, final int processId) {
+			final int daemonId, final int processId) {
 		this.testplanModule = testplanModule;
 		this.testplanProps = testplanProps;
 		this.client = client;
@@ -66,9 +66,10 @@ public final class ModulesLoader {
 	}
 
 	/**
-	 * Creates the Guice injector. Internal perfLoad module and that specified in the testplan are installed such that the latter
-	 * one can override default bindings. Also binds properties as returned by {@link AbstractLtModule#getProperties()} including
-	 * properties specified in the testplan configuration file which take precedence over those loaded from properties files.
+	 * Creates the Guice injector. Internal perfLoad module and that specified in the testplan are
+	 * installed such that the latter one can override default bindings. Also binds properties as
+	 * returned by {@link AbstractLtModule#getProperties()} including properties specified in the
+	 * testplan configuration file which take precedence over those loaded from properties files.
 	 * 
 	 * @return the Guice injector
 	 */

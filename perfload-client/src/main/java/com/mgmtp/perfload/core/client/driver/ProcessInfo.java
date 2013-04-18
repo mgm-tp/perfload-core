@@ -49,7 +49,8 @@ public class ProcessInfo {
 	 * @param logPrefix
 	 *            the prefix that is to be prepended to the process' output, may be null
 	 */
-	public ProcessInfo(final String directory, final boolean freshEnvironment, final Map<String, String> envVars, final List<String> commands,
+	public ProcessInfo(final String directory, final boolean freshEnvironment, final Map<String, String> envVars,
+			final List<String> commands,
 			final boolean redirectProcessOutput,
 			final String logPrefix) {
 		this.directory = directory;

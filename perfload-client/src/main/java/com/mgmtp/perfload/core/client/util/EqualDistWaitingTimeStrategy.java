@@ -27,7 +27,7 @@ public final class EqualDistWaitingTimeStrategy extends AbstractDistWaitingTimeS
 
 	@Inject
 	public EqualDistWaitingTimeStrategy(@Named("wtm.strategy.equaldist.intervalMinMillis") final long intervalMinMillis,
-	        @Named("wtm.strategy.equaldist.intervalMaxMillis") final long intervalMaxMillis) {
+			@Named("wtm.strategy.equaldist.intervalMaxMillis") final long intervalMaxMillis) {
 		super(intervalMinMillis, intervalMaxMillis);
 	}
 

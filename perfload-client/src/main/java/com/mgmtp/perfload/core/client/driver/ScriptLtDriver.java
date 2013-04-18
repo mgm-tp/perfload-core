@@ -90,14 +90,17 @@ public class ScriptLtDriver implements LtDriver {
 			log.info("Process output is redirected to perfLoad's log.");
 
 			StreamGobbler gobbler = new StreamGobbler(Executors.newCachedThreadPool());
-			gobbler.addStream(process.getInputStream(), "UTF-8", new LoggingGobbleCallback(Level.INFO, processInfo.getLogPrefix()));
-			gobbler.addStream(process.getErrorStream(), "UTF-8", new LoggingGobbleCallback(Level.ERROR, processInfo.getLogPrefix()));
+			gobbler.addStream(process.getInputStream(), "UTF-8",
+					new LoggingGobbleCallback(Level.INFO, processInfo.getLogPrefix()));
+			gobbler.addStream(process.getErrorStream(), "UTF-8",
+					new LoggingGobbleCallback(Level.ERROR, processInfo.getLogPrefix()));
 		}
 
 		int exitCode = process.waitFor();
 		ti.stop();
 
 		log.info("External process terminated with exit code {}.", exitCode);
-		loggerProvider.get().logResult(System.currentTimeMillis(), ti, ti, "SCRIPT", null, null, executionIdProvider.get(), UUID.randomUUID());
+		loggerProvider.get().logResult(System.currentTimeMillis(), ti, ti, "SCRIPT", null, null, executionIdProvider.get(),
+				UUID.randomUUID());
 	}
 }
