@@ -326,34 +326,34 @@ public final class RequestTemplate {
 	public static final class DetailExtraction {
 		private final String name;
 		private final String pattern;
-		private final int groupIndex;
+		private final String groupIndexString;
 		private final String defaultValue;
-		private final boolean indexed;
-		private final boolean failIfNotFound;
+		private final String indexedString;
+		private final String failIfNotFoundString;
 
 		/**
 		 * @param name
 		 *            a name for this details
 		 * @param pattern
 		 *            a regular expression used to find the detail in the response
-		 * @param groupIndex
+		 * @param groupIndexString
 		 *            the detail is extracted from the capturing group with this index
 		 * @param defaultValue
 		 *            default value used if the regular expression does not match
-		 * @param failIfNotFound
+		 * @param failIfNotFoundString
 		 *            specifies whether an exception should be thrown if extraction fails
 		 */
-		public DetailExtraction(final String name, final String pattern, final int groupIndex, final String defaultValue,
-				final boolean indexed, final boolean failIfNotFound) {
+		public DetailExtraction(final String name, final String pattern, final String groupIndexString,
+				final String defaultValue, final String indexedString, final String failIfNotFoundString) {
 			checkArgument(name != null, "Parameter 'name' must not be null.");
 			checkArgument(pattern != null, "Parameter 'pattern' must not be null.");
 
 			this.name = name;
 			this.pattern = pattern;
-			this.groupIndex = groupIndex;
+			this.groupIndexString = groupIndexString;
 			this.defaultValue = defaultValue;
-			this.indexed = indexed;
-			this.failIfNotFound = failIfNotFound;
+			this.indexedString = indexedString;
+			this.failIfNotFoundString = failIfNotFoundString;
 		}
 
 		/**
@@ -373,8 +373,12 @@ public final class RequestTemplate {
 		/**
 		 * @return the groupIndex
 		 */
+		public String getGroupIndexString() {
+			return groupIndexString;
+		}
+
 		public int getGroupIndex() {
-			return groupIndex;
+			return groupIndexString != null ? Integer.parseInt(groupIndexString) : 1;
 		}
 
 		/**
@@ -387,15 +391,23 @@ public final class RequestTemplate {
 		/**
 		 * @return the indexed
 		 */
+		public String getIndexedString() {
+			return indexedString;
+		}
+
 		public boolean isIndexed() {
-			return indexed;
+			return indexedString != null ? Boolean.parseBoolean(indexedString) : false;
 		}
 
 		/**
 		 * @return the failIfNotFound
 		 */
+		public String getFailIfNotFoundString() {
+			return failIfNotFoundString;
+		}
+
 		public boolean isFailIfNotFound() {
-			return failIfNotFound;
+			return failIfNotFoundString == null || Boolean.valueOf(failIfNotFoundString);
 		}
 
 		@Override
@@ -408,11 +420,11 @@ public final class RequestTemplate {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + (defaultValue == null ? 0 : defaultValue.hashCode());
-			result = prime * result + (failIfNotFound ? 1231 : 1237);
-			result = prime * result + groupIndex;
-			result = prime * result + (indexed ? 1231 : 1237);
-			result = prime * result + name.hashCode();
-			result = prime * result + pattern.hashCode();
+			result = prime * result + (failIfNotFoundString == null ? 0 : failIfNotFoundString.hashCode());
+			result = prime * result + (groupIndexString == null ? 0 : groupIndexString.hashCode());
+			result = prime * result + (indexedString == null ? 0 : indexedString.hashCode());
+			result = prime * result + (name == null ? 0 : name.hashCode());
+			result = prime * result + (pattern == null ? 0 : pattern.hashCode());
 			return result;
 		}
 
@@ -435,19 +447,39 @@ public final class RequestTemplate {
 			} else if (!defaultValue.equals(other.defaultValue)) {
 				return false;
 			}
-			if (failIfNotFound != other.failIfNotFound) {
+			if (failIfNotFoundString == null) {
+				if (other.failIfNotFoundString != null) {
+					return false;
+				}
+			} else if (!failIfNotFoundString.equals(other.failIfNotFoundString)) {
 				return false;
 			}
-			if (groupIndex != other.groupIndex) {
+			if (groupIndexString == null) {
+				if (other.groupIndexString != null) {
+					return false;
+				}
+			} else if (!groupIndexString.equals(other.groupIndexString)) {
 				return false;
 			}
-			if (indexed != other.indexed) {
+			if (indexedString == null) {
+				if (other.indexedString != null) {
+					return false;
+				}
+			} else if (!indexedString.equals(other.indexedString)) {
 				return false;
 			}
-			if (!name.equals(other.name)) {
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
 				return false;
 			}
-			if (!pattern.equals(other.pattern)) {
+			if (pattern == null) {
+				if (other.pattern != null) {
+					return false;
+				}
+			} else if (!pattern.equals(other.pattern)) {
 				return false;
 			}
 			return true;

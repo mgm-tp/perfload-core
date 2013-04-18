@@ -102,10 +102,17 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 		List<DetailExtraction> transformedDetailsExtractions = newArrayListWithCapacity(detailExtractions.size());
 
 		for (DetailExtraction extraction : detailExtractions) {
+			String name = PlaceholderUtils.resolvePlaceholders(extraction.getName(), placeholderContainer);
 			String pattern = PlaceholderUtils.resolvePlaceholders(extraction.getPattern(), placeholderContainer);
-			DetailExtraction transformedExtraction = new DetailExtraction(extraction.getName(), pattern,
-					extraction.getGroupIndex(),
-					extraction.getDefaultValue(), extraction.isIndexed(), extraction.isFailIfNotFound());
+			String groupIndexString = PlaceholderUtils
+					.resolvePlaceholders(extraction.getGroupIndexString(), placeholderContainer);
+			String defaultValue = PlaceholderUtils.resolvePlaceholders(extraction.getDefaultValue(), placeholderContainer);
+			String failIfNotFoundString = PlaceholderUtils.resolvePlaceholders(extraction.getFailIfNotFoundString(),
+					placeholderContainer);
+			String indexedString = PlaceholderUtils.resolvePlaceholders(extraction.getIndexedString(), placeholderContainer);
+
+			DetailExtraction transformedExtraction = new DetailExtraction(name, pattern, groupIndexString, defaultValue,
+					indexedString, failIfNotFoundString);
 			transformedDetailsExtractions.add(transformedExtraction);
 		}
 

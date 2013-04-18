@@ -60,10 +60,10 @@
 		<xs:simpleContent>
 			<xs:extension base="xs:string">
 				<xs:attribute name="name" type="xs:string" use="required" />
-				<xs:attribute name="groupIndex" type="xs:positiveInteger" use="optional" />
+				<xs:attribute name="groupIndex" type="xs:string" use="optional" />
 				<xs:attribute name="defaultValue" type="xs:string" use="optional" />
-				<xs:attribute name="indexed" type="xs:boolean" use="optional" />
-				<xs:attribute name="failIfNotFound" type="xs:boolean" use="optional" />
+				<xs:attribute name="indexed" type="xs:string" use="optional" />
+				<xs:attribute name="failIfNotFound" type="xs:string" use="optional" />
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>

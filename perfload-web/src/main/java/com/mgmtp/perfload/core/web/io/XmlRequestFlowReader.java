@@ -144,19 +144,20 @@ public final class XmlRequestFlowReader {
 				String name = extractDetailElem.attributeValue("name");
 
 				String groupIndexString = extractDetailElem.attributeValue("groupIndex");
-				int groupIndex = groupIndexString != null ? Integer.parseInt(groupIndexString) : 1;
+				//				int groupIndex = groupIndexString != null ? Integer.parseInt(groupIndexString) : 1;
 
 				String defaultValue = extractDetailElem.attributeValue("defaultValue");
 
 				String indexedString = extractDetailElem.attributeValue("indexed");
-				boolean indexed = indexedString != null ? Boolean.parseBoolean(indexedString) : false;
+				//				boolean indexed = indexedString != null ? Boolean.parseBoolean(indexedString) : false;
 
 				String failIfNotFoundString = extractDetailElem.attributeValue("failIfNotFound");
-				boolean failIfNotFound = failIfNotFoundString == null || Boolean.valueOf(failIfNotFoundString);
+				//				boolean failIfNotFound = failIfNotFoundString == null || Boolean.valueOf(failIfNotFoundString);
 
 				String pattern = extractDetailElem.getText().trim();
 
-				DetailExtraction ed = new DetailExtraction(name, pattern, groupIndex, defaultValue, indexed, failIfNotFound);
+				DetailExtraction ed = new DetailExtraction(name, pattern, groupIndexString, defaultValue, indexedString,
+						failIfNotFoundString);
 				extractDetailsList.add(ed);
 			}
 

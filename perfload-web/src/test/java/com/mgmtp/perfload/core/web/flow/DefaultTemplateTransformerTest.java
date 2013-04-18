@@ -54,7 +54,7 @@ public class DefaultTemplateTransformerTest {
 		headers.put("header1", "header1value");
 
 		HeaderExtraction heActual = new HeaderExtraction("header1", "blubb");
-		DetailExtraction deActual = new DetailExtraction("foo", "${foo}", 1, null, false, false);
+		DetailExtraction deActual = new DetailExtraction("foo", "${foo}", "1", null, "false", "false");
 		RequestTemplate template = new RequestTemplate("GET", "${skip}", "testuri", null, headers, params,
 				new Body("blubb ${foo} blubb ${foo} blubb".getBytes(), Charset.forName("UTF-8")),
 				ImmutableList.<HeaderExtraction>of(heActual), ImmutableList.<DetailExtraction>of(deActual));
@@ -79,7 +79,7 @@ public class DefaultTemplateTransformerTest {
 		HeaderExtraction heExpected = new HeaderExtraction("header1", "blubb");
 		assertEquals(executableTemplate.getHeaderExtractions().get(0), heExpected);
 
-		DetailExtraction deExpected = new DetailExtraction("foo", ".*?", 1, null, false, false);
+		DetailExtraction deExpected = new DetailExtraction("foo", ".*?", "1", null, "false", "false");
 		assertEquals(executableTemplate.getDetailExtractions().get(0).getPattern(), deExpected.getPattern());
 
 		SetMultimap<String, String> expextedHeaders = executableTemplate.getRequestHeaders();

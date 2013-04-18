@@ -94,9 +94,9 @@ public class DefaultResponseParserTest {
 	public void testSuccessfulDetailExtraction() throws PatternNotFoundException {
 		ResponseInfo responseInfo = createResponseInfo(200, VALID_BODY_BYTES);
 
-		DetailExtraction extraction1 = new DetailExtraction("foo", "response (body) is", 1, null, false, true);
-		DetailExtraction extraction2 = new DetailExtraction("bar", "body (is) (valid)", 2, null, false, true);
-		DetailExtraction extraction3 = new DetailExtraction("baz", "bla blubb", 42, "myDefault", false, true);
+		DetailExtraction extraction1 = new DetailExtraction("foo", "response (body) is", "1", null, "false", "true");
+		DetailExtraction extraction2 = new DetailExtraction("bar", "body (is) (valid)", "2", null, "false", "true");
+		DetailExtraction extraction3 = new DetailExtraction("baz", "bla blubb", "42", "myDefault", "false", "true");
 		List<DetailExtraction> extractions = asList(extraction1, extraction2, extraction3);
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
@@ -112,10 +112,11 @@ public class DefaultResponseParserTest {
 
 	@Test
 	public void testSuccessfulIndexedDetailExtraction() throws PatternNotFoundException {
-		ResponseInfo responseInfo = createResponseInfo(200, "<html>bla bluub foo0 foo1 foo2 bla blubb</html>".getBytes(Charsets.UTF_8));
+		ResponseInfo responseInfo = createResponseInfo(200,
+				"<html>bla bluub foo0 foo1 foo2 bla blubb</html>".getBytes(Charsets.UTF_8));
 
-		DetailExtraction extraction1 = new DetailExtraction("foo", "(foo\\d)", 1, null, true, true);
-		DetailExtraction extraction2 = new DetailExtraction("bar", "(some random pattern)", 1, "myDefault", true, true);
+		DetailExtraction extraction1 = new DetailExtraction("foo", "(foo\\d)", "1", null, "true", "true");
+		DetailExtraction extraction2 = new DetailExtraction("bar", "(some random pattern)", "1", "myDefault", "true", "true");
 		List<DetailExtraction> extractions = asList(extraction1, extraction2);
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
@@ -134,7 +135,7 @@ public class DefaultResponseParserTest {
 	public void testUnsuccessfulDetailExtraction() throws PatternNotFoundException {
 		ResponseInfo responseInfo = createResponseInfo(200, VALID_BODY_BYTES);
 
-		DetailExtraction extraction = new DetailExtraction("foo", "bla blubb", 42, null, false, true);
+		DetailExtraction extraction = new DetailExtraction("foo", "bla blubb", "42", null, "false", "true");
 		List<DetailExtraction> extractions = asList(extraction);
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
