@@ -110,7 +110,7 @@ public final class DefaultResponseParser implements ResponseParser {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @see DetailExtraction#DetailExtraction(String, String, int, String, boolean, boolean)
+	 * @see DetailExtraction#DetailExtraction(String, String, String, String, String, String)
 	 */
 	@Override
 	public void extractDetails(final ResponseInfo responseInfo, final List<DetailExtraction> detailExtractions,
