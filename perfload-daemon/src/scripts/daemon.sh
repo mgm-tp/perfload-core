@@ -17,7 +17,7 @@
 
 
 cd `dirname $0`
-. ./setenv.sh
+[ -f setenv.sh ] && . ./setenv.sh
 
 if [ "x$JAVA_HOME" = "x" ] ; then
 	echo ERROR: JAVA_HOME not found in your environment.
@@ -35,6 +35,9 @@ if [ ! -f "$JAVA_HOME/bin/java" ] ; then
 fi
 
 JAVA_CMD="$JAVA_HOME/bin/java"
-JAVA_OPTS="$JAVA_OPTS -jar ./lib/perfload-daemon-${project.version}.jar $@"
+
+[ -f logback.xml ] && JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=logback.xml"
+
+JAVA_OPTS="$JAVA_OPTS -Xmx256m -jar ./lib/perfload-daemon-${project.version}.jar $@"
 
 exec "$JAVA_CMD" $JAVA_OPTS

@@ -20,7 +20,7 @@
 set EXIT_CODE=0
 
 cd %~dp0
-call setenv.cmd
+if exist setenv.cmd call setenv.cmd
 
 if not "%JAVA_HOME%" == "" goto gotJavaHome
 
@@ -40,7 +40,10 @@ goto error
 
 :run
 set JAVA_CMD="%JAVA_HOME%\bin\java"
-set JAVA_OPTS=%JAVA_OPTS% -jar .\lib\perfload-console-${project.version}.jar %*
+
+if exist logback.xml set JAVA_OPTS=%JAVA_OPTS% -Dlogback.configurationFile=logback.xml
+
+set JAVA_OPTS=%JAVA_OPTS% -Xmx256m -jar .\lib\perfload-console-${project.version}.jar %*
 
 call %JAVA_CMD% %JAVA_OPTS%
 
