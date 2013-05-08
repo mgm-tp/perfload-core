@@ -50,7 +50,7 @@ public class ForkedProcessClientRunnerTest {
 		Appender<ILoggingEvent> appender = new AppenderBase<ILoggingEvent>() {
 			@Override
 			protected void append(final ILoggingEvent eventObject) {
-				sb.append(eventObject.getFormattedMessage());
+				sb.append(eventObject.toString());
 			}
 		};
 
@@ -70,8 +70,9 @@ public class ForkedProcessClientRunnerTest {
 		future.get();
 
 		// Check for a class NoClassDefFoundError because the class LtProcess cannot be found. We just want to make sure
-		// that we get output from the process. This guarantees that the process was running.
-		assertTrue(sb.indexOf("java.lang.NoClassDefFoundError: com/mgmtp/perfload/core/client/LtProcess") >= 0);
+		// that we get output from the process. This guarantees that the process was running. The exception may be localized
+		// if a JRE is used, so we can just check for error and the class name.
+		assertTrue(sb.indexOf("ERROR") >= 0 && sb.indexOf("LtProcess") >= 0);
 	}
 
 }
