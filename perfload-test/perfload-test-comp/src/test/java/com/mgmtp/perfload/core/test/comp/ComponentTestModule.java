@@ -86,8 +86,8 @@ public class ComponentTestModule extends AbstractLtModule {
 				final UUID requestId)
 				throws IOException {
 			return new ResponseInfo("GET", "/foo", 200, "OK", Collections.<String, String>emptyMap(), "<html></html>".getBytes(),
-					"UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(), UUID.randomUUID(),
-					requestId);
+					"<html></html>", "UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
+					UUID.randomUUID(), requestId);
 		}
 	}
 }

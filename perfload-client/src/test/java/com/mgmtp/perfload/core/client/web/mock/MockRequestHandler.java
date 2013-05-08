@@ -37,8 +37,10 @@ public class MockRequestHandler implements RequestHandler {
 	}
 
 	@Override
-	public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template, final UUID requestId) throws IOException {
+	public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template, final UUID requestId)
+			throws IOException {
 		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(), "test content".getBytes(),
-				"UTF-8", "text/plain", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(), UUID.randomUUID(), requestId);
+				"test content", "UTF-8", "text/plain", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
+				UUID.randomUUID(), requestId);
 	}
 }

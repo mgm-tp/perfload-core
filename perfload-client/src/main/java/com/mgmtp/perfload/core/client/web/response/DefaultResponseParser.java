@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.config.annotations.AllowedStatusCodes;
+import com.mgmtp.perfload.core.client.web.config.annotations.ErrorPatterns;
 import com.mgmtp.perfload.core.client.web.config.annotations.ForbiddenStatusCodes;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 
@@ -66,10 +67,10 @@ public final class DefaultResponseParser implements ResponseParser {
 	 */
 	@Inject
 	public DefaultResponseParser(@AllowedStatusCodes final Set<Integer> allowedStatusCodes,
-			@ForbiddenStatusCodes final Set<Integer> forbiddenStatusCodes, final List<Pattern> errorPatterns) {
+			@ForbiddenStatusCodes final Set<Integer> forbiddenStatusCodes, @ErrorPatterns final List<Pattern> errorPatterns) {
 		checkArgument(allowedStatusCodes != null, "Parameter 'allowdStatusCodes' may not be null.");
 		checkArgument(forbiddenStatusCodes != null, "Parameter 'forbiddenStatusCodes' may not be null.");
-		checkArgument(errorPatterns != null, "Parameter 'forbiddenStatusCodes' may not be null.");
+		checkArgument(errorPatterns != null, "Parameter 'errorPatterns' may not be null.");
 
 		this.allowedStatusCodes = ImmutableSet.copyOf(allowedStatusCodes);
 		this.forbiddenStatusCodes = ImmutableSet.copyOf(forbiddenStatusCodes);
@@ -96,13 +97,15 @@ public final class DefaultResponseParser implements ResponseParser {
 			throw new InvalidResponseException("Response code not allowed: " + statusCode);
 		}
 
-		String body = responseInfo.getResponseBodyAsString();
-		if (body != null) {
-			for (Pattern pattern : errorPatterns) {
+		String body = responseInfo.getBodyAsString();
+		for (Pattern pattern : errorPatterns) {
+			if (body != null) {
 				Matcher matcher = pattern.matcher(body);
 				if (matcher.find()) {
 					throw new InvalidResponseException("Error pattern matched: " + pattern);
 				}
+			} else {
+				log.warn("Response body is empty or not recognized as text. Skip checking for error pattern: {}", pattern);
 			}
 		}
 	}
@@ -122,7 +125,7 @@ public final class DefaultResponseParser implements ResponseParser {
 			boolean indexed = detailExtraction.isIndexed();
 			String regex = detailExtraction.getPattern();
 			Pattern pattern = Pattern.compile(regex);
-			Matcher matcher = pattern.matcher(responseInfo.getResponseBodyAsString());
+			Matcher matcher = pattern.matcher(responseInfo.getBodyAsString());
 
 			boolean found = false;
 			for (int i = 0;; ++i) {

@@ -17,9 +17,7 @@ package com.mgmtp.perfload.core.client.web.response;
 
 import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 import static java.util.Arrays.copyOf;
-import static org.apache.commons.lang3.StringUtils.startsWith;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -51,7 +49,7 @@ public final class ResponseInfo {
 	private final String methodType;
 	private final String charset;
 	private final String contentType;
-	private String bodyAsString;
+	private final String bodyAsString;
 	private Object extraInfo;
 	private long timestamp;
 	private final UUID executionId;
@@ -90,15 +88,16 @@ public final class ResponseInfo {
 	 *            the id of the current request
 	 */
 	public ResponseInfo(final String methodType, final String uri, final int statusCode, final String statusMsg,
-			final Map<String, String> headers, final byte[] body, final String charset, final String contentType,
-			final long timestamp, final TimeInterval timeIntervalBeforeBody, final TimeInterval timeIntervalTotal,
-			final UUID executionId, final UUID requestId) {
+			final Map<String, String> headers, final byte[] body, final String bodyAsString, final String charset,
+			final String contentType, final long timestamp, final TimeInterval timeIntervalBeforeBody,
+			final TimeInterval timeIntervalTotal, final UUID executionId, final UUID requestId) {
 		this.methodType = methodType;
 		this.uri = uri;
 		this.statusCode = statusCode;
 		this.statusMsg = statusMsg;
 		this.headers = ImmutableMap.copyOf(headers);
 		this.body = body != null ? copyOf(body, body.length) : null;
+		this.bodyAsString = bodyAsString;
 		this.charset = charset;
 		this.contentType = contentType;
 		this.timestamp = timestamp;
@@ -122,7 +121,7 @@ public final class ResponseInfo {
 	 */
 	public ResponseInfo(final String methodType, final String uri, final long timestamp, final UUID executionId,
 			final UUID requestId) {
-		this(methodType, uri, -1, null, ImmutableMap.<String, String>of(), null, null, null, timestamp, new TimeInterval(),
+		this(methodType, uri, -1, null, ImmutableMap.<String, String>of(), null, null, null, null, timestamp, new TimeInterval(),
 				new TimeInterval(), executionId, requestId);
 	}
 
@@ -154,15 +153,7 @@ public final class ResponseInfo {
 	 * 
 	 * @return the response body as string, or {@code null} if the body is empty or not of type text
 	 */
-	public String getResponseBodyAsString() {
-		if (bodyAsString == null && body != null && startsWith(contentType, "text")) {
-			try {
-				bodyAsString = charset != null ? new String(body, charset) : new String(body);
-			} catch (UnsupportedEncodingException ex) {
-				// Cannot normally happen
-				throw new IllegalStateException(ex);
-			}
-		}
+	public String getBodyAsString() {
 		return bodyAsString;
 	}
 
@@ -305,8 +296,9 @@ public final class ResponseInfo {
 		tsb.append("extraInfo", extraInfo);
 		tsb.append("executionId", executionId);
 		tsb.append("detailExtractionNames", detailExtractionNames);
-		tsb.append("body", getResponseBodyAsString());
-
+		if (body != null) {
+			tsb.append("body", bodyAsString);
+		}
 		// We don't want line breaks in the result
 		return LINE_BREAK_PATTERN.matcher(tsb.toString()).replaceAll(" ");
 	}

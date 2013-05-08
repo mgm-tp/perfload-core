@@ -54,6 +54,7 @@ import com.mgmtp.perfload.core.client.util.ConstantWaitingTimeStrategy;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
 import com.mgmtp.perfload.core.client.web.WebErrorHandler;
+import com.mgmtp.perfload.core.client.web.config.WebLtModule;
 import com.mgmtp.perfload.core.client.web.event.DefaultLoggingListener;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
 import com.mgmtp.perfload.core.client.web.http.DefaultHttpClientManager;
@@ -100,7 +101,7 @@ public class DefaultRequestFlowHandlerTest {
 			}
 			return httpClient;
 		}
-	}, UUID.randomUUID(), "myOperation");
+	}, UUID.randomUUID(), "myOperation", WebLtModule.CONTENT_TYPE_PATTERNS);
 
 	private final Provider<String> targetHostProvider = new Provider<String>() {
 		@Override

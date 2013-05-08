@@ -18,8 +18,11 @@ package com.mgmtp.perfload.core.client.web.http;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
 import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.web.config.annotations.ContentTypePatterns;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.logging.TimeInterval;
 
@@ -60,6 +64,7 @@ public final class DefaultHttpClientManager implements HttpClientManager {
 	private final Provider<HttpClient> httpClientProvider;
 	private final UUID executionId;
 	private final String operation;
+	private final List<Pattern> contentTypePatterns;
 
 	private HttpClient httpClient;
 
@@ -71,10 +76,11 @@ public final class DefaultHttpClientManager implements HttpClientManager {
 	 */
 	@Inject
 	public DefaultHttpClientManager(final Provider<HttpClient> httpClientProvider, final UUID executionId,
-			@Operation final String operation) {
+			@Operation final String operation, @ContentTypePatterns final List<Pattern> contentTypePatterns) {
 		this.httpClientProvider = httpClientProvider;
 		this.executionId = executionId;
 		this.operation = operation;
+		this.contentTypePatterns = contentTypePatterns;
 	}
 
 	private HttpClient getHttpClient() {
@@ -131,6 +137,7 @@ public final class DefaultHttpClientManager implements HttpClientManager {
 		String statusMsg = statusLine.getReasonPhrase();
 		String responseCharset = EntityUtils.getContentCharSet(entity);
 		String contentType = EntityUtils.getContentMimeType(entity);
+		String bodyAsString = bodyAsString(contentType, responseCharset, body);
 
 		Header[] headers = response.getAllHeaders();
 		Map<String, String> responseHeaders = newHashMapWithExpectedSize(headers.length);
@@ -138,8 +145,25 @@ public final class DefaultHttpClientManager implements HttpClientManager {
 			responseHeaders.put(header.getName(), header.getValue());
 		}
 
-		return new ResponseInfo(type, uri, statusCode, statusMsg, responseHeaders, body, responseCharset, contentType,
-				timestamp, tiBeforeBody, tiTotal, executionId, requestId);
+		return new ResponseInfo(type, uri, statusCode, statusMsg, responseHeaders, body, bodyAsString, responseCharset,
+				contentType, timestamp, tiBeforeBody, tiTotal, executionId, requestId);
+	}
+
+	private String bodyAsString(final String contentType, final String contentCharset, final byte[] body) {
+		if (body == null || contentType == null) {
+			return null;
+		}
+
+		for (Pattern pattern : contentTypePatterns) {
+			if (pattern.matcher(contentType).matches()) {
+				try {
+					return contentCharset != null ? new String(body, contentCharset) : new String(body);
+				} catch (UnsupportedEncodingException ex) {
+					throw new IllegalStateException(ex);
+				}
+			}
+		}
+		return null;
 	}
 
 	/**

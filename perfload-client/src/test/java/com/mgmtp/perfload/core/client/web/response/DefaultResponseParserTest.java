@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.testng.Assert.assertEquals;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +32,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
-import com.mgmtp.perfload.core.client.web.response.DefaultResponseParser;
-import com.mgmtp.perfload.core.client.web.response.InvalidResponseException;
-import com.mgmtp.perfload.core.client.web.response.PatternNotFoundException;
-import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
-import com.mgmtp.perfload.core.client.web.response.ResponseParser;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 import com.mgmtp.perfload.logging.TimeInterval;
 
@@ -47,14 +43,14 @@ public class DefaultResponseParserTest {
 	private static final byte[] VALID_BODY_BYTES = "<html>This response body is valid</html>".getBytes(Charsets.UTF_8);
 	private static final byte[] INVALID_BODY_BYTES = "<html>This response body is invalid".getBytes(Charsets.UTF_8);
 
-	private ResponseInfo createResponseInfo(final int statusCode, final byte[] body) {
+	private ResponseInfo createResponseInfo(final int statusCode, final byte[] body) throws UnsupportedEncodingException {
 		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(),
-				body, "UTF-8", "text/html", System.currentTimeMillis(),
+				body, new String(body, "UTF-8"), "UTF-8", "text/html", System.currentTimeMillis(),
 				new TimeInterval(), new TimeInterval(), UUID.randomUUID(), UUID.randomUUID());
 	}
 
 	@Test
-	public void testWithValidResponse() throws InvalidResponseException {
+	public void testWithValidResponse() throws InvalidResponseException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(200, VALID_BODY_BYTES);
 
 		List<Pattern> patterns = asList(Pattern.compile("does not match"), Pattern.compile("(?is)^((?!</html>).)*$"));
@@ -68,7 +64,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test(expectedExceptions = InvalidResponseException.class)
-	public void testWithInvalidStatusCode1() throws InvalidResponseException {
+	public void testWithInvalidStatusCode1() throws InvalidResponseException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(400, VALID_BODY_BYTES);
 
 		ResponseParser parser = new DefaultResponseParser(Collections.<Integer>emptySet(), ImmutableSet.of(400),
@@ -77,7 +73,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test(expectedExceptions = InvalidResponseException.class)
-	public void testWithInvalidStatusCode2() throws InvalidResponseException {
+	public void testWithInvalidStatusCode2() throws InvalidResponseException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(400, VALID_BODY_BYTES);
 
 		ResponseParser parser = new DefaultResponseParser(ImmutableSet.of(200), Collections.<Integer>emptySet(),
@@ -86,7 +82,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test(expectedExceptions = InvalidResponseException.class)
-	public void testWithInvalidResponseBody() throws InvalidResponseException {
+	public void testWithInvalidResponseBody() throws InvalidResponseException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(200, INVALID_BODY_BYTES);
 
 		List<Pattern> patterns = asList(Pattern.compile("does not match"), Pattern.compile("(?is)^((?!</html>).)*$"));
@@ -96,7 +92,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test
-	public void testSuccessfulDetailExtraction() throws PatternNotFoundException {
+	public void testSuccessfulDetailExtraction() throws PatternNotFoundException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(200, VALID_BODY_BYTES);
 
 		DetailExtraction extraction1 = new DetailExtraction("foo", "response (body) is", "1", null, "false", "true");
@@ -116,7 +112,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test
-	public void testSuccessfulIndexedDetailExtraction() throws PatternNotFoundException {
+	public void testSuccessfulIndexedDetailExtraction() throws PatternNotFoundException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(200,
 				"<html>bla bluub foo0 foo1 foo2 bla blubb</html>".getBytes(Charsets.UTF_8));
 
@@ -137,7 +133,7 @@ public class DefaultResponseParserTest {
 	}
 
 	@Test(expectedExceptions = PatternNotFoundException.class)
-	public void testUnsuccessfulDetailExtraction() throws PatternNotFoundException {
+	public void testUnsuccessfulDetailExtraction() throws PatternNotFoundException, UnsupportedEncodingException {
 		ResponseInfo responseInfo = createResponseInfo(200, VALID_BODY_BYTES);
 
 		DetailExtraction extraction = new DetailExtraction("foo", "bla blubb", "42", null, "false", "true");

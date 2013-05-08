@@ -52,6 +52,8 @@ import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.client.web.WebErrorHandler;
 import com.mgmtp.perfload.core.client.web.WebLtDriver;
 import com.mgmtp.perfload.core.client.web.config.annotations.AllowedStatusCodes;
+import com.mgmtp.perfload.core.client.web.config.annotations.ContentTypePatterns;
+import com.mgmtp.perfload.core.client.web.config.annotations.ErrorPatterns;
 import com.mgmtp.perfload.core.client.web.config.annotations.ForbiddenStatusCodes;
 import com.mgmtp.perfload.core.client.web.config.annotations.HttpClientManagement;
 import com.mgmtp.perfload.core.client.web.config.annotations.LoggingListener;
@@ -77,6 +79,12 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  */
 public final class WebLtModule extends AbstractWebLtModule {
 	private final Logger log = LoggerFactory.getLogger(getClass());
+
+	public static final List<Pattern> CONTENT_TYPE_PATTERNS = ImmutableList.of(
+			Pattern.compile("text/.*"),
+			Pattern.compile("application/xml"),
+			Pattern.compile("application/json")
+			);
 
 	private final ConcurrentMap<String, List<RequestFlow>> requestFlowCache = new MapMaker().initialCapacity(3).makeMap();
 
@@ -173,7 +181,7 @@ public final class WebLtModule extends AbstractWebLtModule {
 
 	/**
 	 * <p>
-	 * Creates a binding for a list of regular expression patterns used to identifiy erronous HTTP
+	 * Creates a binding for a list of regular expression patterns used to identify erronous HTTP
 	 * responses.
 	 * </p>
 	 * <p>
@@ -193,11 +201,56 @@ public final class WebLtModule extends AbstractWebLtModule {
 	 */
 	@Provides
 	@Singleton
+	@ErrorPatterns
 	protected List<Pattern> provideErrorPatterns(final PropertiesMap properties) {
+		return readPatternsFromProps(properties, "responseParser.errorPattern.");
+	}
+
+	/**
+	 * <p>
+	 * Creates a binding for a list of regular expression patterns used to identify HTTP response
+	 * bodies as text.
+	 * </p>
+	 * <p>
+	 * Patterns are read from properties with the following keys
+	 * {@code responseParser.contentTypePattern.<index>} (the indices being one-based consecutive
+	 * integers).
+	 * </p>
+	 * <p>
+	 * Example:<br />
+	 * {@code responseParser.contentTypePattern.1=text/.*}<br />
+	 * {@code responseParser.contentTypePattern.2=application/json}
+	 * </p>
+	 * <p>
+	 * Defaults to the following patterns if nothing is configured:
+	 * <ul>
+	 * <li>text/.*</li>
+	 * <li>application/json</li>
+	 * <li>application/xml</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * @param properties
+	 *            the properties
+	 * @return a list of {@link Pattern} objects
+	 */
+	@Provides
+	@Singleton
+	@ContentTypePatterns
+	protected List<Pattern> provideContentTypePatterns(final PropertiesMap properties) {
+		List<Pattern> list = readPatternsFromProps(properties, "responseParser.contentTypePattern.");
+		if (list.isEmpty()) {
+			return CONTENT_TYPE_PATTERNS;
+		}
+
+		return list;
+	}
+
+	private List<Pattern> readPatternsFromProps(final PropertiesMap properties, final String keyPrefix) {
 		List<Pattern> patterns = newArrayList();
 
 		for (int i = 1;; ++i) {
-			String pattern = properties.get("responseParser.errorPattern." + i);
+			String pattern = properties.get(keyPrefix + i);
 			if (pattern == null) {
 				break;
 			}
