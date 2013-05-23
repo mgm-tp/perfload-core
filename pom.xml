@@ -39,8 +39,8 @@
 		<connection>scm:git:git://github.com/mgm-tp/perfload-core.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/mgm-tp/perfload-core.git</developerConnection>
 		<url>https://github.com/mgm-tp/perfload-core</url>
-	<tag>HEAD</tag>
-</scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<licenses>
 		<license>
@@ -275,6 +275,11 @@
 				<groupId>javax.inject</groupId>
 				<artifactId>javax.inject</artifactId>
 				<version>1</version>
+			</dependency>
+			<dependency>
+				<groupId>com.beust</groupId>
+				<artifactId>jcommander</artifactId>
+				<version>1.30</version>
 			</dependency>
 			<dependency>
 				<groupId>com.googlecode.lambdaj</groupId>

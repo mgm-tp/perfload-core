@@ -9,6 +9,8 @@ Copyright 2013 mgm technology partners GmbH
 From: 'an unknown organization'
   - Code Generation Library (http://cglib.sourceforge.net/) cglib:cglib-nodep:jar:2.2
     License: ASF 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - JCommander (http://beust.com/jcommander) com.beust:jcommander:jar:1.30
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:jar:13.0.1
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - lambdaj (http://code.google.com/p/lambdaj) com.googlecode.lambdaj:lambdaj:jar:2.3.3

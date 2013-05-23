@@ -16,7 +16,6 @@
 package com.mgmtp.perfload.core.daemon;
 
 import static com.google.common.base.Joiner.on;
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isConsoleChannel;
 import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isTestprocChannel;
@@ -45,6 +44,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import com.mgmtp.perfload.core.clientserver.client.Client;
 import com.mgmtp.perfload.core.clientserver.client.ClientMessageListener;
 import com.mgmtp.perfload.core.clientserver.client.DefaultClient;
@@ -126,45 +127,37 @@ public class LtDaemon {
 	}
 
 	public static void main(final String... args) {
-		int port = -1;
-		boolean shutdown = false;
+		JCommander jCmd = null;
 		try {
-			for (int i = 0; i < args.length; ++i) {
-				if (args[i].equals("-port")) {
-					port = Integer.parseInt(args[++i]);
-				}
-				if (args[i].equals("-shutdown")) {
-					shutdown = true;
-				}
-			}
-			checkArgument(port != -1);
+			LtDaemonArgs cliArgs = new LtDaemonArgs();
+			jCmd = new JCommander(cliArgs);
+			jCmd.parse(args);
 
 			// Must be set as system property because it is part of the log file name. The property is referenced in logback.xml.
 			// This is why the logger is always fetched dynamically. Otherwise it might get initialized before the system property is set.
-			System.setProperty("daemon.port", String.valueOf(port));
+			System.setProperty("daemon.port", String.valueOf(cliArgs.port));
 
-			if (shutdown) {
-				shutdownDaemon(port);
+			log().info("Starting perfLoad Console...");
+			log().info(cliArgs.toString());
+
+			if (cliArgs.shutdown) {
+				shutdownDaemon(cliArgs.port);
 				System.exit(0);
 			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println();
-			printUsage();
-			System.exit(-1);
-		}
 
-		try {
 			// Client is expected next to the daemon
 			File clientDir = new File(new File(System.getProperty("user.dir")).getParentFile(), "client");
 			ExecutorService execService = Executors.newCachedThreadPool();
 			StreamGobbler gobbler = new StreamGobbler(execService);
-			Server server = new DefaultServer(port);
+			Server server = new DefaultServer(cliArgs.port);
 			LtDaemon daemon = new LtDaemon(clientDir, new ForkedProcessClientRunner(execService, gobbler), server);
 			daemon.execute();
 			execService.shutdown();
 			execService.awaitTermination(10L, TimeUnit.SECONDS);
 			System.exit(0);
+		} catch (ParameterException ex) {
+			jCmd.usage();
+			System.exit(1);
 		} catch (Exception ex) {
 			log().error(ex.getMessage(), ex);
 			System.exit(-1);
@@ -199,14 +192,6 @@ public class LtDaemon {
 			log().info("Could not connect to daemon. Daemon probably not running.");
 		}
 		log().info("Good bye.");
-	}
-
-	private static void printUsage() {
-		StringBuilder sb = new StringBuilder(200);
-		sb.append("Usage LtDaemon:\n");
-		sb.append("-port <port>   The port for the daemon server.\n");
-		sb.append("-shutdown      Shuts down the daemon.\n");
-		System.out.println(sb.toString());
 	}
 
 	private final class DaemonMessageListener implements ServerMessageListener {
@@ -365,7 +350,8 @@ public class LtDaemon {
 					case CONFIG:
 						// Safe because we know what to expect from the console
 						@SuppressWarnings("unchecked")
-						Map<Integer, AbstractTestplanConfig> configs = (Map<Integer, AbstractTestplanConfig>) payload.getContent();
+						Map<Integer, AbstractTestplanConfig> configs = (Map<Integer, AbstractTestplanConfig>) payload
+								.getContent();
 
 						for (Entry<String, Channel> entry : channelContainer.getChannelsMap(isTestprocChannel())
 								.entrySet()) {

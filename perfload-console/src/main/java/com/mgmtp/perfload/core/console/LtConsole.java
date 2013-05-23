@@ -15,7 +15,6 @@
  */
 package com.mgmtp.perfload.core.console;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
@@ -36,6 +35,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import com.mgmtp.perfload.core.clientserver.client.Client;
 import com.mgmtp.perfload.core.clientserver.client.ClientMessageListener;
 import com.mgmtp.perfload.core.clientserver.client.DefaultClient;
@@ -104,7 +105,8 @@ public final class LtConsole {
 	 *            this value to the start time of the last load profile event (zero for no timeout)
 	 */
 	public LtConsole(final Config config, final ExecutorService execService, final StatusTransformer statusTransformer,
-			final LtMetaInfoHandler metaInfoHandler, final boolean shutdownDaemons, final boolean abortTest, final long loadProfileTestTimeout) {
+			final LtMetaInfoHandler metaInfoHandler, final boolean shutdownDaemons, final boolean abortTest,
+			final long loadProfileTestTimeout) {
 		this.config = config;
 		this.execService = execService;
 		this.statusTransformer = statusTransformer;
@@ -452,65 +454,30 @@ public final class LtConsole {
 	}
 
 	public static void main(final String[] args) {
-		String testplanFileName = null;
-		boolean shutdownDaemons = false;
-		boolean abort = false;
-		long timeout = TimeUnit.MINUTES.toMillis(15L); // default 15 min.
-
+		JCommander jCmd = null;
 		try {
-			for (int i = 0; i < args.length; ++i) {
-				if (args[i].equals("-abort")) {
-					abort = true;
-					continue;
-				}
-				if (args[i].equals("-testplan")) {
-					testplanFileName = args[++i];
-					continue;
-				}
-				if (args[i].equals("-shutdownDaemons")) {
-					shutdownDaemons = true;
-					continue;
-				}
-				if (args[i].equals("-timeout")) {
-					timeout = TimeUnit.MINUTES.toMillis(Long.valueOf(args[++i]));
-					continue;
-				}
-			}
+			LtConsoleArgs cliArgs = new LtConsoleArgs();
+			jCmd = new JCommander(cliArgs);
+			jCmd.parse(args);
 
-			checkArgument(testplanFileName != null);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println();
-			printUsage();
-			System.exit(-1);
-		}
+			LOG.info("Starting perfLoad Console...");
+			LOG.info(cliArgs.toString());
 
-		LOG.info("Starting perfLoad Console...");
-		LOG.info(String
-				.format("Parameters: testplan=%s, abort=%s, shutdownDaemons=%s, timeout=%s", testplanFileName, abort, shutdownDaemons, timeout));
-
-		try {
-			XmlConfigReader configReader = new XmlConfigReader(testplanFileName, "UTF-8");
+			XmlConfigReader configReader = new XmlConfigReader(cliArgs.testplan, "UTF-8");
 			Config config = configReader.readConfig();
 			int totalThreadCount = config.getTotalThreadCount();
-			StatusTransformer transformer = new FileStatusTransformer(totalThreadCount, new File("ltStatus.txt"), new File("ltThreads.txt"), "UTF-8");
+			StatusTransformer transformer = new FileStatusTransformer(totalThreadCount, new File("ltStatus.txt"), new File(
+					"ltThreads.txt"), "UTF-8");
 			LtMetaInfoHandler metaInfoHandler = new LtMetaInfoHandler();
-			LtConsole console = new LtConsole(config, Executors.newCachedThreadPool(), transformer, metaInfoHandler, shutdownDaemons, abort, timeout);
+			LtConsole console = new LtConsole(config, Executors.newCachedThreadPool(), transformer, metaInfoHandler,
+					cliArgs.shutdownDaemons, cliArgs.abort, TimeUnit.MINUTES.toMillis(cliArgs.timeout));
 			console.execute();
+		} catch (ParameterException ex) {
+			jCmd.usage();
+			System.exit(1);
 		} catch (Exception ex) {
 			LOG.error(ex.getMessage(), ex);
 			System.exit(-1);
 		}
-	}
-
-	private static void printUsage() {
-		StringBuilder sb = new StringBuilder(200);
-		sb.append("Usage LtConsole:\n");
-		sb.append("-testplan <file>     The name of the testplan xml file.\n");
-		sb.append("-shutdownDaemons     Causes daemons to be shut down after the test.\n");
-		sb.append("-abort               Aborts a running test.\n");
-		sb.append("-timeout             Timeout in minutes for aborting a load profile test.\n");
-		sb.append("                     Relative to the start time of the last load profile event.\n");
-		System.out.println(sb.toString());
 	}
 }
