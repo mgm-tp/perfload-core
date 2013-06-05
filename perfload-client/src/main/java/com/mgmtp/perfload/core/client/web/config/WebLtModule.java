@@ -77,7 +77,7 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  * 
  * @author rnaegele
  */
-public final class WebLtModule extends AbstractWebLtModule {
+public class WebLtModule extends AbstractWebLtModule {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public static final List<Pattern> CONTENT_TYPE_PATTERNS = ImmutableList.of(

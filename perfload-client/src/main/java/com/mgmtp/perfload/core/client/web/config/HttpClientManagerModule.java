@@ -61,7 +61,7 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  * 
  * @author rnaegele
  */
-public final class HttpClientManagerModule extends AbstractModule {
+public class HttpClientManagerModule extends AbstractModule {
 
 	private static final String HTTPS = "https";
 
