@@ -21,6 +21,9 @@ import static org.hamcrest.Matchers.startsWith;
 import java.io.IOException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.binder.LinkedBindingBuilder;
@@ -38,6 +41,7 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  * @author rnaegele
  */
 public abstract class AbstractLtModule extends AbstractModule {
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private Multibinder<LtProcessEventListener> ltProcessListeners;
 	private Multibinder<LtRunnerEventListener> ltRunnerListeners;
@@ -130,9 +134,13 @@ public abstract class AbstractLtModule extends AbstractModule {
 	 * @return the driver instance
 	 */
 	protected LtDriver selectDriver(final String operation, final PropertiesMap properties, final Map<String, LtDriver> drivers) {
+		LtDriver ltDriver;
 		if (hasKey(startsWith("operation." + operation + ".procInfo")).matches(properties)) {
-			return drivers.get("script");
+			ltDriver = drivers.get("script");
 		}
-		return drivers.get("dummy");
+
+		ltDriver = drivers.get("dummy");
+		logger.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
+		return ltDriver;
 	}
 }

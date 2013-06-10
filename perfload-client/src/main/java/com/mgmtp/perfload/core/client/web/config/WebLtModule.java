@@ -138,7 +138,9 @@ public class WebLtModule extends AbstractWebLtModule {
 			final Map<String, LtDriver> drivers) {
 
 		if (properties.containsKey("operation." + operation + ".requestflows")) {
-			return drivers.get("web");
+			LtDriver ltDriver = drivers.get("web");
+			log.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
+			return ltDriver;
 		}
 
 		return super.selectDriver(operation, properties, drivers);
