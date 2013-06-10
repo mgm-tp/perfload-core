@@ -86,6 +86,9 @@ public class HttpRequestHandler implements RequestHandler {
 		URI uri = new URI(uriString);
 		if (!uri.isAbsolute()) {
 			String targetHost = targetHostProvider.get();
+			if (!targetHost.endsWith("/") && !uriString.startsWith("/")) {
+				targetHost += "/";
+			}
 			uri = new URI(targetHost + uriString);
 		}
 		return uri;
