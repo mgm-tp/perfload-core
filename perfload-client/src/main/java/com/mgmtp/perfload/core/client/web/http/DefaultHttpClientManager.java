@@ -55,8 +55,8 @@ import com.mgmtp.perfload.logging.TimeInterval;
  */
 @ThreadScoped
 @NotThreadSafe
-public final class DefaultHttpClientManager implements HttpClientManager {
-	private final Logger log = LoggerFactory.getLogger(getClass());
+public class DefaultHttpClientManager implements HttpClientManager {
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static final String EXECUTION_ID_HEADER = "X-perfLoad-Execution-Id";
 	private static final String OPERATION_HEADER = "X-perfLoad-Operation";
