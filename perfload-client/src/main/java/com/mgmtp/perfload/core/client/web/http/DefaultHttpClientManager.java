@@ -35,6 +35,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public final class DefaultHttpClientManager implements HttpClientManager {
 	 */
 	@Override
 	public ResponseInfo executeRequest(final HttpRequestBase request, final UUID requestId) throws IOException {
-		return executeRequest(request, null, requestId);
+		return executeRequest(request, new BasicHttpContext(), requestId);
 	}
 
 	/**
