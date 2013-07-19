@@ -15,10 +15,10 @@
  */
 package com.mgmtp.perfload.core.client.web.event;
 
+import static org.apache.commons.lang3.StringUtils.leftPad;
+
 import java.io.File;
 import java.io.IOException;
-
-import javax.inject.Singleton;
 
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
+import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 
 /**
@@ -36,19 +37,14 @@ import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
  * 
  * @author rnaegele
  */
-@Singleton
+@ThreadScoped
 @ThreadSafe
 @Immutable
 public final class ResponseContentDumpListener implements RequestFlowEventListener {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final ThreadLocal<MutableInt> counterHolder = new ThreadLocal<MutableInt>() {
-		@Override
-		protected MutableInt initialValue() {
-			return new MutableInt();
-		}
-	};
+	private final MutableInt counter = new MutableInt();
 
 	/**
 	 * Does nothing.
@@ -82,8 +78,8 @@ public final class ResponseContentDumpListener implements RequestFlowEventListen
 		ResponseInfo responseInfo = event.getResponseInfo();
 		if (responseInfo != null) {
 			try {
-				MutableInt counter = counterHolder.get();
-				File file = new File("dump/" + responseInfo.getExecutionId() + "/" + counter + ".html");
+				File file = new File("dump/" + event.getResponseInfo().getExecutionId() + "/"
+						+ leftPad(counter.toString(), 2, '0') + ".html");
 				Files.createParentDirs(file);
 				Files.write(responseInfo.getBody(), file);
 				counter.increment();
