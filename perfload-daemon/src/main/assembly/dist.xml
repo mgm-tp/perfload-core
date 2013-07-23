@@ -32,25 +32,22 @@
 				<include>NOTICE</include>
 			</includes>
 		</fileSet>
-		<fileSet>
-			<includes>
-				<include>*.sh</include>
-			</includes>
-			<fileMode>755</fileMode>
-			<lineEnding>unix</lineEnding>
-			<directory>src/scripts</directory>
-			<filtered>true</filtered>
-			<outputDirectory>/</outputDirectory>
-		</fileSet>
-		<fileSet>
-			<excludes>
-				<exclude>*.sh</exclude>
-			</excludes>
-			<directory>src/scripts</directory>
-			<filtered>true</filtered>
-			<outputDirectory>/</outputDirectory>
-		</fileSet>
 	</fileSets>
+	<files>
+		<file>
+			<source>${project.build.scriptSourceDirectory}/daemon</source>
+			<fileMode>775</fileMode>
+			<lineEnding>lf</lineEnding>
+			<filtered>true</filtered>
+			<outputDirectory>/</outputDirectory>
+		</file>
+		<file>
+			<source>${project.build.scriptSourceDirectory}/daemon.cmd</source>
+			<lineEnding>crlf</lineEnding>
+			<filtered>true</filtered>
+			<outputDirectory>/</outputDirectory>
+		</file>
+	</files>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
