@@ -45,7 +45,7 @@ if exist logback.xml set JAVA_OPTS=%JAVA_OPTS% -Dlogback.configurationFile=logba
 
 set JAVA_OPTS=%JAVA_OPTS% -Xmx256m -jar .\lib\perfload-daemon-${project.version}.jar %*
 
-start "perfLoad Daemon %*" %JAVA_CMD% %JAVA_OPTS%
+start "perfLoad Daemon /MIN %*" /MIN %JAVA_CMD% %JAVA_OPTS%
 
 :error
 set EXIT_CODE=-1
