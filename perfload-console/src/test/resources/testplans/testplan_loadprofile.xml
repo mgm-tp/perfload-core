@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Copyright (c) 2013 mgm technology partners GmbH
@@ -16,16 +16,8 @@
     limitations under the License.
 
 -->
-<configuration>
-	<appender name="file" class="ch.qos.logback.core.FileAppender">
-		<append>false</append>
-		<file>perfload-client-process-${processId}.log</file>
-		<encoder>
-			<pattern>%date{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>
-	</appender>
-	<logger name="org.apache" level="INFO" />
-	<root level="INFO">
-		<appender-ref ref="file" />
-	</root>
-</configuration>
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd">
+	<module>DummyModule</module>
+	<loadProfile>loadprofile.perfload</loadProfile>
+	<testJars />
+</testplan>

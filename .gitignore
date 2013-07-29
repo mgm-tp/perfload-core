@@ -3,5 +3,6 @@
 .classpath
 target
 *.log
+test-output
 .idea
 *.iml

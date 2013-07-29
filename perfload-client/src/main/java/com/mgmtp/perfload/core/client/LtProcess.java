@@ -23,7 +23,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -41,8 +40,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.mgmtp.perfload.core.client.config.AbstractLtModule;
@@ -60,10 +57,9 @@ import com.mgmtp.perfload.core.clientserver.client.ClientMessageListener;
 import com.mgmtp.perfload.core.clientserver.client.DefaultClient;
 import com.mgmtp.perfload.core.common.clientserver.Payload;
 import com.mgmtp.perfload.core.common.clientserver.PayloadType;
-import com.mgmtp.perfload.core.common.config.AbstractTestplanConfig;
-import com.mgmtp.perfload.core.common.config.LoadProfileConfig;
 import com.mgmtp.perfload.core.common.config.LoadProfileEvent;
-import com.mgmtp.perfload.core.common.config.ProcessConfig;
+import com.mgmtp.perfload.core.common.config.ProcessKey;
+import com.mgmtp.perfload.core.common.config.TestConfig;
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
 import com.mgmtp.perfload.core.common.util.MemoryInfo;
@@ -87,7 +83,7 @@ public final class LtProcess implements ClientMessageListener {
 	private final Client daemonClient;
 	private final CountDownLatch startLatch = new CountDownLatch(1);
 	private final CountDownLatch exitLatch = new CountDownLatch(1);
-	private final AbstractTestplanConfig config;
+	private final TestConfig config;
 
 	private volatile boolean aborted = false;
 
@@ -114,7 +110,7 @@ public final class LtProcess implements ClientMessageListener {
 	protected LtProcess(@ProcessId final int processId, @DaemonId final int daemonId, final Provider<LtRunner> ltRunnerProvider,
 			final Provider<LtContext> contextProvider, final Set<LtProcessEventListener> listeners,
 			final DelayingExecutorService execService, final Client daemonClient,
-			@Assisted final AbstractTestplanConfig config) {
+			@Assisted final TestConfig config) {
 
 		this.processId = processId;
 		this.daemonId = daemonId;
@@ -129,22 +125,12 @@ public final class LtProcess implements ClientMessageListener {
 	private List<TestInfo> setUp() {
 		daemonClient.addClientMessageListener(this);
 
-		LoadProfileConfig lpc = (LoadProfileConfig) config;
-
-		// Filter events applicable to this daemon and process
-		Predicate<LoadProfileEvent> predicate = new Predicate<LoadProfileEvent>() {
-			@Override
-			public boolean apply(final LoadProfileEvent event) {
-				return event.getProcessId() == processId;
-			}
-		};
-
-		Collection<LoadProfileEvent> filteredLoadProfileEvents = Collections2.filter(lpc.getLoadProfileEvents(), predicate);
-		int eventCount = filteredLoadProfileEvents.size();
+		List<LoadProfileEvent> events = config.getLoadProfileEvents();
+		int eventCount = events.size();
 		LOG.info("Number of load profile events for this process: {}", eventCount);
 
 		List<TestInfo> result = newArrayListWithCapacity(eventCount);
-		for (LoadProfileEvent event : filteredLoadProfileEvents) {
+		for (LoadProfileEvent event : events) {
 			result.add(new TestInfo(event.getOperation(), event.getTarget(), event.getStartTime()));
 		}
 
@@ -268,7 +254,7 @@ public final class LtProcess implements ClientMessageListener {
 						return LtStatus.SUCCESSFUL;
 
 					} finally {
-						daemonClient.sendMessage(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessConfig(processId,
+						daemonClient.sendMessage(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessKey(processId,
 								daemonId)));
 						try {
 							exitLatch.await(5L, TimeUnit.SECONDS);
@@ -395,7 +381,7 @@ public final class LtProcess implements ClientMessageListener {
 				throw new TimeoutException("Timeout waiting for properties.");
 			}
 
-			AbstractTestplanConfig config = listener.getConfig();
+			TestConfig config = listener.getConfig();
 			client.removeClientMessageListener(listener);
 
 			URL[] classpathUrls;
@@ -446,7 +432,7 @@ public final class LtProcess implements ClientMessageListener {
 	}
 
 	static class MessageListener implements ClientMessageListener {
-		private volatile AbstractTestplanConfig config;
+		private volatile TestConfig config;
 		private final CountDownLatch latch;
 		private final Integer daemonId;
 		private final Integer processId;
@@ -463,12 +449,12 @@ public final class LtProcess implements ClientMessageListener {
 			switch (payload.getPayloadType()) {
 				case ABORT:
 					LOG.info("Test aborted.");
-					e.getChannel().write(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessConfig(processId, daemonId)));
+					e.getChannel().write(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessKey(processId, daemonId)));
 					e.getChannel().close().awaitUninterruptibly();
 					System.exit(-1);
 					break;
 				case CONFIG:
-					config = (AbstractTestplanConfig) payload.getContent();
+					config = payload.getContent();
 					latch.countDown();
 					break;
 				default:
@@ -476,7 +462,7 @@ public final class LtProcess implements ClientMessageListener {
 			}
 		}
 
-		public AbstractTestplanConfig getConfig() {
+		public TestConfig getConfig() {
 			return config;
 		}
 	}

@@ -16,8 +16,8 @@
 package com.mgmtp.perfload.core.client.web.response;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.entry;
 import static org.testng.Assert.assertEquals;
 
 import java.io.UnsupportedEncodingException;
@@ -106,9 +106,9 @@ public class DefaultResponseParserTest {
 		parser.extractDetails(responseInfo, extractions, pc);
 
 		assertEquals(pc.size(), 3);
-		assertThat(pc, hasEntry("foo", "body"));
-		assertThat(pc, hasEntry("bar", "valid"));
-		assertThat(pc, hasEntry("baz", "myDefault"));
+		assertThat(pc).contains(entry("foo", "body"));
+		assertThat(pc).contains(entry("bar", "valid"));
+		assertThat(pc).contains(entry("baz", "myDefault"));
 	}
 
 	@Test
@@ -126,10 +126,10 @@ public class DefaultResponseParserTest {
 		parser.extractDetails(responseInfo, extractions, pc);
 
 		assertEquals(pc.size(), 4);
-		assertThat(pc, hasEntry("foo#0", "foo0"));
-		assertThat(pc, hasEntry("foo#1", "foo1"));
-		assertThat(pc, hasEntry("foo#2", "foo2"));
-		assertThat(pc, hasEntry("bar#0", "myDefault"));
+		assertThat(pc).contains(entry("foo#0", "foo0"));
+		assertThat(pc).contains(entry("foo#1", "foo1"));
+		assertThat(pc).contains(entry("foo#2", "foo2"));
+		assertThat(pc).contains(entry("bar#0", "myDefault"));
 	}
 
 	@Test(expectedExceptions = PatternNotFoundException.class)

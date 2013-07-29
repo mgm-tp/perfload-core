@@ -114,7 +114,7 @@ public class StatusHandler {
 
 		Deque<ThreadActivity> taDeque = threadActivities.get(key);
 		if (taDeque == null) {
-			Deque<ThreadActivity> newDeque = new LinkedBlockingDeque<ThreadActivity>();
+			Deque<ThreadActivity> newDeque = new LinkedBlockingDeque<>();
 			taDeque = threadActivities.putIfAbsent(key, newDeque);
 			if (taDeque == null) {
 				taDeque = newDeque;

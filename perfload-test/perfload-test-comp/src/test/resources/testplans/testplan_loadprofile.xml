@@ -16,15 +16,12 @@
     limitations under the License.
 
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-config.xsd">
-	<testplans>
-		<testplan id="testplan" module="DummyModule">
-			<loadProfileConfig>loadprofile.perfload</loadProfileConfig>
-			<testJars />
-		</testplan>
-	</testplans>
-	<daemons>
-		<daemon host="localhost" id="1" port="8042" />
-		<daemon host="localhost" id="2" port="8043" />
-	</daemons>
-</config>
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<module>com.mgmtp.perfload.core.test.comp.ComponentTestModule</module>
+	<loadProfile>loadprofile.perfload</loadProfile>
+	<xi:include href="testJars.xml" />
+	<properties>
+		<property name="prop1">value1</property>
+		<property name="prop2">value2</property>
+	</properties>
+</testplan>

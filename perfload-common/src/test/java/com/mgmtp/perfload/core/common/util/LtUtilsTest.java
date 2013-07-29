@@ -15,9 +15,7 @@
  */
 package com.mgmtp.perfload.core.common.util;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -56,7 +54,7 @@ public class LtUtilsTest {
 		try {
 			future.get();
 		} catch (ExecutionException ex) {
-			assertThat(ex.getCause(), is(instanceOf(AbortionException.class)));
+			assertThat(ex.getCause()).isInstanceOf(AbortionException.class);
 		}
 	}
 }

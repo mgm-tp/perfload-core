@@ -62,8 +62,8 @@ import org.slf4j.LoggerFactory;
 public final class DelayingExecutorService extends AbstractExecutorService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final BlockingQueue<RunnableScheduledFuture<?>> workQueue = new DelayQueue<RunnableScheduledFuture<?>>();
-	private final BlockingQueue<Future<?>> completionQueue = new LinkedBlockingQueue<Future<?>>();
+	private final BlockingQueue<RunnableScheduledFuture<?>> workQueue = new DelayQueue<>();
+	private final BlockingQueue<Future<?>> completionQueue = new LinkedBlockingQueue<>();
 
 	private volatile Runnable doneCallback;
 
@@ -93,8 +93,8 @@ public final class DelayingExecutorService extends AbstractExecutorService {
 				for (;;) {
 					try {
 						Runnable task = workQueue.take();
+						log.info("Executing next due task...");
 						workerExecutor.execute(task);
-						log.info("Submitted next due task to worker executor...");
 					} catch (InterruptedException ex) {
 						log.info("Thread was interrupted.");
 						return;
@@ -204,7 +204,7 @@ public final class DelayingExecutorService extends AbstractExecutorService {
 	public <V> ScheduledFuture<V> schedule(final Callable<V> callable, final long delay, final TimeUnit unit) {
 		checkArgument(delay >= 0, "Delay must be greather than or equal to zero.");
 		long triggerTime = now() + unit.toNanos(delay);
-		RunnableScheduledFuture<V> t = new ScheduledFutureTask<V>(callable, triggerTime, sequencer.getAndIncrement());
+		RunnableScheduledFuture<V> t = new ScheduledFutureTask<>(callable, triggerTime, sequencer.getAndIncrement());
 		executeDelayed(t);
 		return t;
 	}

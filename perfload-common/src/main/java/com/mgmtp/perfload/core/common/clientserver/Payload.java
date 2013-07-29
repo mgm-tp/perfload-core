@@ -57,8 +57,9 @@ public class Payload implements Serializable {
 		return payloadType;
 	}
 
-	public Serializable getContent() {
-		return content;
+	@SuppressWarnings("unchecked")
+	public <T extends Serializable> T getContent() {
+		return (T) content;
 	}
 
 	@Override

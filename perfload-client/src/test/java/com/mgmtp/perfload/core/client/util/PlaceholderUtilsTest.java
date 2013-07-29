@@ -16,9 +16,7 @@
 package com.mgmtp.perfload.core.client.util;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.testng.Assert.assertNull;
 
 import java.text.ParsePosition;
@@ -48,22 +46,22 @@ public class PlaceholderUtilsTest {
 	public void testSinglePlaceholderString() {
 		String input = "${foo}";
 		String result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("foovalue")));
+		assertThat(result).isEqualTo("foovalue");
 	}
 
 	@Test
 	public void testMultiplePlaceholderStrings() {
 		String input = "${foo}${bar}${baz}";
 		String result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("foovaluebarvaluebazvalue")));
+		assertThat(result).isEqualTo("foovaluebarvaluebazvalue");
 
 		input = "_${foo}_${bar}_${baz}_";
 		result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("_foovalue_barvalue_bazvalue_")));
+		assertThat(result).isEqualTo("_foovalue_barvalue_bazvalue_");
 
 		input = "_${null}_${foo}_${bar}_${baz}_${empty}_${}_";
 		result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("_${null}_foovalue_barvalue_bazvalue___")));
+		assertThat(result).isEqualTo("_${null}_foovalue_barvalue_bazvalue___");
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
@@ -76,14 +74,14 @@ public class PlaceholderUtilsTest {
 	public void testNonExistingPlaceholder() {
 		String input = "${blah}";
 		String result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("${blah}")));
+		assertThat(result).isEqualTo("${blah}");
 	}
 
 	@Test
 	public void testNonExistingAmongstMultiplePlaceholders() {
 		String input = "_${foo}_${blah}_${baz}_";
 		String result = PlaceholderUtils.resolvePlaceholders(input, replacements);
-		assertThat(result, is(equalTo("_foovalue_${blah}_bazvalue_")));
+		assertThat(result).isEqualTo("_foovalue_${blah}_bazvalue_");
 	}
 
 	@Test

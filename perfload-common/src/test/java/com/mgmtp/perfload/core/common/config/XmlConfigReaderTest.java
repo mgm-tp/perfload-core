@@ -15,23 +15,19 @@
  */
 package com.mgmtp.perfload.core.common.config;
 
-import static com.google.common.collect.Iterables.get;
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.toByteArray;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static com.google.common.io.Files.toByteArray;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.entry;
 
-import java.io.FileInputStream;
-import java.util.Collection;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.fest.assertions.api.GUAVA;
 import org.testng.annotations.Test;
+
+import com.mgmtp.perfload.core.common.util.PropertiesMap;
 
 /**
  * @author rnaegele
@@ -40,105 +36,48 @@ public class XmlConfigReaderTest {
 
 	@Test
 	public void testLoadProfileConfig() throws Exception {
-		XmlConfigReader confReader = new XmlConfigReader("src/test/resources/testplan_loadprofile.xml", "UTF-8");
+		XmlConfigReader confReader = new XmlConfigReader(new File("src/test/resources"), "testplan_loadprofile.xml");
+		TestplanConfig config = confReader.readConfig();
 
-		Config config = confReader.readConfig();
-		assertEquals(config.getTotalProcessCount(), 34);
-		assertEquals(config.getLastProfileEventStartTime(), 42);
+		assertThat(config.getTotalProcessCount()).isEqualTo(34);
+		assertThat(config.getTotalThreadCount()).isEqualTo(44);
+		assertThat(config.getStartTimeOfLastEvent()).isEqualTo(42);
 
-		List<DaemonConfig> daemonConfigs = config.getDaemonConfigs();
-		int size = daemonConfigs.size();
-		assertEquals(size, 10);
+		List<TestJar> testJars = config.getTestJars();
+		assertThat(testJars).hasSize(3);
 
-		int port = 4242;
-
-		for (int i = 0; i < size; ++i) {
-			DaemonConfig daemonConfig = daemonConfigs.get(i);
-			assertEquals(daemonConfig.getId(), i + 1);
-			assertEquals(daemonConfig.getHost(), "localhost");
-			assertEquals(daemonConfig.getPort(), port++);
-
-			Collection<ProcessConfig> processConfigs = daemonConfig.getProcessConfigs();
-			int procConfCount = processConfigs.size();
-			switch (i) {
-				case 0:
-					assertEquals(procConfCount, 4);
-					break;
-				case 1:
-					assertEquals(procConfCount, 6);
-					break;
-				case 2:
-					assertEquals(procConfCount, 3);
-					break;
-				default:
-					//
-			}
-
-			List<TestJar> testJars = daemonConfig.getTestJars();
-			assertEquals(testJars.size(), 3);
-			for (int j = 0; j < testJars.size(); ++j) {
-				FileInputStream is = new FileInputStream("src/test/resources/test" + (j + 1) + ".jar");
-				try {
-					byte[] content = toByteArray(is);
-					TestJar testJar = testJars.get(j);
-					assertEquals(testJar.getName(), "test" + (j + 1) + ".jar");
-					assertEquals(content, testJar.getContent());
-
-					TestJar expected = new TestJar(testJar.getName(), content);
-					assertEquals(testJar, expected);
-					assertEquals(testJar.hashCode(), expected.hashCode());
-				} finally {
-					closeQuietly(is);
-				}
-			}
-
-			for (int j = 0; j < procConfCount; ++j) {
-				ProcessConfig procConf = get(processConfigs, j);
-				assertEquals(procConf.getDaemonId(), i + 1);
-
-				List<String> jvmArgs = procConf.getJvmArgs();
-				assertEquals(jvmArgs.size(), 2);
-				for (int k = 0; k < jvmArgs.size(); ++k) {
-					assertEquals(jvmArgs.get(k), "-Dsysprop" + (k + 1) + "=value" + (k + 1));
-				}
-
-				AbstractTestplanConfig testplanConfig = daemonConfig.getTestplanConfig(procConf.getProcessId());
-				assertThat(testplanConfig, is(instanceOf(LoadProfileConfig.class)));
-
-				LoadProfileConfig lpc = (LoadProfileConfig) testplanConfig;
-				assertEquals(lpc.getTestplanId(), "test");
-				assertEquals(lpc.getGuiceModule(), "com.mgmtp.perfload.core.DummyModule");
-				assertEquals(lpc.getLoadProfileEvents().size(), i < 2 ? 2 : 1);
-
-				Map<String, String> properties = lpc.getProperties();
-				assertEquals(properties.size(), 2);
-				assertThat(properties, hasEntry("prop1", "value1"));
-				assertThat(properties, hasEntry("prop2", "value2"));
-
-				if (i > 1) {
-					LoadProfileEvent lpe = getOnlyElement(lpc.getLoadProfileEvents());
-					assertEquals(lpe.getDaemonId(), i + 1);
-					assertEquals(lpe.getProcessId(), j + 1);
-
-					if (j == 0) {
-						assertTrue(lpe.getOperation().endsWith("1"));
-					} else {
-						assertTrue(lpe.getOperation().endsWith(String.valueOf(i + 1)));
-					}
-				}
-			}
+		for (int j = 0; j < testJars.size(); ++j) {
+			TestJar actual = testJars.get(j);
+			byte[] content = toByteArray(new File("src/test/resources/test-lib/test" + (j + 1) + ".jar"));
+			TestJar expected = new TestJar("test" + (j + 1) + ".jar", content);
+			assertThat(actual).isEqualTo(expected);
 		}
-	}
 
-	@Test(expectedExceptions = IllegalStateException.class)
-	public void testInvalidLoadProfileConfig() throws Exception {
-		XmlConfigReader confReader = new XmlConfigReader("src/test/resources/testplan_invalid_loadprofile.xml", "UTF-8");
-		confReader.readConfig();
-	}
+		List<ProcessConfig> processConfigs = config.getProcessConfigs();
+		for (ProcessConfig processConfig : processConfigs) {
+			assertThat(processConfig.getJvmArgs()).containsExactly("-Dsysprop1=value1", "-Dsysprop2=value2");
+		}
 
-	@Test(expectedExceptions = IllegalStateException.class)
-	public void testLoadProfileConfig2Plans() throws Exception {
-		XmlConfigReader confReader = new XmlConfigReader("src/test/resources/testplan_loadprofile_2-plans.xml", "UTF-8");
-		confReader.readConfig();
+		Map<ProcessKey, TestConfig> testConfigs = config.getTestConfigs();
+		for (Entry<ProcessKey, TestConfig> entry : testConfigs.entrySet()) {
+			TestConfig testConfig = entry.getValue();
+			assertThat(testConfig.getGuiceModule()).isEqualTo("com.mgmtp.perfload.core.DummyModule");
+
+			PropertiesMap properties = testConfig.getProperties();
+			assertThat(properties).hasSize(2);
+			assertThat(properties).contains(entry("prop1", "value1"));
+			assertThat(properties).contains(entry("prop2", "value2"));
+		}
+
+		GUAVA.assertThat(config.getLoadProfileEventsByProcess()).hasSize(44);
+		List<LoadProfileEvent> list = config.getLoadProfileEventsByProcess().get(new ProcessKey(1, 1));
+		assertThat(list).hasSize(2);
+
+		LoadProfileEvent event = list.get(0);
+		assertThat(event.getStartTime()).isEqualTo(1);
+		assertThat(event.getOperation()).isEqualTo("operation1");
+		assertThat(event.getTarget()).isEqualTo("target");
+		assertThat(event.getDaemonId()).isEqualTo(1);
+		assertThat(event.getProcessId()).isEqualTo(1);
 	}
 }

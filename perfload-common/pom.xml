@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
 	Copyright (c) 2013 mgm technology partners GmbH
 
 	Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@
 						<configuration>
 							<artifacts>
 								<artifact>
-									<file>${basedir}/src/main/resources/perfload-config.xsd</file>
+									<file>${basedir}/src/main/resources/perfload-testplan.xsd</file>
 									<type>xsd</type>
 									<!-- <classifier>schema</classifier> -->
 								</artifact>
@@ -81,16 +81,16 @@
 			<artifactId>dom4j</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.lambdaj</groupId>
-			<artifactId>lambdaj</artifactId>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-assert-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-core</artifactId>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-guava-assert</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-library</artifactId>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-xc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

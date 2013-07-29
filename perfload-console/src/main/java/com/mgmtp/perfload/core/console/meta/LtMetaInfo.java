@@ -20,6 +20,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.mgmtp.perfload.core.console.model.Daemon;
+
 /**
  * Pojo that holds meta information on a test run.
  * 
@@ -27,12 +29,11 @@ import java.util.Set;
  */
 public class LtMetaInfo {
 
-	private final List<Daemon> daemonList = newArrayList();
-	private final List<PlannedExecutions> plannedExecutionsList = newArrayList();
+	private final List<Daemon> daemons = newArrayList();
+	private final List<Executions> executionsList = newArrayList();
 	private String testplanFileName;
 	private final List<String> lpTargets = newArrayList();
 	private final List<String> lpOperations = newArrayList();
-	private String lpTestplanId;
 	private long startTimestamp;
 	private long finishTimestamp;
 
@@ -67,20 +68,6 @@ public class LtMetaInfo {
 	}
 
 	/**
-	 * Adds daemon information.
-	 * 
-	 * @param id
-	 *            the daemon's id
-	 * @param host
-	 *            the daemon's host
-	 * @param port
-	 *            the daemon's port
-	 */
-	public void addDaemon(final int id, final String host, final int port) {
-		daemonList.add(new Daemon(id, host, port));
-	}
-
-	/**
 	 * @return the testplanFileName
 	 */
 	public String getTestplanFileName() {
@@ -91,7 +78,7 @@ public class LtMetaInfo {
 	 * @param testplanFileName
 	 *            the testplanFileName
 	 */
-	public void setTestplanFile(final String testplanFileName) {
+	public void setTestplanFileName(final String testplanFileName) {
 		this.testplanFileName = testplanFileName;
 	}
 
@@ -109,6 +96,21 @@ public class LtMetaInfo {
 	}
 
 	/**
+	 * @return the daemons
+	 */
+	public List<Daemon> getDaemons() {
+		return daemons;
+	}
+
+	/**
+	 * @param daemonsToAdd
+	 *            the daemons to add
+	 */
+	public void addDaemons(final List<Daemon> daemonsToAdd) {
+		daemons.addAll(daemonsToAdd);
+	}
+
+	/**
 	 * Adds planned executions by operation and target. Multiple calls of this method for the same
 	 * operation/target pair sum up the executions.
 	 * 
@@ -119,29 +121,22 @@ public class LtMetaInfo {
 	 * @param executions
 	 *            the number of executions for the specified operation and target
 	 */
-	public void addPlannedExecutions(final String operation, final String target, final int executions) {
-		PlannedExecutions pe = new PlannedExecutions(operation, target, executions);
-		int index = plannedExecutionsList.indexOf(pe);
+	public void addExecutions(final String operation, final String target, final int executions) {
+		Executions pe = new Executions(operation, target, executions);
+		int index = executionsList.indexOf(pe);
 		if (index >= 0) {
 			// In case of static test we might already have an entry.
-			PlannedExecutions oldPe = plannedExecutionsList.get(index);
-			pe = new PlannedExecutions(operation, target, executions + oldPe.executions);
+			Executions oldPe = executionsList.get(index);
+			pe = new Executions(operation, target, executions + oldPe.executions);
 		}
-		plannedExecutionsList.add(pe);
-	}
-
-	/**
-	 * @return ther daemonList
-	 */
-	public List<Daemon> getDaemonList() {
-		return daemonList;
+		executionsList.add(pe);
 	}
 
 	/**
 	 * @return the plannedExecutionsList
 	 */
-	public List<PlannedExecutions> getPlannedExecutionsList() {
-		return plannedExecutionsList;
+	public List<Executions> getExecutionsList() {
+		return executionsList;
 	}
 
 	/**
@@ -158,92 +153,19 @@ public class LtMetaInfo {
 		return lpTargets;
 	}
 
-	/**
-	 * @return the lpTestplanId
-	 */
-	public String getLpTestplanId() {
-		return lpTestplanId;
-	}
-
-	/**
-	 * @param lpTestplanId
-	 *            the lpTestplanId
-	 */
-	public void setLpTestplanId(final String lpTestplanId) {
-		this.lpTestplanId = lpTestplanId;
-	}
-
-	static class Daemon implements Comparable<Daemon> {
-		final int id;
-		final String host;
-		final int port;
-
-		Daemon(final int id, final String host, final int port) {
-			this.id = id;
-			this.host = host;
-			this.port = port;
-		}
-
-		@Override
-		public int compareTo(final Daemon o) {
-			int result = id - o.id;
-			if (result == 0) {
-				result = host.compareTo(o.host);
-			}
-			if (result == 0) {
-				result = port - o.port;
-			}
-			return result;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + host.hashCode();
-			result = prime * result + id;
-			result = prime * result + port;
-			return result;
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			Daemon other = (Daemon) obj;
-			if (!host.equals(other.host)) {
-				return false;
-			}
-			if (id != other.id) {
-				return false;
-			}
-			if (port != other.port) {
-				return false;
-			}
-			return true;
-		}
-	}
-
-	static class PlannedExecutions implements Comparable<PlannedExecutions> {
+	static class Executions implements Comparable<Executions> {
 		final String operation;
 		final String target;
 		final int executions;
 
-		PlannedExecutions(final String operation, final String target, final int executions) {
+		Executions(final String operation, final String target, final int executions) {
 			this.operation = operation;
 			this.target = target;
 			this.executions = executions;
 		}
 
 		@Override
-		public int compareTo(final PlannedExecutions o) {
+		public int compareTo(final Executions o) {
 			int result = operation.compareTo(o.operation);
 			if (result == 0) {
 				result = target.compareTo(o.target);
@@ -275,7 +197,7 @@ public class LtMetaInfo {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			PlannedExecutions other = (PlannedExecutions) obj;
+			Executions other = (Executions) obj;
 			if (executions != other.executions) {
 				return false;
 			}

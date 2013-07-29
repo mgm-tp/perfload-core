@@ -63,10 +63,10 @@ public class ForkedProcessClientRunnerTest {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		StreamGobbler gobbler = new StreamGobbler(executor);
 		ForkedProcessClientRunner fpcr = new ForkedProcessClientRunner(executor, gobbler);
-		ProcessConfig procConf = new ProcessConfig(1, 1);
+		ProcessConfig proConf = new ProcessConfig(1, 1, ImmutableList.<String>of());
 
 		// Start the process and wait for it
-		Future<Integer> future = fpcr.runClient(new File("."), procConf, ImmutableList.<String>of());
+		Future<Integer> future = fpcr.runClient(new File("."), proConf, ImmutableList.<String>of());
 		future.get();
 
 		// Check for a class NoClassDefFoundError because the class LtProcess cannot be found. We just want to make sure
@@ -74,5 +74,4 @@ public class ForkedProcessClientRunnerTest {
 		// if a JRE is used, so we can just check for error and the class name.
 		assertTrue(sb.indexOf("ERROR") >= 0 && sb.indexOf("LtProcess") >= 0);
 	}
-
 }

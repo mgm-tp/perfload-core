@@ -15,15 +15,16 @@
  */
 package com.mgmtp.perfload.core.console;
 
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.net.ConnectException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,21 +38,24 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableList;
 import com.mgmtp.perfload.core.clientserver.client.Client;
 import com.mgmtp.perfload.core.clientserver.client.ClientMessageListener;
 import com.mgmtp.perfload.core.clientserver.client.DefaultClient;
 import com.mgmtp.perfload.core.common.clientserver.Payload;
 import com.mgmtp.perfload.core.common.clientserver.PayloadType;
-import com.mgmtp.perfload.core.common.config.Config;
-import com.mgmtp.perfload.core.common.config.DaemonConfig;
 import com.mgmtp.perfload.core.common.config.ProcessConfig;
+import com.mgmtp.perfload.core.common.config.ProcessKey;
+import com.mgmtp.perfload.core.common.config.TestConfig;
 import com.mgmtp.perfload.core.common.config.TestJar;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
 import com.mgmtp.perfload.core.common.config.XmlConfigReader;
 import com.mgmtp.perfload.core.common.util.MemoryInfo;
 import com.mgmtp.perfload.core.common.util.MemoryInfo.Unit;
 import com.mgmtp.perfload.core.common.util.StatusInfo;
 import com.mgmtp.perfload.core.console.meta.LtMetaInfo;
 import com.mgmtp.perfload.core.console.meta.LtMetaInfoHandler;
+import com.mgmtp.perfload.core.console.model.Daemon;
 import com.mgmtp.perfload.core.console.status.FileStatusTransformer;
 import com.mgmtp.perfload.core.console.status.StatusHandler;
 import com.mgmtp.perfload.core.console.status.StatusTransformer;
@@ -74,11 +78,12 @@ public final class LtConsole {
 	private volatile CountDownLatch doneLatch;
 	private volatile CountDownLatch clientCountLatch;
 
-	private final Config config;
+	private final TestplanConfig config;
 	private final ExecutorService execService;
 	private final StatusHandler statusHandler = new StatusHandler();
 	private final StatusTransformer statusTransformer;
 	private final LtMetaInfoHandler metaInfoHandler;
+	private final List<Daemon> daemons;
 	private final boolean shutdownDaemons;
 	private final boolean abortTest;
 	private final long loadProfileTestTimeout;
@@ -98,22 +103,31 @@ public final class LtConsole {
 	 *            {@link ExecutorService} handling asynchronous tasks such as status queue polling
 	 * @param metaInfoHandler
 	 *            creates and writes out meta information about the test for reporting use
+	 * @param daemons
+	 *            daemon hosts/ports for the test
 	 * @param shutdownDaemons
 	 *            if {@code true}, daemons are shut down after the test
 	 * @param loadProfileTestTimeout
 	 *            timeout in milliseconds for aborting a load profile test, calculated by adding
 	 *            this value to the start time of the last load profile event (zero for no timeout)
 	 */
-	public LtConsole(final Config config, final ExecutorService execService, final StatusTransformer statusTransformer,
-			final LtMetaInfoHandler metaInfoHandler, final boolean shutdownDaemons, final boolean abortTest,
-			final long loadProfileTestTimeout) {
+	public LtConsole(final TestplanConfig config, final ExecutorService execService, final StatusTransformer statusTransformer,
+			final LtMetaInfoHandler metaInfoHandler, final List<Daemon> daemons, final boolean shutdownDaemons,
+			final boolean abortTest, final long loadProfileTestTimeout) {
 		this.config = config;
 		this.execService = execService;
 		this.statusTransformer = statusTransformer;
 		this.metaInfoHandler = metaInfoHandler;
+		this.daemons = daemons;
 		this.shutdownDaemons = shutdownDaemons;
 		this.abortTest = abortTest;
 		this.loadProfileTestTimeout = loadProfileTestTimeout;
+
+		int totalProcessCount = config.getTotalProcessCount();
+		connectLatch = new CountDownLatch(totalProcessCount);
+		jarLatch = new CountDownLatch(daemons.size());
+		readyLatch = new CountDownLatch(totalProcessCount);
+		doneLatch = new CountDownLatch(totalProcessCount);
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -160,7 +174,6 @@ public final class LtConsole {
 	public void execute() throws Exception {
 		LOG.info("Console started.");
 
-		initLatches();
 		setUpDaemonClients();
 		connectToDaemons();
 
@@ -190,7 +203,7 @@ public final class LtConsole {
 		disconnectFromDaemons();
 		if (!abortTest && metaInfoHandler != null) {
 			LOG.info("Creating meta information...");
-			LtMetaInfo metaInfo = metaInfoHandler.createMetaInformation(startTimestamp, finishTimestamp, config);
+			LtMetaInfo metaInfo = metaInfoHandler.createMetaInformation(startTimestamp, finishTimestamp, config, daemons);
 			PrintWriter pr = null;
 			try {
 				File metaFile = new File("perfload.meta.utf8.props");
@@ -203,16 +216,6 @@ public final class LtConsole {
 		}
 
 		LOG.info("Exiting...");
-	}
-
-	private void initLatches() {
-		// Initialize latches. The latches are necessary because they allow us
-		// to wait for asynchronous actions to be completed.
-		// TODO Factor out synch logic to an extra little state machine class
-		connectLatch = new CountDownLatch(config.getTotalProcessCount());
-		jarLatch = new CountDownLatch(config.getTotalJarFilesCount());
-		readyLatch = new CountDownLatch(config.getTotalProcessCount());
-		doneLatch = new CountDownLatch(config.getTotalProcessCount());
 	}
 
 	private void setUpDaemonClients() {
@@ -243,12 +246,12 @@ public final class LtConsole {
 						readyLatch.countDown();
 						break;
 					case TEST_PROC_STARTED: {
-						ProcessConfig procConf = (ProcessConfig) payload.getContent();
+						ProcessConfig procConf = payload.getContent();
 						LOG.info("Test process created: {}", procConf);
 						break;
 					}
 					case TEST_PROC_TERMINATED: {
-						ProcessConfig procConf = (ProcessConfig) payload.getContent();
+						ProcessConfig procConf = payload.getContent();
 						LOG.info("Test process terminated: {}", procConf);
 						while (connectLatch.getCount() > 0) {
 							// Need to count down connectLatch because test terminated abnormally
@@ -262,12 +265,12 @@ public final class LtConsole {
 						break;
 					}
 					case CLIENT_COUNT:
-						int count = (Integer) payload.getContent();
+						int count = payload.getContent();
 						clientCount += count;
 						clientCountLatch.countDown();
 						break;
 					case STATUS:
-						StatusInfo si = (StatusInfo) payload.getContent();
+						StatusInfo si = payload.getContent();
 						LOG.debug("Received status info: {}", si);
 						statusHandler.addStatusInfo(si);
 						break;
@@ -279,11 +282,12 @@ public final class LtConsole {
 			}
 		};
 
-		for (DaemonConfig dc : config.getDaemonConfigs()) {
-			String clientId = "console" + (abortTest ? "Aborter" : "") + dc.getId();
-			Client client = new DefaultClient(clientId, dc.getHost(), dc.getPort());
+		for (Daemon daemon : daemons) {
+			int daemonId = daemon.getId();
+			String clientId = "console" + (abortTest ? "Aborter" : "") + daemonId;
+			Client client = new DefaultClient(clientId, daemon.getHost(), daemon.getPort());
 			client.addClientMessageListener(listener);
-			clients.put(dc.getId(), client);
+			clients.put(daemonId, client);
 		}
 	}
 
@@ -308,12 +312,13 @@ public final class LtConsole {
 	}
 
 	private void sendJars() throws InterruptedException, TimeoutException {
-		for (DaemonConfig dc : config.getDaemonConfigs()) {
-			LOG.info("Transferring jars to daemon {}", dc.getId());
-			Client client = clients.get(dc.getId());
+		for (Daemon daemon : daemons) {
+			int daemonId = daemon.getId();
+			LOG.info("Transferring jars to daemon {}", daemonId);
+			Client client = clients.get(daemonId);
 
 			// Send jars separately in order to save memory
-			for (TestJar jar : dc.getTestJars()) {
+			for (TestJar jar : config.getTestJars()) {
 				LOG.debug("Transferring jar file: {}", jar.getName());
 				// Await sending of the message. Otherwise jars might pile up in memory causing an OOME.
 				if (!client.sendMessage(new Payload(PayloadType.JAR, jar)).await(30L, TimeUnit.SECONDS)) {
@@ -328,11 +333,12 @@ public final class LtConsole {
 
 		LOG.info("Starting test processes...");
 
-		for (DaemonConfig dc : config.getDaemonConfigs()) {
-			LOG.debug("Starting test processes on daemon {}", dc.getId());
-			for (ProcessConfig pc : dc.getProcessConfigs()) {
+		for (Daemon daemon : daemons) {
+			int daemonId = daemon.getId();
+			LOG.debug("Starting test processes on daemon {}", daemonId);
+			for (ProcessConfig pc : config.getProcessConfigs()) {
 				LOG.debug("Starting test process: {}", pc);
-				clients.get(dc.getId()).sendMessage(new Payload(PayloadType.CREATE_TEST_PROC, pc));
+				clients.get(pc.getDaemonId()).sendMessage(new Payload(PayloadType.CREATE_TEST_PROC, pc));
 			}
 		}
 	}
@@ -340,14 +346,19 @@ public final class LtConsole {
 	private void sendConfiguration() throws InterruptedException, TimeoutException {
 		awaitLatch(connectLatch, "Timeout waiting for configuration to be sent to clients.");
 
-		LOG.info("Transferring testplan configurations");
+		LOG.info("Transferring test configuration");
 
-		List<DaemonConfig> daemonConfigs = config.getDaemonConfigs();
-		for (DaemonConfig dc : daemonConfigs) {
+		for (Daemon daemon : daemons) {
+			int daemonId = daemon.getId();
 			// Send test config
-			LOG.debug("Transferring test configuration to daemon {}", dc.getId());
-			Client client = clients.get(dc.getId());
-			client.sendMessage(new Payload(PayloadType.CONFIG, (Serializable) dc.getTestplanConfigs()));
+			LOG.debug("Transferring test configuration to daemon {}", daemonId);
+			Client client = clients.get(daemonId);
+
+			for (Entry<ProcessKey, TestConfig> entry : config.getTestConfigs().entrySet()) {
+				if (entry.getKey().getDaemonId() == daemonId) {
+					client.sendMessage(new Payload(PayloadType.CONFIG, entry.getValue()));
+				}
+			}
 		}
 	}
 
@@ -440,7 +451,7 @@ public final class LtConsole {
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(config.getLastProfileEventStartTime() + loadProfileTestTimeout);
+					Thread.sleep(config.getStartTimeOfLastEvent() + loadProfileTestTimeout);
 					if (doneLatch.getCount() > 0) { // if zero, test is already done
 						LOG.warn("Load profile test timed out!");
 						abortTest();
@@ -463,14 +474,24 @@ public final class LtConsole {
 			LOG.info("Starting perfLoad Console...");
 			LOG.info(cliArgs.toString());
 
-			XmlConfigReader configReader = new XmlConfigReader(cliArgs.testplan, "UTF-8");
-			Config config = configReader.readConfig();
+			int daemonCount = cliArgs.daemons.size();
+			List<Daemon> daemons = newArrayListWithCapacity(daemonCount);
+			for (int i = 0; i < daemonCount; i++) {
+				// daemon id is 1-based
+				int daemonId = i + 1;
+				daemons.add(Daemon.fromHostAndPort(daemonId, cliArgs.daemons.get(i)));
+			}
+			daemons = ImmutableList.copyOf(daemons);
+
+			XmlConfigReader configReader = new XmlConfigReader(new File("."), cliArgs.testplan);
+			TestplanConfig config = configReader.readConfig();
 			int totalThreadCount = config.getTotalThreadCount();
 			StatusTransformer transformer = new FileStatusTransformer(totalThreadCount, new File("ltStatus.txt"), new File(
 					"ltThreads.txt"), "UTF-8");
+
 			LtMetaInfoHandler metaInfoHandler = new LtMetaInfoHandler();
 			LtConsole console = new LtConsole(config, Executors.newCachedThreadPool(), transformer, metaInfoHandler,
-					cliArgs.shutdownDaemons, cliArgs.abort, TimeUnit.MINUTES.toMillis(cliArgs.timeout));
+					daemons, cliArgs.shutdownDaemons, cliArgs.abort, TimeUnit.MINUTES.toMillis(cliArgs.timeout));
 			console.execute();
 		} catch (ParameterException ex) {
 			jCmd.usage();

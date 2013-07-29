@@ -15,9 +15,7 @@
  */
 package com.mgmtp.perfload.core.client.config;
 
-import static ch.lambdaj.collection.LambdaCollections.with;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.startsWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +32,9 @@ import javax.inject.Singleton;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 
-import ch.lambdaj.function.convert.Converter;
-
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
@@ -66,7 +64,6 @@ import com.mgmtp.perfload.core.client.util.ConstantWaitingTimeStrategy;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.LtContext;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
-import com.mgmtp.perfload.core.client.util.PlaceholderUtils;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
 import com.mgmtp.perfload.core.client.util.WaitingTimeStrategy;
 import com.mgmtp.perfload.core.client.util.concurrent.DelayingExecutorService;
@@ -172,7 +169,7 @@ final class LtProcessModule extends AbstractLtModule {
 	@MeasuringLog
 	@Singleton
 	protected File provideMeasuringLogFile() {
-		return new File(String.format("daemon-%s_process-%s_measuring.log", daemonId, processId));
+		return new File(String.format("perfload-client-process-%s_measuring.log", processId));
 	}
 
 	@Provides
@@ -285,7 +282,13 @@ final class LtProcessModule extends AbstractLtModule {
 	@Provides
 	@Singleton
 	protected List<InetAddress> provideLocalAddresses(final PropertiesMap properties) throws IOException {
-		Collection<String> addresses = with(properties).clone().retainKeys(startsWith("ipaddress.")).values();
+		Collection<String> addresses = Maps.filterKeys(properties, new Predicate<String>() {
+			@Override
+			public boolean apply(final String input) {
+				return input.startsWith("ipaddress.");
+			}
+		}).values();
+
 		List<InetAddress> result = newArrayList();
 
 		for (String addressString : addresses) {
@@ -407,7 +410,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * operation.myOperation.procInfo.envVars.MY_ENV_VAR=baz
 	 * 
 	 * # commands for the new process (starting at 1)
-	 * operation.myOperation.procInfo.commands.1=./my_script.sh
+	 * operation.myOperation.procInfo.commands.1=/bin/sh -c ./my_script.sh
 	 * operation.myOperation.procInfo.commands.2=-param1
 	 * operation.myOperation.procInfo.commands.3=-param2=42
 	 * 
@@ -422,29 +425,18 @@ final class LtProcessModule extends AbstractLtModule {
 	 *            the operation
 	 * @param properties
 	 *            the properties
-	 * @param placeholderContainer
-	 *            the placeholder container
 	 * @return the process info object
 	 */
 	@Provides
-	protected ProcessInfo provideProcessInfo(@Operation final String operation, final PropertiesMap properties,
-			final PlaceholderContainer placeholderContainer) {
-
+	protected ProcessInfo provideProcessInfo(@Operation final String operation, final PropertiesMap properties) {
 		String baseKey = "operation." + operation + ".procInfo";
 
-		Converter<String, String> converter = new Converter<String, String>() {
-			@Override
-			public String convert(final String from) {
-				return PlaceholderUtils.resolvePlaceholders(from, placeholderContainer);
-			}
-		};
-
-		String directory = converter.convert(properties.get(baseKey + ".dir"));
-		boolean freshEnvironment = Boolean.valueOf(converter.convert(properties.get(baseKey + ".freshEnvironment")));
-		Map<String, String> envVars = with(PropertiesUtils.getSubMap(properties, baseKey + ".envVars")).convertValues(converter);
-		List<String> commands = with(PropertiesUtils.getSubList(properties, baseKey + ".commands")).convert(converter);
-		boolean redirectProcessOutput = Boolean.valueOf(converter.convert(properties.get(baseKey + ".redirectProcessOutput")));
-		String logPrefix = converter.convert(properties.get(baseKey + ".logPrefix"));
+		String directory = properties.get(baseKey + ".dir");
+		boolean freshEnvironment = properties.getBoolean(baseKey + ".freshEnvironment");
+		Map<String, String> envVars = PropertiesUtils.getSubMap(properties, baseKey + ".envVars");
+		List<String> commands = PropertiesUtils.getSubList(properties, baseKey + ".commands");
+		boolean redirectProcessOutput = properties.getBoolean(baseKey + ".redirectProcessOutput");
+		String logPrefix = properties.get(baseKey + ".logPrefix");
 
 		return new ProcessInfo(directory, freshEnvironment, envVars, commands, redirectProcessOutput, logPrefix);
 	}

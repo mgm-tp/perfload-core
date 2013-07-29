@@ -16,21 +16,15 @@
     limitations under the License.
 
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-config.xsd"
-	xmlns:xi="http://www.w3.org/2001/XInclude">
-	<testplans>
-		<testplan id="fibonacci" module="com.mgmtp.perfload.core.test.client.TestClientModule">
-			<loadProfileConfig>fibonacci.perfload</loadProfileConfig>
-			<testJars>
-				<testJar name="perfload-test-client-${project.version}.jar" dir="test-lib" />
-			</testJars>
-			<!-- <jvmargs>
-				<jvmarg>-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}</jvmarg>
-			</jvmargs> -->
-		</testplan>
-	</testplans>
-	<daemons>
-		<daemon host="localhost" id="1" port="${daemon.1.port}" />
-		<daemon host="localhost" id="2" port="${daemon.2.port}" />
-	</daemons>
-</config>
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<module>com.mgmtp.perfload.core.test.client.TestClientModule</module>
+	<loadProfile>fibonacci.perfload</loadProfile>
+	<testJars>
+		<testJar>perfload-test-client-${project.version}.jar</testJar>
+	</testJars>
+	<!--
+	<jvmargs>
+		<jvmarg>-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}</jvmarg>
+	</jvmargs>
+	-->
+</testplan>

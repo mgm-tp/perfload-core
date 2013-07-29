@@ -94,8 +94,7 @@
 								<phase>pre-integration-test</phase>
 								<configuration>
 									<portNames>
-										<portName>daemon.1.port</portName>
-										<portName>daemon.2.port</portName>
+										<portName>daemon.port</portName>
 									</portNames>
 								</configuration>
 							</execution>
@@ -129,50 +128,33 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>it-start-daemons</id>
+								<id>it-start-daemon</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
 									<target>
-										<echo>Shutting down potentially running daemon at port ${daemon.1.port}</echo>
+										<echo>Shutting down potentially running daemon at port ${daemon.port}</echo>
 										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
 											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
 											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
 											<arg value="-port" />
-											<arg value="${daemon.1.port}" />
+											<arg value="${daemon.port}" />
 											<arg value="-shutdown" />
 										</java>
 
-										<echo>Shutting down potentially running daemon at port ${daemon.2.port}</echo>
-										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
-											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
-											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
-											<arg value="-port" />
-											<arg value="${daemon.2.port}" />
-											<arg value="-shutdown" />
-										</java>
-
-										<echo>Starting daemon at port ${daemon.1.port}</echo>
+										<echo>Starting daemon at port ${daemon.port}</echo>
 										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true" spawn="true">
 											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
 											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
 											<arg value="-port" />
-											<arg value="${daemon.1.port}" />
+											<arg value="${daemon.port}" />
 											<!-- <jvmarg value="-Xdebug" />
 											<jvmarg value="-Xnoagent" />
 											<jvmarg value="-Djava.compiler=NONE" />
 											<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000" />
 											-->
-										</java>
-
-										<echo>Starting daemon at port ${daemon.2.port}</echo>
-										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true" spawn="true">
-											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
-											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
-											<arg value="-port" />
-											<arg value="${daemon.2.port}" />
 										</java>
 									</target>
 								</configuration>
@@ -190,7 +172,9 @@
 											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
 											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
 											<arg value="-testplan" />
-											<arg value="testplans/fibonacci.xml" />
+											<arg value="fibonacci.xml" />
+											<arg value="-daemons" />
+											<arg value="localhost:${daemon.port}" />
 											<arg value="-shutdownDaemons" />
 										</java>
 										<echo>Test finished...</echo>
@@ -205,21 +189,12 @@
 								</goals>
 								<configuration>
 									<target>
-										<echo>Shutting down daemon at port ${daemon.1.port}</echo>
+										<echo>Shutting down daemon at port ${daemon.port}</echo>
 										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
 											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
 											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
 											<arg value="-port" />
-											<arg value="${daemon.1.port}" />
-											<arg value="-shutdown" />
-										</java>
-
-										<echo>Shutting down at port ${daemon.2.port}</echo>
-										<java jar="${it.dir}/daemon/lib/perfload-daemon-${project.version}.jar" dir="${it.dir}/daemon" fork="true">
-											<!-- <jvmarg value="-javaagent:${env.JACOCO_AGENT}=destfile=${sonar.jacoco.reportPath}" /> -->
-											<jvmarg value="-Dlogback.configurationFile=logback.xml" />
-											<arg value="-port" />
-											<arg value="${daemon.2.port}" />
+											<arg value="${daemon.port}" />
 											<arg value="-shutdown" />
 										</java>
 									</target>

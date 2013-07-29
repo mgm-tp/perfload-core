@@ -15,6 +15,7 @@
  */
 package com.mgmtp.perfload.core.test.comp;
 
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
@@ -35,9 +36,11 @@ import org.testng.annotations.Test;
 import com.mgmtp.perfload.core.clientserver.server.DefaultServer;
 import com.mgmtp.perfload.core.clientserver.server.Server;
 import com.mgmtp.perfload.core.clientserver.util.DaemonThreadFactory;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
 import com.mgmtp.perfload.core.common.config.XmlConfigReader;
 import com.mgmtp.perfload.core.console.LtConsole;
 import com.mgmtp.perfload.core.console.meta.LtMetaInfoHandler;
+import com.mgmtp.perfload.core.console.model.Daemon;
 import com.mgmtp.perfload.core.console.status.FileStatusTransformer;
 import com.mgmtp.perfload.core.console.status.StatusTransformer;
 import com.mgmtp.perfload.core.daemon.LtDaemon;
@@ -47,8 +50,7 @@ import com.mgmtp.perfload.core.daemon.LtDaemon;
  */
 public class ComponentTest {
 
-	private static final int DAEMON_1_PORT = 8042;
-	private static final int DAEMON_2_PORT = 8043;
+	private static final int DAEMON_PORT = 8042;
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,29 +62,29 @@ public class ComponentTest {
 	}
 
 	@BeforeTest
-	public void startDaemons() throws IOException {
-		log.debug("Starting daemons...");
+	public void startDaemon() throws IOException {
+		log.debug("Starting daemon...");
 
 		ExecutorService executorService = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
-		executorService.submit(new DaemonTask(DAEMON_1_PORT));
-		executorService.submit(new DaemonTask(DAEMON_2_PORT));
+		executorService.submit(new DaemonTask(DAEMON_PORT));
 	}
 
 	@AfterTest
-	public void shutdownDaemons() {
-		log.debug("Stopping daemons...");
+	public void shutdownDaemon() {
+		log.debug("Stopping daemon...");
 
-		LtDaemon.shutdownDaemon(DAEMON_1_PORT);
-		LtDaemon.shutdownDaemon(DAEMON_2_PORT);
+		LtDaemon.shutdownDaemon(DAEMON_PORT);
 	}
 
 	@Test
 	public void testLoadProfile() throws Exception {
-		XmlConfigReader confReader = new XmlConfigReader("src/test/resources/testplan_loadprofile.xml", "UTF-8");
-		StatusTransformer transformer = new FileStatusTransformer(8, new File("ltStatus_loadprofile.txt"), new File(
-				"ltThreads_loadprofile.txt"), "UTF-8");
-		LtConsole console = new LtConsole(confReader.readConfig(), Executors.newCachedThreadPool(new DaemonThreadFactory()),
-				transformer, new LtMetaInfoHandler(), false, false, 300000L);
+		XmlConfigReader confReader = new XmlConfigReader(new File("src/test/resources"), "testplan_loadprofile.xml");
+		TestplanConfig config = confReader.readConfig();
+		StatusTransformer transformer = new FileStatusTransformer(config.getTotalThreadCount(), new File("target",
+				"ltStatus.txt"), new File("target", "loadprofile.txt"), "UTF-8");
+		LtConsole console = new LtConsole(config, Executors.newCachedThreadPool(new DaemonThreadFactory()),
+				transformer, new LtMetaInfoHandler(), asList(new Daemon(1, "localhost", DAEMON_PORT)), false, false,
+				300000L);
 		console.execute();
 
 		assertEquals(console.isTestSuccessful(), true);

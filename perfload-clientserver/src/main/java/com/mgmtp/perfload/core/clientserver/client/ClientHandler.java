@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link ChannelUpstreamHandler} implementation for {@link Client}s. Dispatches incoming messages to registered
- * {@link ClientMessageListener}s.
+ * The {@link ChannelUpstreamHandler} implementation for {@link Client}s. Dispatches incoming
+ * messages to registered {@link ClientMessageListener}s.
  * 
  * @author rnaegele
  */
@@ -40,15 +40,15 @@ public final class ClientHandler extends SimpleChannelUpstreamHandler {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	// Must use a CopyOnWriteArraySet to guarantee thread safety
-	private final Set<ClientMessageListener> listeners = new CopyOnWriteArraySet<ClientMessageListener>();
+	private final Set<ClientMessageListener> listeners = new CopyOnWriteArraySet<>();
 
 	/**
 	 * <p>
 	 * {@inheritDoc}
 	 * </p>
 	 * <p>
-	 * Overriden to log ChannelStateEvents if they have a state other than {@link ChannelState#INTEREST_OPS}, i. e. OPEN, BOUND,
-	 * CONNECTED.
+	 * Overriden to log ChannelStateEvents if they have a state other than
+	 * {@link ChannelState#INTEREST_OPS}, i. e. OPEN, BOUND, CONNECTED.
 	 * </p>
 	 * 
 	 * @param ctx

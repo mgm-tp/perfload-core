@@ -41,7 +41,7 @@ public class StreamGobblerTest {
 
 	@Test
 	public void testGobbling() throws InterruptedException, ExecutionException, UnsupportedEncodingException {
-		final Deque<String> linesStack = new ArrayDeque<String>(asList("foo ²³ bar 1", "foo µ bar 2", "foo € bar 3"));
+		final Deque<String> linesStack = new ArrayDeque<>(asList("foo ²³ bar 1", "foo µ bar 2", "foo € bar 3"));
 
 		InputStream is = new ByteArrayInputStream(on('\n').join(linesStack).getBytes("UTF-8"));
 		StreamGobbler gobbler = new StreamGobbler(new SynchronousExecService());

@@ -15,20 +15,18 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import static ch.lambdaj.Lambda.by;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.collection.LambdaCollections.with;
 import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.io.FileUtils.toFile;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -38,15 +36,15 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.lambdaj.group.Group;
-
-import com.mgmtp.perfload.core.common.config.AbstractTestplanConfig;
-import com.mgmtp.perfload.core.common.config.Config;
-import com.mgmtp.perfload.core.common.config.DaemonConfig;
-import com.mgmtp.perfload.core.common.config.LoadProfileConfig;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ListMultimap;
 import com.mgmtp.perfload.core.common.config.LoadProfileEvent;
-import com.mgmtp.perfload.core.console.meta.LtMetaInfo.Daemon;
-import com.mgmtp.perfload.core.console.meta.LtMetaInfo.PlannedExecutions;
+import com.mgmtp.perfload.core.common.config.TestConfig;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
+import com.mgmtp.perfload.core.console.meta.LtMetaInfo.Executions;
+import com.mgmtp.perfload.core.console.model.Daemon;
 
 /**
  * Creates meta information on a test and dumps it to a file.
@@ -66,47 +64,38 @@ public class LtMetaInfoHandler {
 	 * @param startTimestamp
 	 *            timestamp taken at test finish
 	 * @param config
-	 *            the {@link Config} instance
+	 *            the {@link TestplanConfig} instance
 	 * @return the meta information object
 	 */
-	public LtMetaInfo createMetaInformation(final long startTimestamp, final long finishTimestamp, final Config config) {
+	public LtMetaInfo createMetaInformation(final long startTimestamp, final long finishTimestamp, final TestplanConfig config,
+			final List<Daemon> daemons) {
 		LtMetaInfo metaInfo = new LtMetaInfo();
 		metaInfo.setStartTimestamp(startTimestamp);
 		metaInfo.setFinishTimestamp(finishTimestamp);
-		metaInfo.setTestplanFile(config.getTestplanFileName());
+		metaInfo.setTestplanFileName(config.getTestplanFile().getName());
+		metaInfo.addDaemons(daemons);
 
-		List<LoadProfileEvent> lpEvents = newArrayList();
-		List<DaemonConfig> daemonConfigs = config.getDaemonConfigs();
-		for (DaemonConfig dc : daemonConfigs) {
-			metaInfo.addDaemon(dc.getId(), dc.getHost(), dc.getPort());
-
-			Map<Integer, AbstractTestplanConfig> testplanConfigs = dc.getTestplanConfigs();
-			for (AbstractTestplanConfig tpc : testplanConfigs.values()) {
-				lpEvents.addAll(((LoadProfileConfig) tpc).getLoadProfileEvents());
-				String testplanId = tpc.getTestplanId();
-				metaInfo.setLpTestplanId(testplanId);
+		ListMultimap<String, String> operationsByTargets = ArrayListMultimap.create();
+		for (TestConfig testConfig : config.getTestConfigs().values()) {
+			for (LoadProfileEvent event : testConfig.getLoadProfileEvents()) {
+				operationsByTargets.put(event.getTarget(), event.getOperation());
 			}
 		}
 
-		// Group by targets
-		Group<LoadProfileEvent> group = with(lpEvents).clone().group(by(on(LoadProfileEvent.class).getTarget()));
-		// Get distinct targets
-		Set<String> targets = group.keySet();
+		Set<String> uniqueOperations = newHashSet(operationsByTargets.values());
+		metaInfo.setLoadProfileTestInfo(operationsByTargets.keySet(), uniqueOperations);
 
-		// Group by operations and targets
-		group = with(lpEvents).clone().group(by(on(LoadProfileEvent.class).getOperation()),
-				by(on(LoadProfileEvent.class).getTarget()));
-		// Get distinct operations
-		Set<String> operations = group.keySet();
-
-		metaInfo.setLoadProfileTestInfo(targets, operations);
-
-		for (String operation : operations) {
-			Group<LoadProfileEvent> opGroup = group.findGroup(operation);
-			for (String target : targets) {
-				// number of targets in an operations group is the number of executions
-				int executions = opGroup.find(target).size();
-				metaInfo.addPlannedExecutions(operation, target, executions);
+		for (Entry<String, Collection<String>> entry : operationsByTargets.asMap().entrySet()) {
+			String target = entry.getKey();
+			Collection<String> operations = entry.getValue();
+			for (final String operation : uniqueOperations) {
+				int executions = Collections2.filter(operations, new Predicate<String>() {
+					@Override
+					public boolean apply(final String input) {
+						return input.equals(operation);
+					}
+				}).size();
+				metaInfo.addExecutions(operation, target, executions);
 			}
 		}
 		return metaInfo;
@@ -148,34 +137,32 @@ public class LtMetaInfoHandler {
 		pr.printf("test.finish=%s", DATE_FORMAT.format(metaInfo.getFinishTimestamp()));
 		pr.println();
 
-		List<Daemon> daemonList = metaInfo.getDaemonList();
+		List<Daemon> daemonList = metaInfo.getDaemons();
 		Collections.sort(daemonList);
 
 		for (Daemon daemon : daemonList) {
-			pr.printf("daemon.%d.host=%s", daemon.id, daemon.host);
-			pr.println();
-			pr.printf("daemon.%d.port=%d", daemon.id, daemon.port);
+			pr.printf("daemon.%d=%s:%d", daemon.getId(), daemon.getHost(), daemon.getPort());
 			pr.println();
 		}
 
 		List<String> lpTargets = metaInfo.getLpTargets();
 		if (!lpTargets.isEmpty()) {
 			Collections.sort(lpTargets);
-			pr.printf("testplan.%s.targets=%s", metaInfo.getLpTestplanId(), on(',').join(lpTargets));
+			pr.printf("targets=%s", on(',').join(lpTargets));
 			pr.println();
 		}
 
 		List<String> lpOperations = metaInfo.getLpOperations();
 		if (!lpOperations.isEmpty()) {
 			Collections.sort(lpOperations);
-			pr.printf("testplan.%s.operations=%s", metaInfo.getLpTestplanId(), on(',').join(lpOperations));
+			pr.printf("operations=%s", on(',').join(lpOperations));
 			pr.println();
 		}
 
-		List<PlannedExecutions> plannedExecutionsList = metaInfo.getPlannedExecutionsList();
-		Collections.sort(plannedExecutionsList);
-		for (PlannedExecutions executions : plannedExecutionsList) {
-			pr.printf("plannedExecutions.%s.%s=%d", executions.operation, executions.target, executions.executions);
+		List<Executions> executionsList = metaInfo.getExecutionsList();
+		Collections.sort(executionsList);
+		for (Executions executions : executionsList) {
+			pr.printf("executions.%s.%s=%d", executions.operation, executions.target, executions.executions);
 			pr.println();
 		}
 	}

@@ -19,15 +19,12 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isConsoleChannel;
 import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isTestprocChannel;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.google.common.base.Predicates;
 import com.mgmtp.perfload.core.clientserver.client.Client;
 import com.mgmtp.perfload.core.clientserver.client.ClientMessageListener;
 import com.mgmtp.perfload.core.clientserver.client.DefaultClient;
@@ -55,8 +53,8 @@ import com.mgmtp.perfload.core.clientserver.server.ServerMessageListener;
 import com.mgmtp.perfload.core.clientserver.util.ChannelContainer;
 import com.mgmtp.perfload.core.common.clientserver.Payload;
 import com.mgmtp.perfload.core.common.clientserver.PayloadType;
-import com.mgmtp.perfload.core.common.config.AbstractTestplanConfig;
 import com.mgmtp.perfload.core.common.config.ProcessConfig;
+import com.mgmtp.perfload.core.common.config.TestConfig;
 import com.mgmtp.perfload.core.common.config.TestJar;
 import com.mgmtp.perfload.core.common.util.StreamGobbler;
 import com.mgmtp.perfload.core.daemon.util.AbstractClientRunner;
@@ -133,10 +131,6 @@ public class LtDaemon {
 			jCmd = new JCommander(cliArgs);
 			jCmd.parse(args);
 
-			// Must be set as system property because it is part of the log file name. The property is referenced in logback.xml.
-			// This is why the logger is always fetched dynamically. Otherwise it might get initialized before the system property is set.
-			System.setProperty("daemon.port", String.valueOf(cliArgs.port));
-
 			log().info("Starting perfLoad Console...");
 			log().info(cliArgs.toString());
 
@@ -196,7 +190,7 @@ public class LtDaemon {
 
 	private final class DaemonMessageListener implements ServerMessageListener {
 		private final ExecutorService execService = Executors.newCachedThreadPool();
-		private final Set<String> testJarNames = new ConcurrentSkipListSet<String>();
+		private final Set<String> testJarNames = new ConcurrentSkipListSet<>();
 		private final File clientDir;
 		private final AbstractClientRunner abstractClientRunner;
 
@@ -261,7 +255,7 @@ public class LtDaemon {
 							public void run() {
 								Channel channel = e.getChannel();
 								try {
-									ProcessConfig pc = (ProcessConfig) payload.getContent();
+									ProcessConfig pc = payload.getContent();
 
 									List<String> arguments = newArrayList();
 									arguments.add("-processId");
@@ -288,8 +282,8 @@ public class LtDaemon {
 									}
 
 									channel.write(new Payload(PayloadType.TEST_PROC_TERMINATED, pc));
-								} catch (Exception ex) {
-									log().error(ex.getMessage(), ex);
+								} catch (Throwable th) {
+									log().error(th.getMessage(), th);
 									channel.write(new Payload(PayloadType.ERROR));
 								}
 							}
@@ -323,7 +317,7 @@ public class LtDaemon {
 						}
 						break;
 					case JAR:
-						TestJar jar = (TestJar) payload.getContent();
+						TestJar jar = payload.getContent();
 						OutputStream os = null;
 						String jarName = jar.getName();
 						log().debug("Received jar file: {}", jarName);
@@ -348,20 +342,13 @@ public class LtDaemon {
 						e.getChannel().write(new Payload(PayloadType.CLIENT_COUNT, channelContainer.getChannels().size()));
 						break;
 					case CONFIG:
-						// Safe because we know what to expect from the console
-						@SuppressWarnings("unchecked")
-						Map<Integer, AbstractTestplanConfig> configs = (Map<Integer, AbstractTestplanConfig>) payload
-								.getContent();
+						TestConfig config = payload.getContent();
+						log().debug("Received test configuration");
 
-						for (Entry<String, Channel> entry : channelContainer.getChannelsMap(isTestprocChannel())
-								.entrySet()) {
-							// process IDs are 1-based
-							String key = entry.getKey();
-							Channel channel = entry.getValue();
-							int id = Integer.parseInt(substringAfter(key, "testproc"));
-							log().debug("Received configuration for process: {}", id);
-							channel.write(new Payload(PayloadType.CONFIG, configs.get(id)));
-						}
+						String channelId = "testproc" + config.getProcessId();
+						Channel channel = channelContainer.getChannel(Predicates.equalTo(channelId));
+						log().debug("Forwarding test configuration to client '{}", channelId);
+						channel.write(new Payload(PayloadType.CONFIG, config));
 						break;
 					default:
 						//

@@ -15,12 +15,17 @@
  */
 package com.mgmtp.perfload.core.console;
 
+import java.util.List;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.converters.CommaParameterSplitter;
 import com.beust.jcommander.converters.LongConverter;
+import com.google.common.net.HostAndPort;
+import com.mgmtp.perfload.core.console.util.HostAndPortConverter;
 
 /**
  * Command-line arguments for the console for parsing with {@link JCommander}.
@@ -41,6 +46,10 @@ public class LtConsoleArgs {
 	@Parameter(names = "-timeout", converter = LongConverter.class,
 			description = "Timeout in minutes for aborting a test. Relative to the start time of the last load profile event.")
 	long timeout = 15L;
+
+	@Parameter(names = "-daemons", required = true, converter = HostAndPortConverter.class, splitter = CommaParameterSplitter.class,
+			description = "The daemons to use in the test (<host>:<port>). The port defaults to 20000 if omitted.")
+	List<HostAndPort> daemons;
 
 	@Override
 	public String toString() {

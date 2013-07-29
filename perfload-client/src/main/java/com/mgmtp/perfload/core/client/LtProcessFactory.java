@@ -15,7 +15,7 @@
  */
 package com.mgmtp.perfload.core.client;
 
-import com.mgmtp.perfload.core.common.config.AbstractTestplanConfig;
+import com.mgmtp.perfload.core.common.config.TestConfig;
 
 /**
  * Factory interface for {@link LtProcess}. The interface is dynamically implemented by a Guice
@@ -32,5 +32,5 @@ public interface LtProcessFactory {
 	 *            the test configuration for the test process
 	 * @return The newly created LtProcess instance
 	 */
-	LtProcess create(AbstractTestplanConfig config);
+	LtProcess create(TestConfig config);
 }

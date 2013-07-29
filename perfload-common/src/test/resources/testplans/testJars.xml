@@ -16,7 +16,7 @@
 
 -->
 <testJars>
-	<testJar name="test1.jar" dir="src/test/resources" />
-	<testJar name="test2.jar" dir="src/test/resources" />
-	<testJar name="test3.jar" dir="src/test/resources" />
+	<testJar>test1.jar</testJar>
+	<testJar>test2.jar</testJar>
+	<testJar>test3.jar</testJar>
 </testJars>

@@ -15,16 +15,13 @@
  */
 package com.mgmtp.perfload.core.client.config;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.entry;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
 import com.mgmtp.perfload.core.client.driver.ProcessInfo;
-import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
-import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
 
 /**
@@ -35,29 +32,21 @@ public class LtProcessModuleTest {
 	@Test
 	public void testProvideProcessInfo() {
 		PropertiesMap props = new PropertiesMap();
-		props.put("operation.test.procInfo.dir", "${dir}");
-		props.put("operation.test.procInfo.envVars.ENV_VAR_1", "${envVar1}");
-		props.put("operation.test.procInfo.envVars.ENV_VAR_2", "${envVar2}");
-		props.put("operation.test.procInfo.commands.1", "java -jar foo.jar -param=${param}");
-		props.put("operation.test.procInfo.redirectProcessOutput", "${redirect}");
-		props.put("operation.test.procInfo.logPrefix", "${logPrefix}");
+		props.put("operation.test.procInfo.dir", "dir");
+		props.put("operation.test.procInfo.envVars.ENV_VAR_1", "envVar1");
+		props.put("operation.test.procInfo.envVars.ENV_VAR_2", "envVar2");
+		props.put("operation.test.procInfo.commands.1", "java -jar foo.jar -param=foo");
+		props.put("operation.test.procInfo.redirectProcessOutput", "true");
+		props.put("operation.test.procInfo.logPrefix", "prefix>");
 
 		LtProcessModule module = new LtProcessModule(null, null, 0, 0);
 
-		PlaceholderContainer pc = new DefaultPlaceholderContainer();
-		pc.put("dir", "c:/somedir");
-		pc.put("envVar1", "$JAVA_HOME/bin/java");
-		pc.put("envVar2", "$ANT_HOME/bin/ant");
-		pc.put("param", "foo");
-		pc.put("redirect", "true");
-		pc.put("logPrefix", "[myProc]");
-
-		ProcessInfo processInfo = module.provideProcessInfo("test", props, pc);
-		assertEquals(processInfo.getDirectory(), pc.get("dir"));
-		assertThat(processInfo.getEnvVars(), hasEntry("ENV_VAR_1", pc.get("envVar1")));
-		assertThat(processInfo.getEnvVars(), hasEntry("ENV_VAR_2", pc.get("envVar2")));
-		assertThat(processInfo.getCommands(), contains("java -jar foo.jar -param=foo"));
-		assertEquals(processInfo.isRedirectProcessOutput(), true);
-		assertEquals(processInfo.getLogPrefix(), pc.get("logPrefix"));
+		ProcessInfo processInfo = module.provideProcessInfo("test", props);
+		assertEquals(processInfo.getDirectory(), "dir");
+		assertThat(processInfo.getEnvVars()).contains(entry("ENV_VAR_1", "envVar1"));
+		assertThat(processInfo.getEnvVars()).contains(entry("ENV_VAR_2", "envVar2"));
+		assertThat(processInfo.getCommands()).contains("java -jar foo.jar -param=foo");
+		assertThat(processInfo.isRedirectProcessOutput()).isTrue();
+		assertThat(processInfo.getLogPrefix()).isEqualTo("prefix>");
 	}
 }

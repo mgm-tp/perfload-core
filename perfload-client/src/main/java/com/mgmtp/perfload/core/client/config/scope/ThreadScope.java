@@ -53,7 +53,7 @@ public final class ThreadScope implements Scope {
 
 	@Override
 	public <T> Provider<T> scope(final Key<T> key, final Provider<T> unscoped) {
-		return new ThreadScopeProvider<T>(key, unscoped);
+		return new ThreadScopeProvider<>(key, unscoped);
 	}
 
 	/**

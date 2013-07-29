@@ -15,15 +15,14 @@
  */
 package com.mgmtp.perfload.core.client.config;
 
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.startsWith;
-
 import java.io.IOException;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.binder.LinkedBindingBuilder;
@@ -134,12 +133,14 @@ public abstract class AbstractLtModule extends AbstractModule {
 	 * @return the driver instance
 	 */
 	protected LtDriver selectDriver(final String operation, final PropertiesMap properties, final Map<String, LtDriver> drivers) {
-		LtDriver ltDriver;
-		if (hasKey(startsWith("operation." + operation + ".procInfo")).matches(properties)) {
-			ltDriver = drivers.get("script");
-		}
+		Map<String, String> map = Maps.filterKeys(properties, new Predicate<String>() {
+			@Override
+			public boolean apply(final String input) {
+				return input.startsWith("operation." + operation + ".procInfo");
+			}
+		});
 
-		ltDriver = drivers.get("dummy");
+		LtDriver ltDriver = map.isEmpty() ? drivers.get("dummy") : drivers.get("script");
 		logger.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
 		return ltDriver;
 	}

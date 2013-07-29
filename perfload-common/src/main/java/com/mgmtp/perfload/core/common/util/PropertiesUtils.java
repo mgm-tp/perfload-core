@@ -15,11 +15,9 @@
  */
 package com.mgmtp.perfload.core.common.util;
 
-import static ch.lambdaj.collection.LambdaCollections.with;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
-import static org.hamcrest.Matchers.startsWith;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +29,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 /**
  * Utility class for loading properties into a {@link PropertiesMap}. Properties are loaded using
@@ -104,8 +105,13 @@ public final class PropertiesUtils {
 	}
 
 	public static Map<String, String> getSubMap(final PropertiesMap properties, final String keyPrefix) {
-		String prefix = keyPrefix.endsWith(".") ? keyPrefix : keyPrefix + ".";
-		Map<String, String> map = with(properties).clone().retainKeys(startsWith(prefix));
+		final String prefix = keyPrefix.endsWith(".") ? keyPrefix : keyPrefix + ".";
+		Map<String, String> map = Maps.filterKeys(properties, new Predicate<String>() {
+			@Override
+			public boolean apply(final String input) {
+				return input.startsWith(prefix);
+			}
+		});
 
 		Map<String, String> result = newHashMapWithExpectedSize(map.size());
 		for (Entry<String, String> entry : map.entrySet()) {

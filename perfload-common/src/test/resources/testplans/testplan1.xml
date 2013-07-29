@@ -16,20 +16,20 @@
     limitations under the License.
 
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-config.xsd"
-	xmlns:xi="http://www.w3.org/2001/XInclude">
-	<testplans>
-		<testplan id="testplan" module="com.mgmtp.perfload.core.test.comp.ComponentTestModule">
-			<loadProfileConfig>loadprofile.perfload</loadProfileConfig>
-			<xi:include href="testJars.xml" />
-			<properties>
-				<property name="prop1">value1</property>
-				<property name="prop2">value2</property>
-			</properties>
-		</testplan>
-	</testplans>
-	<daemons>
-		<daemon host="localhost" id="1" port="8042" />
-		<daemon host="localhost" id="2" port="8043" />
-	</daemons>
-</config>
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<module>com.mgmtp.perfload.core.DummyModule</module>
+	<loadProfileConfig>test_loadprofile.perfload</loadProfileConfig>
+	<testJars>
+		<testJar>test1.jar</testJar>
+		<testJar>test2.jar</testJar>
+		<testJar>test3.jar</testJar>
+	</testJars>
+	<properties>
+		<property name="prop1">value1</property>
+		<property name="prop2">value2</property>
+	</properties>
+	<jvmargs>
+		<jvmarg>-Dsysprop1=value1</jvmarg>
+		<jvmarg>-Dsysprop2=value2</jvmarg>
+	</jvmargs>
+</testplan>

@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.mgmtp.perfload.core.common.util.LtUtils.toDefaultString;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -52,16 +51,6 @@ public class ProcessConfig implements Serializable {
 		this.processId = processId;
 		this.daemonId = daemonId;
 		this.jvmArgs = ImmutableList.copyOf(jvmArgs);
-	}
-
-	/**
-	 * @param processId
-	 *            the 1-based integer id of the process
-	 * @param daemonId
-	 *            the 1-based integer id of the daemon that starts the process
-	 */
-	public ProcessConfig(final int processId, final int daemonId) {
-		this(processId, daemonId, Collections.<String>emptyList());
 	}
 
 	public int getProcessId() {

@@ -254,7 +254,7 @@ public final class PropertiesMap extends ForwardingMap<String, String> implement
 				return super.keys();
 			}
 
-			Set<Object> sortedSet = new TreeSet<Object>();
+			Set<Object> sortedSet = new TreeSet<>();
 			for (Enumeration<Object> en = super.keys(); en.hasMoreElements();) {
 				sortedSet.add(en.nextElement());
 			}

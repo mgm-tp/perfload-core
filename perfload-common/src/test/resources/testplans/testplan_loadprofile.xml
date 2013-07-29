@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Copyright (c) 2013 mgm technology partners GmbH
@@ -15,8 +16,16 @@
     limitations under the License.
 
 -->
-<testJars>
-  <testJar name="test1.jar" dir="src/test/resources" />
-  <testJar name="test2.jar" dir="src/test/resources" />
-  <testJar name="test3.jar" dir="src/test/resources" />
-</testJars>
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<module>com.mgmtp.perfload.core.DummyModule</module>
+	<loadProfile>test_loadprofile.perfload</loadProfile>
+	<xi:include href="testJars.xml" />
+	<properties>
+		<property name="prop1">value1</property>
+		<property name="prop2">value2</property>
+	</properties>
+	<jvmargs>
+		<jvmarg>-Dsysprop1=value1</jvmarg>
+		<jvmarg>-Dsysprop2=value2</jvmarg>
+	</jvmargs>
+</testplan>

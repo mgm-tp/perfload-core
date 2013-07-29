@@ -16,9 +16,7 @@
 package com.mgmtp.perfload.core.common.clientserver;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Collection;
@@ -36,20 +34,20 @@ public class ChannelPredicatesTest {
 	@Test
 	public void testChannelPredicates() {
 		List<String> testStrings = newArrayList(
-		        ChannelPredicates.CONSOLE,
-		        ChannelPredicates.TESTPROC,
-		        ChannelPredicates.TESTPROC,
-		        ChannelPredicates.TESTPROC
-		        );
+				ChannelPredicates.CONSOLE,
+				ChannelPredicates.TESTPROC,
+				ChannelPredicates.TESTPROC,
+				ChannelPredicates.TESTPROC
+				);
 
 		Collection<String> consoleStrings = Collections2.filter(testStrings, ChannelPredicates.isConsoleChannel());
 		assertEquals(consoleStrings.size(), 1);
-		assertThat(consoleStrings, hasItem(ChannelPredicates.CONSOLE));
-		assertThat(consoleStrings, not(hasItem(ChannelPredicates.TESTPROC)));
+		assertThat(consoleStrings).contains(ChannelPredicates.CONSOLE);
+		assertThat(consoleStrings).doesNotContain(ChannelPredicates.TESTPROC);
 
 		Collection<String> testprocStrings = Collections2.filter(testStrings, ChannelPredicates.isTestprocChannel());
 		assertEquals(testprocStrings.size(), 3);
-		assertThat(testprocStrings, hasItem(ChannelPredicates.TESTPROC));
-		assertThat(testprocStrings, not(hasItem(ChannelPredicates.CONSOLE)));
+		assertThat(testprocStrings).contains(ChannelPredicates.TESTPROC);
+		assertThat(testprocStrings).doesNotContain(ChannelPredicates.CONSOLE);
 	}
 }

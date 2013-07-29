@@ -42,7 +42,7 @@ public class VerifierIT {
 	private static final Pattern SUCCESSFUL_PATTERN = Pattern.compile("\"SUCCESS\"");
 	private static final Pattern URI_PATTERN = Pattern.compile("\"[^\"]+/fibonacci[^\"]*\"");
 	private static final Pattern URI_ALIAS_PATTERN = Pattern.compile("\"fibAlias\"");
-	private static final Pattern LOG_FILE_PATTERN = Pattern.compile("daemon-[1|2]_.*_measuring.log");
+	private static final Pattern LOG_FILE_PATTERN = Pattern.compile(".*_measuring.log");
 
 	/**
 	 * Checks if the number of patterns match to the expected ones.
@@ -99,7 +99,7 @@ public class VerifierIT {
 		File[] logs = this.getLogs(new File(CLIENT_DIR), LOG_FILE_PATTERN);
 
 		// Check if the number of log files equals the expected one.
-		assertEquals(logs.length, 2 * 2, "Number of measuring logs not correct."); // 2 daemons, 2 processes per daemon
+		assertEquals(logs.length, 2, "Number of measuring logs not correct."); // one per process
 
 		int expectedSuccessfulMatches = 6 * 20; // 6 executions per process, 20 requests in flow
 		int expectedErrorMatches = 0;

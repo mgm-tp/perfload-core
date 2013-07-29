@@ -18,11 +18,8 @@ package com.mgmtp.perfload.core.common.util;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.readLines;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.entry;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -78,12 +75,12 @@ public class PropertiesUtilsTest {
 		PropertiesMap properties = PropertiesUtils.loadProperties("test.utf8.props", "UTF-8", false);
 
 		List<String> list = PropertiesUtils.getSubList(properties, "some.prop.list");
-		assertThat(list, contains("list1", "list2", "list3"));
-		assertThat(list.size(), is(equalTo(3)));
+		assertThat(list).containsExactly("list1", "list2", "list3");
+		assertThat(list).hasSize(3);
 
 		list = PropertiesUtils.getSubList(properties, "some.prop.list.");
-		assertThat(list, contains("list1", "list2", "list3"));
-		assertThat(list.size(), is(equalTo(3)));
+		assertThat(list).containsExactly("list1", "list2", "list3");
+		assertThat(list).hasSize(3);
 	}
 
 	@Test
@@ -91,15 +88,15 @@ public class PropertiesUtilsTest {
 		PropertiesMap properties = PropertiesUtils.loadProperties("test.utf8.props", "UTF-8", false);
 
 		Map<String, String> map = PropertiesUtils.getSubMap(properties, "some.prop.map");
-		assertThat(map, hasEntry("key1", "value1"));
-		assertThat(map, hasEntry("key2", "value2"));
-		assertThat(map, hasEntry("key3", "value3"));
-		assertThat(map.size(), is(equalTo(3)));
+		assertThat(map).contains(entry("key1", "value1"));
+		assertThat(map).contains(entry("key2", "value2"));
+		assertThat(map).contains(entry("key3", "value3"));
+		assertThat(map).hasSize(3);
 
 		map = PropertiesUtils.getSubMap(properties, "some.prop.map.");
-		assertThat(map, hasEntry("key1", "value1"));
-		assertThat(map, hasEntry("key2", "value2"));
-		assertThat(map, hasEntry("key3", "value3"));
-		assertThat(map.size(), is(equalTo(3)));
+		assertThat(map).contains(entry("key1", "value1"));
+		assertThat(map).contains(entry("key2", "value2"));
+		assertThat(map).contains(entry("key3", "value3"));
+		assertThat(map).hasSize(3);
 	}
 }

@@ -17,6 +17,7 @@ package com.mgmtp.perfload.core.console.meta;
 
 import static org.testng.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -25,8 +26,10 @@ import java.util.Properties;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.testng.annotations.Test;
 
-import com.mgmtp.perfload.core.common.config.Config;
+import com.google.common.collect.ImmutableList;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
 import com.mgmtp.perfload.core.common.config.XmlConfigReader;
+import com.mgmtp.perfload.core.console.model.Daemon;
 
 /**
  * @author rnaegele
@@ -36,7 +39,7 @@ public class LtMetaInfoHandlerTest {
 
 	@Test
 	public void testMetaInfoForLoadProfileTest() throws Exception {
-		XmlConfigReader reader = new XmlConfigReader("src/test/resources/testplan_loadprofile.xml", "UTF-8");
+		XmlConfigReader reader = new XmlConfigReader(new File("src/test/resources"), "testplan_loadprofile.xml");
 		long now = System.currentTimeMillis();
 		Properties props = createMetaProperties(reader, now);
 		String timestamp = DATE_FORMAT.format(now);
@@ -44,32 +47,31 @@ public class LtMetaInfoHandlerTest {
 		assertEquals(props.getProperty("test.file"), "testplan_loadprofile.xml");
 		assertEquals(props.getProperty("test.start"), timestamp);
 		assertEquals(props.getProperty("test.finish"), timestamp);
-		assertEquals(props.getProperty("daemon.1.host"), "localhost");
-		assertEquals(props.getProperty("daemon.1.port"), "8042");
-		assertEquals(props.getProperty("daemon.2.host"), "localhost");
-		assertEquals(props.getProperty("daemon.2.port"), "8043");
-		assertEquals(props.getProperty("testplan.testplan.targets"), "myTarget1,myTarget2");
-		assertEquals(props.getProperty("testplan.testplan.operations"),
+		assertEquals(props.getProperty("daemon.1"), "localhost:8042");
+		assertEquals(props.getProperty("daemon.2"), "localhost:8043");
+		assertEquals(props.getProperty("targets"), "myTarget1,myTarget2");
+		assertEquals(props.getProperty("operations"),
 				"myOperation1,myOperation2,myOperation3,myOperation4,myOperation5,myOperation6");
-		assertEquals(props.getProperty("plannedExecutions.myOperation1.myTarget1"), "1");
-		assertEquals(props.getProperty("plannedExecutions.myOperation1.myTarget2"), "1");
-		assertEquals(props.getProperty("plannedExecutions.myOperation2.myTarget1"), "2");
-		assertEquals(props.getProperty("plannedExecutions.myOperation2.myTarget2"), "2");
-		assertEquals(props.getProperty("plannedExecutions.myOperation3.myTarget1"), "1");
-		assertEquals(props.getProperty("plannedExecutions.myOperation3.myTarget2"), "0");
-		assertEquals(props.getProperty("plannedExecutions.myOperation4.myTarget1"), "3");
-		assertEquals(props.getProperty("plannedExecutions.myOperation4.myTarget2"), "0");
-		assertEquals(props.getProperty("plannedExecutions.myOperation5.myTarget1"), "0");
-		assertEquals(props.getProperty("plannedExecutions.myOperation5.myTarget2"), "1");
-		assertEquals(props.getProperty("plannedExecutions.myOperation6.myTarget1"), "0");
-		assertEquals(props.getProperty("plannedExecutions.myOperation6.myTarget2"), "4");
+		assertEquals(props.getProperty("executions.myOperation1.myTarget1"), "1");
+		assertEquals(props.getProperty("executions.myOperation1.myTarget2"), "1");
+		assertEquals(props.getProperty("executions.myOperation2.myTarget1"), "2");
+		assertEquals(props.getProperty("executions.myOperation2.myTarget2"), "2");
+		assertEquals(props.getProperty("executions.myOperation3.myTarget1"), "1");
+		assertEquals(props.getProperty("executions.myOperation3.myTarget2"), "0");
+		assertEquals(props.getProperty("executions.myOperation4.myTarget1"), "3");
+		assertEquals(props.getProperty("executions.myOperation4.myTarget2"), "0");
+		assertEquals(props.getProperty("executions.myOperation5.myTarget1"), "0");
+		assertEquals(props.getProperty("executions.myOperation5.myTarget2"), "1");
+		assertEquals(props.getProperty("executions.myOperation6.myTarget1"), "0");
+		assertEquals(props.getProperty("executions.myOperation6.myTarget2"), "4");
 	}
 
 	private Properties createMetaProperties(final XmlConfigReader configReader, final long timestamp) throws Exception,
 			IOException {
-		Config config = configReader.readConfig();
+		TestplanConfig config = configReader.readConfig();
 		LtMetaInfoHandler handler = new LtMetaInfoHandler();
-		LtMetaInfo metaInfo = handler.createMetaInformation(timestamp, timestamp, config);
+		LtMetaInfo metaInfo = handler.createMetaInformation(timestamp, timestamp, config,
+				ImmutableList.of(new Daemon(1, "localhost", 8042), new Daemon(2, "localhost", 8043)));
 
 		StringWriter sw = new StringWriter();
 		handler.dumpMetaInfo(metaInfo, sw);
