@@ -125,7 +125,7 @@ public final class LtConsole {
 
 		int totalProcessCount = config.getTotalProcessCount();
 		connectLatch = new CountDownLatch(totalProcessCount);
-		jarLatch = new CountDownLatch(daemons.size());
+		jarLatch = new CountDownLatch(daemons.size() * config.getTestJars().size());
 		readyLatch = new CountDownLatch(totalProcessCount);
 		doneLatch = new CountDownLatch(totalProcessCount);
 
@@ -312,13 +312,20 @@ public final class LtConsole {
 	}
 
 	private void sendJars() throws InterruptedException, TimeoutException {
+		List<TestJar> testJars = config.getTestJars();
+		if (testJars.isEmpty()) {
+			while (jarLatch.getCount() > 0) {
+				jarLatch.countDown();
+			}
+		}
+
 		for (Daemon daemon : daemons) {
 			int daemonId = daemon.getId();
 			LOG.info("Transferring jars to daemon {}", daemonId);
 			Client client = clients.get(daemonId);
 
 			// Send jars separately in order to save memory
-			for (TestJar jar : config.getTestJars()) {
+			for (TestJar jar : testJars) {
 				LOG.debug("Transferring jar file: {}", jar.getName());
 				// Await sending of the message. Otherwise jars might pile up in memory causing an OOME.
 				if (!client.sendMessage(new Payload(PayloadType.JAR, jar)).await(30L, TimeUnit.SECONDS)) {
