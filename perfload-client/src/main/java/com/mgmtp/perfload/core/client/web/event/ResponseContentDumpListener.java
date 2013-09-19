@@ -81,7 +81,11 @@ public final class ResponseContentDumpListener implements RequestFlowEventListen
 				File file = new File("dump/" + event.getResponseInfo().getExecutionId() + "/"
 						+ leftPad(counter.toString(), 2, '0') + ".html");
 				Files.createParentDirs(file);
-				Files.write(responseInfo.getBody(), file);
+				file.createNewFile();
+				byte[] body = responseInfo.getBody();
+				if (body != null) {
+					Files.write(responseInfo.getBody(), file);
+				}
 				counter.increment();
 			} catch (IOException ex) {
 				log.error(ex.getMessage(), ex);

@@ -143,6 +143,9 @@ public final class ResponseInfo {
 	 * @return the body
 	 */
 	public byte[] getBody() {
+		if (body == null) {
+			return null;
+		}
 		return copyOf(body, body.length);
 	}
 
