@@ -7,16 +7,16 @@ mgm perfLoad Common
 Copyright 2013 mgm technology partners GmbH
 
 From: 'an unknown organization'
-  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:14.0.1
+  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:15.0
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - "Java Concurrency in Practice" book annotations (http://jcip.net/) net.jcip:jcip-annotations:jar:1.0
 
 From: 'FasterXML' (http://fasterxml.com)
-  - Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-core-asl:jar:1.9.12
+  - Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-core-asl:jar:1.9.13
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Data Mapper for Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-mapper-asl:jar:1.9.12
+  - Data Mapper for Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Xml Compatibility extensions for Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-xc:jar:1.9.12
+  - Xml Compatibility extensions for Jackson (http://jackson.codehaus.org) org.codehaus.jackson:jackson-xc:jar:1.9.13
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
     License: GNU Lesser General Public License (LGPL), Version 2.1  (http://www.fsf.org/licensing/licenses/lgpl.txt)
 
@@ -24,12 +24,12 @@ From: 'MetaStuff Ltd.' (http://sourceforge.net/projects/dom4j)
   - dom4j (http://dom4j.org) dom4j:dom4j:jar:1.6.1
 
 From: 'QOS.ch' (http://www.qos.ch)
-  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.9
+  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.13
     License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)
     License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
-  - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.2
+  - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.5
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
-  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.2
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.5
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
 From: 'The Apache Software Foundation' (http://www.apache.org/)

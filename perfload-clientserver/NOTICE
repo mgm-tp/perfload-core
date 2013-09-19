@@ -7,7 +7,7 @@ mgm perfLoad Client-Server
 Copyright 2013 mgm technology partners GmbH
 
 From: 'an unknown organization'
-  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:14.0.1
+  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:15.0
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'JBoss by Red Hat' (http://www.jboss.org)
@@ -15,10 +15,10 @@ From: 'JBoss by Red Hat' (http://www.jboss.org)
     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
 From: 'QOS.ch' (http://www.qos.ch)
-  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.9
+  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.13
     License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)
     License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
-  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.2
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.5
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
 From: 'The Apache Software Foundation' (http://www.apache.org/)
