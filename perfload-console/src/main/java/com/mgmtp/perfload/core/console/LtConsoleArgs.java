@@ -47,8 +47,12 @@ public class LtConsoleArgs {
 			description = "Timeout in minutes for aborting a test. Relative to the start time of the last load profile event.")
 	long timeout = 15L;
 
-	@Parameter(names = "-daemons", required = true, converter = HostAndPortConverter.class, splitter = CommaParameterSplitter.class,
-			description = "The daemons to use in the test (<host>:<port>). The port defaults to 20000 if omitted.")
+	@Parameter(
+			names = "-daemons",
+			required = true,
+			converter = HostAndPortConverter.class,
+			splitter = CommaParameterSplitter.class,
+			description = "The daemons (comma-separated) to use in the test (<host>:<port>). The port defaults to 20000 if omitted.")
 	List<HostAndPort> daemons;
 
 	@Override
