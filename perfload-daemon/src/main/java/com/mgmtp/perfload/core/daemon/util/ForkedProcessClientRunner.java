@@ -60,7 +60,11 @@ public class ForkedProcessClientRunner extends AbstractClientRunner {
 		return execService.submit(new Callable<Integer>() {
 			@Override
 			public Integer call() throws IOException, InterruptedException {
-				File javaHome = new File(System.getenv("JAVA_HOME"));
+				String javaHomeString = System.getenv("JAVA_HOME");
+				if (javaHomeString == null) {
+					throw new IOException("JAVA_HOME not set.");
+				}
+				File javaHome = new File(javaHomeString);
 				if (!javaHome.exists()) {
 					throw new IOException("JAVA_HOME does not exist.");
 				}
