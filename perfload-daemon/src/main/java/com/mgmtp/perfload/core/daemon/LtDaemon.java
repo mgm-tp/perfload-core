@@ -131,7 +131,7 @@ public class LtDaemon {
 			jCmd = new JCommander(cliArgs);
 			jCmd.parse(args);
 
-			log().info("Starting perfLoad Console...");
+			log().info("Starting perfLoad Daemon...");
 			log().info(cliArgs.toString());
 
 			if (cliArgs.shutdown) {
