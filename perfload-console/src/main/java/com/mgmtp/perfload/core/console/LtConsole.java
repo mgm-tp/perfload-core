@@ -339,14 +339,9 @@ public final class LtConsole {
 		awaitLatch(jarLatch, "Timeout waiting for jars to be transferred to daemons.");
 
 		LOG.info("Starting test processes...");
-
-		for (Daemon daemon : daemons) {
-			int daemonId = daemon.getId();
-			LOG.debug("Starting test processes on daemon {}", daemonId);
-			for (ProcessConfig pc : config.getProcessConfigs()) {
-				LOG.debug("Starting test process: {}", pc);
-				clients.get(pc.getDaemonId()).sendMessage(new Payload(PayloadType.CREATE_TEST_PROC, pc));
-			}
+		for (ProcessConfig pc : config.getProcessConfigs()) {
+			LOG.debug("Starting test process: {}", pc);
+			clients.get(pc.getDaemonId()).sendMessage(new Payload(PayloadType.CREATE_TEST_PROC, pc));
 		}
 	}
 
