@@ -16,7 +16,6 @@
 package com.mgmtp.perfload.core.test.client;
 
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.lineIterator;
 
 import java.io.IOException;
@@ -33,15 +32,15 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
 /**
  * @author rnaegele
  */
-public class TestClientModule extends AbstractWebLtModule {
+public class FibonacciModule extends AbstractWebLtModule {
 
-	public TestClientModule(final PropertiesMap testplanProperties) {
+	public FibonacciModule(final PropertiesMap testplanProperties) {
 		super(testplanProperties);
 	}
 
 	@Override
 	protected void doConfigureWebModule() {
-		bindRequestFlowEventListener().to(TestClientListener.class);
+		bindRequestFlowEventListener().to(FibonacciListener.class);
 		install(new WebLtModule(testplanProperties));
 	}
 
@@ -49,8 +48,7 @@ public class TestClientModule extends AbstractWebLtModule {
 	@Provides
 	Map<String, String> provideTestData() {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		InputStream is = cl.getResourceAsStream("testdata.txt");
-		try {
+		try (InputStream is = cl.getResourceAsStream("testdata/fibonacci.txt")) {
 			Map<String, String> result = newHashMapWithExpectedSize(20);
 			for (LineIterator it = lineIterator(is, "UTF-8"); it.hasNext();) {
 				String line = it.nextLine();
@@ -63,8 +61,6 @@ public class TestClientModule extends AbstractWebLtModule {
 			return result;
 		} catch (IOException ex) {
 			throw new IllegalStateException("Error reading test data.", ex);
-		} finally {
-			closeQuietly(is);
 		}
 	}
 }

@@ -17,7 +17,7 @@
 
 -->
 <testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd" xmlns:xi="http://www.w3.org/2001/XInclude">
-	<module>com.mgmtp.perfload.core.test.client.TestClientModule</module>
+	<module>com.mgmtp.perfload.core.test.client.FibonacciModule</module>
 	<loadProfile>fibonacci.perfload</loadProfile>
 	<testJars>
 		<testJar>perfload-test-client-${project.version}.jar</testJar>

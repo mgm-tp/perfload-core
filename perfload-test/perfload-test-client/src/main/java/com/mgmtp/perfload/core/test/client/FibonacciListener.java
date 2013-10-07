@@ -29,8 +29,8 @@ import net.jcip.annotations.ThreadSafe;
 
 import com.google.common.collect.ImmutableList;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
+import com.mgmtp.perfload.core.client.web.event.LtListenerAdapter;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEvent;
-import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
 
 /**
  * @author rnaegele
@@ -38,15 +38,14 @@ import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
 @Singleton
 @Immutable
 @ThreadSafe
-public class TestClientListener implements RequestFlowEventListener {
-
+public class FibonacciListener extends LtListenerAdapter {
 	private final Provider<PlaceholderContainer> placeholderContainerProvider;
 	private final List<Entry<String, String>> testDataEntries;
 	private final Random random = new Random();
 
 	@Inject
-	public TestClientListener(final Provider<PlaceholderContainer> placeholderContainerProvider,
-	        @TestData final Map<String, String> testData) {
+	public FibonacciListener(final Provider<PlaceholderContainer> placeholderContainerProvider,
+			@TestData final Map<String, String> testData) {
 		this.placeholderContainerProvider = placeholderContainerProvider;
 		this.testDataEntries = ImmutableList.copyOf(testData.entrySet());
 	}
@@ -55,17 +54,9 @@ public class TestClientListener implements RequestFlowEventListener {
 	public void beforeRequest(final RequestFlowEvent event) {
 		int index = random.nextInt(testDataEntries.size());
 		Entry<String, String> entry = testDataEntries.get(index);
-		placeholderContainerProvider.get().put("n", entry.getKey());
-		placeholderContainerProvider.get().put("fibn", entry.getValue());
+
+		PlaceholderContainer placeholderContainer = placeholderContainerProvider.get();
+		placeholderContainer.put("n", entry.getKey());
+		placeholderContainer.put("fibn", entry.getValue());
 	}
-
-	@Override
-	public void beforeRequestFlow(final RequestFlowEvent event) { /* no-op */}
-
-	@Override
-	public void afterRequestFlow(final RequestFlowEvent event) { /* no-op */}
-
-	@Override
-	public void afterRequest(final RequestFlowEvent event) { /* no-op */}
-
 }

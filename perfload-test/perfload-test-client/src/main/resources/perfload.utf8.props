@@ -14,16 +14,11 @@
 # limitations under the License.
 #
 
-
-operation.fibonacci1.requestflows=fibonacci_flow.xml
-operation.fibonacci2.requestflows=fibonacci_flow.xml
+operation.fibonacci1.requestflows=requestflows/fibonacci_flow.xml
+operation.fibonacci2.requestflows=requestflows/fibonacci_flow.xml
 
 target.localhost.host=http://localhost:9090
 
-wtm.beforeTestStartMillis=0
-wtm.beforeReloadRequestMillis=0
+responseParser.allowedStatusCodes=200
 
 wtm.strategy.constant.waitingTimeMillis=0
-
-responseParser.errorPattern.1=<!--Lasttest stop -->
-responseParser.allowedStatusCodes=200
