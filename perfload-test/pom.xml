@@ -31,6 +31,7 @@
 		<module>perfload-test-app</module>
 		<module>perfload-test-client</module>
 		<module>perfload-test-it</module>
+		<module>perfload-test-utils</module>
 	</modules>
 
 </project>

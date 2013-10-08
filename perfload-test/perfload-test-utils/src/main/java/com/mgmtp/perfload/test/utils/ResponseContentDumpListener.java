@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mgmtp.perfload.core.client.web.event;
+package com.mgmtp.perfload.test.utils;
 
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
@@ -29,46 +29,25 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
 import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.web.event.LtListenerAdapter;
+import com.mgmtp.perfload.core.client.web.event.RequestFlowEvent;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 
 /**
- * Listener for dumping response bodies to be used for debugging purposes only during driver
- * development.
+ * Listener for dumping response bodies to files. To be used for debugging purposes during driver
+ * development only.
  * 
  * @author rnaegele
+ * @since 4.7.0
  */
 @ThreadScoped
 @ThreadSafe
 @Immutable
-public final class ResponseContentDumpListener implements RequestFlowEventListener {
+public final class ResponseContentDumpListener extends LtListenerAdapter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final MutableInt counter = new MutableInt();
-
-	/**
-	 * Does nothing.
-	 */
-	@Override
-	public void beforeRequestFlow(final RequestFlowEvent event) {
-		/* no-op */
-	}
-
-	/**
-	 * Does nothing.
-	 */
-	@Override
-	public void afterRequestFlow(final RequestFlowEvent event) {
-		/* no-op */
-	}
-
-	/**
-	 * Does nothing.
-	 */
-	@Override
-	public void beforeRequest(final RequestFlowEvent event) {
-		/* no-op */
-	}
 
 	/**
 	 * Writes response bodies to the folder {@code dump/<executionId>} in the current directory.
