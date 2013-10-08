@@ -37,7 +37,7 @@ import org.jboss.netty.channel.MessageEvent;
  */
 public final class ClientHandshakeHandler extends AbstractHandshakeHandler {
 
-	private final Queue<MessageEvent> messages = new ArrayDeque<MessageEvent>();
+	private final Queue<MessageEvent> messages = new ArrayDeque<>();
 	private final Handshake handshake;
 
 	public ClientHandshakeHandler(final Handshake handshake, final long timeoutInMillis) {

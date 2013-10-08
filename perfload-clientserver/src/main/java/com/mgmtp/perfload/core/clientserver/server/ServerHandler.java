@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
 import com.mgmtp.perfload.core.clientserver.util.ChannelContainer;
 
 /**
- * The {@link ChannelUpstreamHandler} implementation for {@link DefaultServer}s. Dispatches incoming messages to registered
- * {@link ServerMessageListener}s.
+ * The {@link ChannelUpstreamHandler} implementation for {@link DefaultServer}s. Dispatches incoming
+ * messages to registered {@link ServerMessageListener}s.
  * 
  * @author rnaegele
  */
@@ -46,7 +46,7 @@ final class ServerHandler extends SimpleChannelUpstreamHandler {
 	private final ChannelContainer channelContainer;
 
 	// Must use a CopyOnWriteArraySet to guarantee thread safety
-	private final Set<ServerMessageListener> listeners = new CopyOnWriteArraySet<ServerMessageListener>();
+	private final Set<ServerMessageListener> listeners = new CopyOnWriteArraySet<>();
 
 	/**
 	 * @param channelContainer
@@ -62,8 +62,8 @@ final class ServerHandler extends SimpleChannelUpstreamHandler {
 	 * {@inheritDoc}
 	 * </p>
 	 * <p>
-	 * Overriden to log ChannelStateEvents if they have a state other than {@link ChannelState#INTEREST_OPS}, i. e. OPEN, BOUND,
-	 * CONNECTED.
+	 * Overriden to log ChannelStateEvents if they have a state other than
+	 * {@link ChannelState#INTEREST_OPS}, i. e. OPEN, BOUND, CONNECTED.
 	 * </p>
 	 * 
 	 * @param ctx
