@@ -17,18 +17,15 @@ package com.mgmtp.perfload.core.client.web.template;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.mgmtp.perfload.core.common.util.LtUtils.toDefaultString;
 
-import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.List;
 
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
@@ -333,7 +330,7 @@ public final class RequestTemplate {
 
 		/**
 		 * @param name
-		 *            a name for this details
+		 *            a name for this detail
 		 * @param pattern
 		 *            a regular expression used to find the detail in the response
 		 * @param groupIndexString
@@ -488,33 +485,83 @@ public final class RequestTemplate {
 
 	public static class Body {
 		private final byte[] content;
-		private final Charset charset;
+		private final String charset;
+		private final String resourcePath;
 
 		/**
+		 * Either content or resource path (and optionally charset) must be specified.
+		 * 
 		 * @param content
-		 *            the body content as byte array
+		 *            the body content string
+		 * @param resourcePath
+		 *            the path to the body resource
 		 * @param charset
 		 *            the character set to use for reading the content; if {@code null} the content
 		 *            is considered binary
 		 */
-		public Body(final byte[] content, final Charset charset) {
-			checkArgument(content != null, "'content' must not be null");
-
-			this.content = Arrays.copyOf(content, content.length);
+		private Body(final byte[] content, final String resourcePath, final String charset) {
+			checkState(content != null ^ resourcePath != null,
+					"Must specify either content or resource path, but not both.");
+			this.content = content;
+			this.resourcePath = resourcePath;
 			this.charset = charset;
+		}
+
+		/**
+		 * Creates a new Body instance from the specified content string. Uses UTF-8 as character
+		 * set internally.
+		 * 
+		 * @param content
+		 *            the content string
+		 * @return the Body object
+		 */
+		public static Body create(final String content) {
+			return new Body(content.getBytes(Charsets.UTF_8), null, Charsets.UTF_8.name());
+		}
+
+		/**
+		 * Creates a new Body instance from the specified resource path and character set.
+		 * 
+		 * @param resourcePath
+		 *            the path of the classpath resource to load the body from
+		 * @param charset
+		 *            the character set to use when reading the resource; if {@code null}, the
+		 *            resource is considered binary
+		 * @return the Body object
+		 */
+		public static Body create(final String resourcePath, final String charset) {
+			return new Body(null, resourcePath, charset);
+		}
+
+		/**
+		 * Creates a new Body instance from the specified binary content.
+		 * 
+		 * @param content
+		 *            the body content
+		 * @return the Body object
+		 */
+		public static Body create(final byte[] content) {
+			return new Body(content, null, null);
 		}
 
 		/**
 		 * @return the content
 		 */
 		public byte[] getContent() {
-			return Arrays.copyOf(content, content.length);
+			return content;
+		}
+
+		/**
+		 * @return the resourcePath
+		 */
+		public String getResourcePath() {
+			return resourcePath;
 		}
 
 		/**
 		 * @return the charset
 		 */
-		public Charset getCharset() {
+		public String getCharset() {
 			return charset;
 		}
 
@@ -522,8 +569,9 @@ public final class RequestTemplate {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + (charset == null ? 0 : charset.hashCode());
-			result = prime * result + Arrays.hashCode(content);
+			result = prime * result + ((content == null) ? 0 : content.hashCode());
+			result = prime * result + ((charset == null) ? 0 : charset.hashCode());
+			result = prime * result + ((resourcePath == null) ? 0 : resourcePath.hashCode());
 			return result;
 		}
 
@@ -539,6 +587,13 @@ public final class RequestTemplate {
 				return false;
 			}
 			Body other = (Body) obj;
+			if (content == null) {
+				if (other.content != null) {
+					return false;
+				}
+			} else if (!content.equals(other.content)) {
+				return false;
+			}
 			if (charset == null) {
 				if (other.charset != null) {
 					return false;
@@ -546,7 +601,11 @@ public final class RequestTemplate {
 			} else if (!charset.equals(other.charset)) {
 				return false;
 			}
-			if (!Arrays.equals(content, other.content)) {
+			if (resourcePath == null) {
+				if (other.resourcePath != null) {
+					return false;
+				}
+			} else if (!resourcePath.equals(other.resourcePath)) {
 				return false;
 			}
 			return true;
@@ -554,13 +613,7 @@ public final class RequestTemplate {
 
 		@Override
 		public String toString() {
-			if (charset != null) {
-				return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-						.append("charset", charset.name())
-						.append(new String(content, charset))
-						.toString();
-			}
-			return super.toString();
+			return toDefaultString(this);
 		}
 	}
 }

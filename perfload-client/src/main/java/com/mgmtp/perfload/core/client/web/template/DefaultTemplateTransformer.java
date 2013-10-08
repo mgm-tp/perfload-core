@@ -16,8 +16,11 @@
 package com.mgmtp.perfload.core.client.web.template;
 
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.toByteArray;
+import static com.mgmtp.perfload.core.client.util.PlaceholderUtils.resolvePlaceholders;
 
-import java.nio.charset.Charset;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -32,6 +35,7 @@ import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderUtils;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
+import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
 
 /**
  * Default implementation of a {@link TemplateTransformer}.
@@ -53,16 +57,22 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 	 *            the parameterized request template
 	 * @param placeholderContainer
 	 *            the placeholder container for resolving placeholder tokens from
+	 * @throws IOException
+	 *             can be thrown if the request contains body content that is loaded from a
+	 *             classpath resource
 	 */
 	@Override
-	public RequestTemplate makeExecutable(final RequestTemplate template, final PlaceholderContainer placeholderContainer) {
+	public RequestTemplate makeExecutable(final RequestTemplate template, final PlaceholderContainer placeholderContainer)
+			throws IOException {
+		String type = resolvePlaceholders(template.getType(), placeholderContainer);
+
 		SetMultimap<String, String> requestParameters = template.getRequestParameters();
 		SetMultimap<String, String> resolvedParams = HashMultimap.create();
 
 		// Resolve placeholders in parameters
 		for (Entry<String, String> entry : requestParameters.entries()) {
-			String resolvedKey = PlaceholderUtils.resolvePlaceholders(entry.getKey(), placeholderContainer);
-			String resolvedValue = PlaceholderUtils.resolvePlaceholders(entry.getValue(), placeholderContainer);
+			String resolvedKey = resolvePlaceholders(entry.getKey(), placeholderContainer);
+			String resolvedValue = resolvePlaceholders(entry.getValue(), placeholderContainer);
 			resolvedParams.put(resolvedKey, resolvedValue);
 		}
 
@@ -71,52 +81,75 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 
 		// Resolve placeholders in headers
 		for (Entry<String, String> entry : requestHeaders.entries()) {
-			String resolvedKey = PlaceholderUtils.resolvePlaceholders(entry.getKey(), placeholderContainer);
-			String resolvedValue = PlaceholderUtils.resolvePlaceholders(entry.getValue(), placeholderContainer);
+			String resolvedKey = resolvePlaceholders(entry.getKey(), placeholderContainer);
+			String resolvedValue = resolvePlaceholders(entry.getValue(), placeholderContainer);
 			resolvedHeaders.put(resolvedKey, resolvedValue);
 		}
 
 		// Resolve placeholders in skip
-		String skip = PlaceholderUtils.resolvePlaceholders(template.getSkip(), placeholderContainer);
+		String skip = resolvePlaceholders(template.getSkip(), placeholderContainer);
 
 		// Resolve placeholders in URI
-		String uri = PlaceholderUtils.resolvePlaceholders(template.getUri(), placeholderContainer);
+		String uri = resolvePlaceholders(template.getUri(), placeholderContainer);
 
 		// Resolve placeholders in URI alias
-		String uriAlias = PlaceholderUtils.resolvePlaceholders(template.getUriAlias(), placeholderContainer);
+		String uriAlias = resolvePlaceholders(template.getUriAlias(), placeholderContainer);
 
 		// Resolve placeholders in body, if body is of type text
 		Body body = template.getBody();
 		if (body != null) {
 			byte[] content = body.getContent();
-			Charset charset = body.getCharset();
-			if (charset != null) {
+			String charset = body.getCharset();
+			if (content != null) {
 				String bodyAsString = new String(content, charset);
-				bodyAsString = PlaceholderUtils.resolvePlaceholders(bodyAsString, placeholderContainer);
-				body = new Body(bodyAsString.getBytes(charset), charset);
+				bodyAsString = resolvePlaceholders(bodyAsString, placeholderContainer);
+				body = Body.create(bodyAsString);
+			} else {
+				String resourcePath = resolvePlaceholders(body.getResourcePath(), placeholderContainer);
+				byte[] byteContent = toByteArray(getResource(resourcePath));
+				if (charset != null) {
+					String transformedCharset = resolvePlaceholders(charset, placeholderContainer);
+					String stringContent = resolvePlaceholders(new String(byteContent, transformedCharset),
+							placeholderContainer);
+					body = Body.create(stringContent);
+				} else {
+					body = Body.create(byteContent);
+				}
 			}
 		}
 
 		// Resolve placeholders in detail extraction patterns
 		List<DetailExtraction> detailExtractions = template.getDetailExtractions();
-		List<DetailExtraction> transformedDetailsExtractions = newArrayListWithCapacity(detailExtractions.size());
+		List<DetailExtraction> transformedDetailExtractions = newArrayListWithCapacity(detailExtractions.size());
 
 		for (DetailExtraction extraction : detailExtractions) {
-			String name = PlaceholderUtils.resolvePlaceholders(extraction.getName(), placeholderContainer);
-			String pattern = PlaceholderUtils.resolvePlaceholders(extraction.getPattern(), placeholderContainer);
+			String name = resolvePlaceholders(extraction.getName(), placeholderContainer);
+			String pattern = resolvePlaceholders(extraction.getPattern(), placeholderContainer);
 			String groupIndexString = PlaceholderUtils
 					.resolvePlaceholders(extraction.getGroupIndexString(), placeholderContainer);
-			String defaultValue = PlaceholderUtils.resolvePlaceholders(extraction.getDefaultValue(), placeholderContainer);
-			String failIfNotFoundString = PlaceholderUtils.resolvePlaceholders(extraction.getFailIfNotFoundString(),
+			String defaultValue = resolvePlaceholders(extraction.getDefaultValue(), placeholderContainer);
+			String failIfNotFoundString = resolvePlaceholders(extraction.getFailIfNotFoundString(),
 					placeholderContainer);
-			String indexedString = PlaceholderUtils.resolvePlaceholders(extraction.getIndexedString(), placeholderContainer);
+			String indexedString = resolvePlaceholders(extraction.getIndexedString(), placeholderContainer);
 
 			DetailExtraction transformedExtraction = new DetailExtraction(name, pattern, groupIndexString, defaultValue,
 					indexedString, failIfNotFoundString);
-			transformedDetailsExtractions.add(transformedExtraction);
+			transformedDetailExtractions.add(transformedExtraction);
 		}
 
-		return new RequestTemplate(template.getType(), skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
-				template.getHeaderExtractions(), transformedDetailsExtractions);
+		// Resolve placeholders in detail extraction patterns
+		List<HeaderExtraction> headerExtractions = template.getHeaderExtractions();
+		List<HeaderExtraction> transformedHeaderExtractions = newArrayListWithCapacity(headerExtractions.size());
+
+		for (HeaderExtraction extraction : headerExtractions) {
+			String name = resolvePlaceholders(extraction.getName(), placeholderContainer);
+			String placeholderName = resolvePlaceholders(extraction.getPlaceholderName(), placeholderContainer);
+
+			HeaderExtraction transformedExtraction = new HeaderExtraction(name, placeholderName);
+			transformedHeaderExtractions.add(transformedExtraction);
+		}
+
+		return new RequestTemplate(type, skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
+				transformedHeaderExtractions, transformedDetailExtractions);
 	}
 }

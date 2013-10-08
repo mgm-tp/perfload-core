@@ -15,24 +15,24 @@
  */
 package com.mgmtp.perfload.core.client.web.template;
 
+import static com.google.common.io.Resources.getResource;
+import static org.apache.commons.io.IOUtils.toByteArray;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.nio.charset.Charset;
+import java.io.IOException;
 import java.util.Collections;
 
 import org.testng.annotations.Test;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
-import com.mgmtp.perfload.core.client.web.template.DefaultTemplateTransformer;
-import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
-import com.mgmtp.perfload.core.client.web.template.TemplateTransformer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
@@ -43,7 +43,7 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtract
 public class DefaultTemplateTransformerTest {
 
 	@Test
-	public void testTransformation() {
+	public void testTransformation() throws IOException {
 		SetMultimap<String, String> params = HashMultimap.<String, String>create();
 		params.put("param1", "${value1}");
 		params.put("${param2}", "value2");
@@ -59,11 +59,12 @@ public class DefaultTemplateTransformerTest {
 
 		HeaderExtraction heActual = new HeaderExtraction("header1", "blubb");
 		DetailExtraction deActual = new DetailExtraction("foo", "${foo}", "1", null, "false", "false");
-		RequestTemplate template = new RequestTemplate("GET", "${skip}", "${uri}", "${uriAlias}", headers, params,
-				new Body("blubb ${foo} blubb ${foo} blubb".getBytes(), Charset.forName("UTF-8")),
+		RequestTemplate template = new RequestTemplate("${type}", "${skip}", "${uri}", "${uriAlias}", headers, params,
+				Body.create("blubb ${foo} blubb ${foo} blubb"),
 				ImmutableList.<HeaderExtraction>of(heActual), ImmutableList.<DetailExtraction>of(deActual));
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
+		pc.put("type", "GET");
 		pc.put("value1", "value1_transformed");
 		pc.put("param2", "param2_transformed");
 		pc.put("param3", "param3_transformed");
@@ -78,12 +79,13 @@ public class DefaultTemplateTransformerTest {
 		TemplateTransformer transformer = new DefaultTemplateTransformer();
 		RequestTemplate executableTemplate = transformer.makeExecutable(template, pc);
 
+		assertEquals(executableTemplate.getType(), "GET");
 		assertEquals(executableTemplate.getSkip(), "false");
 		assertFalse(executableTemplate.isSkipped());
 		assertEquals(executableTemplate.getUri(), "http://localhost");
 		assertEquals(executableTemplate.getUriAlias(), "myUriAlias");
 
-		assertEquals(executableTemplate.getBody().getContent(), "blubb .*? blubb .*? blubb".getBytes(Charset.forName("UTF-8")));
+		assertEquals(executableTemplate.getBody().getContent(), "blubb .*? blubb .*? blubb".getBytes(Charsets.UTF_8.name()));
 
 		HeaderExtraction heExpected = new HeaderExtraction("header1", "blubb");
 		assertEquals(executableTemplate.getHeaderExtractions().get(0), heExpected);
@@ -114,5 +116,38 @@ public class DefaultTemplateTransformerTest {
 		executableTemplate = transformer.makeExecutable(template, pc);
 
 		assertEquals(executableTemplate.getUri(), "testuri/param1/value1_transformed/param2/${value2}");
+	}
+
+	@Test
+	public void testTransformationWithBinaryBodyResource() throws IOException {
+		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
+				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", null),
+				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
+
+		PlaceholderContainer pc = new DefaultPlaceholderContainer();
+		pc.put("resource", "fooResource");
+
+		TemplateTransformer transformer = new DefaultTemplateTransformer();
+		RequestTemplate executableTemplate = transformer.makeExecutable(template, pc);
+
+		byte[] expectedResource = toByteArray(getResource("fooResource"));
+		assertEquals(executableTemplate.getBody().getContent(), expectedResource);
+	}
+
+	@Test
+	public void testTransformationWithTextBodyResource() throws IOException {
+		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
+				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", "${charset}"),
+				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
+
+		PlaceholderContainer pc = new DefaultPlaceholderContainer();
+		pc.put("resource", "fooResource");
+		pc.put("charset", "UTF-8");
+		pc.put("test", "testvalue");
+
+		TemplateTransformer transformer = new DefaultTemplateTransformer();
+		RequestTemplate executableTemplate = transformer.makeExecutable(template, pc);
+
+		assertEquals(new String(executableTemplate.getBody().getContent(), Charsets.UTF_8), "test testvalue");
 	}
 }

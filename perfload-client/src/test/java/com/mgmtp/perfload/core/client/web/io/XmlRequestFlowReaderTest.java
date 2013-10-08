@@ -20,11 +20,11 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.testng.Assert.fail;
 
-import java.nio.charset.Charset;
 import java.util.List;
 
 import org.testng.annotations.Test;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.SetMultimap;
 import com.mgmtp.perfload.core.client.web.flow.RequestFlow;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
@@ -39,7 +39,7 @@ public class XmlRequestFlowReaderTest {
 
 	@Test
 	public void testReader() throws Exception {
-		XmlRequestFlowReader reader = new XmlRequestFlowReader("", "request-flow.xml", "UTF-8");
+		XmlRequestFlowReader reader = new XmlRequestFlowReader("", "request-flow.xml");
 		RequestFlow flow = reader.readFlow();
 
 		// first template
@@ -59,7 +59,8 @@ public class XmlRequestFlowReaderTest {
 		template = get(flow, 1);
 		assertThat(template.getType()).isEqualTo("POST");
 		assertThat(template.getUri()).isEqualTo("/foo/bar.tax");
-		assertThat(template.getBody().getContent()).isEqualTo("test".getBytes());
+		assertThat(template.getBody().getContent()).isNull();
+		assertThat(template.getBody().getResourcePath()).isEqualTo("fooResource");
 		assertThat(template.getBody().getCharset()).isNull();
 		assertThat(template.getRequestHeaders().isEmpty()).isTrue();
 		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
@@ -77,8 +78,9 @@ public class XmlRequestFlowReaderTest {
 		template = get(flow, 2);
 		assertThat(template.getType()).isEqualTo("POST");
 		assertThat(template.getUri()).isEqualTo("/foo/bar.tax");
-		assertThat(template.getBody().getContent()).isEqualTo("test".getBytes());
-		assertThat(template.getBody().getCharset()).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(template.getBody().getContent()).isNull();
+		assertThat(template.getBody().getResourcePath()).isEqualTo("fooResource");
+		assertThat(template.getBody().getCharset()).isEqualTo(Charsets.UTF_8.name());
 
 		SetMultimap<String, String> headers = template.getRequestHeaders();
 		assertThat(headers.size()).isEqualTo(1);
@@ -125,7 +127,7 @@ public class XmlRequestFlowReaderTest {
 		Body body = template.getBody();
 		assertThat(new String(body.getContent(), body.getCharset())).
 				matches("Some multi-line\\s+body content\\s+\\Q^°~+?ß&/%$§@€\\E\\s+blubb");
-		assertThat(body.getCharset()).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(body.getCharset()).isEqualTo(Charsets.UTF_8.name());
 		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
 		assertThat(template.getDetailExtractions().isEmpty()).isTrue();
 

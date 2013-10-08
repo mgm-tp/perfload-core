@@ -15,6 +15,8 @@
  */
 package com.mgmtp.perfload.core.client.web.template;
 
+import java.io.IOException;
+
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 
 /**
@@ -33,6 +35,9 @@ public interface TemplateTransformer {
 	 * @param placeholderContainer
 	 *            the placeholder container
 	 * @return the executable template
+	 * @throws IOException
+	 *             can be thrown if the request contains body content that is loaded from a
+	 *             classpath resource
 	 */
-	RequestTemplate makeExecutable(RequestTemplate template, PlaceholderContainer placeholderContainer);
+	RequestTemplate makeExecutable(RequestTemplate template, PlaceholderContainer placeholderContainer) throws IOException;
 }

@@ -305,7 +305,7 @@ public class WebLtModule extends AbstractWebLtModule {
 
 				List<RequestFlow> newRequestFlows = newArrayListWithCapacity(templateResources.size());
 				for (String templateResource : templateResources) {
-					XmlRequestFlowReader reader = new XmlRequestFlowReader(path, templateResource, "UTF-8");
+					XmlRequestFlowReader reader = new XmlRequestFlowReader(path, templateResource);
 					RequestFlow flow = reader.readFlow();
 					newRequestFlows.add(flow);
 				}

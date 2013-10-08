@@ -18,12 +18,8 @@ package com.mgmtp.perfload.core.client.web.io;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
-import static com.google.common.io.Resources.getResource;
-import static com.google.common.io.Resources.toByteArray;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -55,7 +51,6 @@ public final class XmlRequestFlowReader {
 
 	private final String resourcePath;
 	private final String resourceName;
-	private final String encoding;
 
 	/**
 	 * 
@@ -63,13 +58,10 @@ public final class XmlRequestFlowReader {
 	 *            the path to the request flow XML resource on the classpath
 	 * @param resourceName
 	 *            the name of the XML request flow resource
-	 * @param encoding
-	 *            the encoding for reading the XML resource
 	 */
-	public XmlRequestFlowReader(final String resourcePath, final String resourceName, final String encoding) {
+	public XmlRequestFlowReader(final String resourcePath, final String resourceName) {
 		this.resourcePath = resourcePath;
 		this.resourceName = resourceName;
-		this.encoding = encoding;
 	}
 
 	/**
@@ -77,7 +69,7 @@ public final class XmlRequestFlowReader {
 	 * 
 	 * @return the request flow instance
 	 */
-	public RequestFlow readFlow() throws ParserConfigurationException, SAXException, DocumentException, IOException {
+	public RequestFlow readFlow() throws ParserConfigurationException, SAXException, DocumentException {
 		Element root = loadDocument().getRootElement();
 
 		@SuppressWarnings("unchecked")
@@ -113,18 +105,15 @@ public final class XmlRequestFlowReader {
 			if (bodyElement != null) {
 				String bodyContent = emptyToNull(bodyElement.getText());
 				String resPath = bodyElement.attributeValue("resourcePath");
-				String resEncoding = bodyElement.attributeValue("resourceCharset");
+				String resCharset = bodyElement.attributeValue("resourceCharset");
 
-				checkState(bodyContent != null ^ (resPath != null || resEncoding != null),
+				checkState(bodyContent != null ^ (resPath != null || resCharset != null),
 						"Resource attributes can only be specified when no body content is specified.");
 
 				if (bodyContent != null) {
-					// inline content is considered UTF-8
-					Charset charset = Charset.forName("UTF-8");
-					body = new Body(bodyContent.getBytes(charset), charset);
+					body = Body.create(bodyContent);
 				} else {
-					Charset resourceCharset = resEncoding != null ? Charset.forName(resEncoding) : null;
-					body = new Body(toByteArray(getResource(resPath)), resourceCharset);
+					body = Body.create(resPath, resCharset);
 				}
 			}
 
@@ -173,6 +162,6 @@ public final class XmlRequestFlowReader {
 		String schemaUrl = loader.getResource(SCHEMA_RESOURCE).toString();
 		String resource = resourcePath + resourceName;
 		String xmlResourceUrl = loader.getResource(resource).toString();
-		return Dom4jReader.loadDocument(new InputSource(xmlResourceUrl), new StreamSource(schemaUrl), encoding);
+		return Dom4jReader.loadDocument(new InputSource(xmlResourceUrl), new StreamSource(schemaUrl), "UTF-8");
 	}
 }
