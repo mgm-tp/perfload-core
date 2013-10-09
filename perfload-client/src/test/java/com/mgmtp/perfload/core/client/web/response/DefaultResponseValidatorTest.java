@@ -15,11 +15,15 @@
  */
 package com.mgmtp.perfload.core.client.web.response;
 
+import static com.google.common.collect.Sets.intersection;
 import static java.util.Arrays.asList;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.testng.Assert.fail;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -83,5 +87,19 @@ public class DefaultResponseValidatorTest {
 		ResponseValidator parser = new DefaultResponseValidator(Collections.<Integer>emptySet(), Collections.<Integer>emptySet(),
 				patterns);
 		parser.validate(responseInfo);
+	}
+
+	@Test
+	public void testWithSameAllowedAndForbiddenStatusCode() throws InvalidResponseException {
+		ImmutableSet<Integer> statusCodes = ImmutableSet.of(200);
+		Set<Integer> intersection = intersection(statusCodes, statusCodes);
+		try {
+			DefaultResponseValidator validator = new DefaultResponseValidator(statusCodes, statusCodes,
+					asList(Pattern.compile("")));
+			validator.validate(null);
+			fail("Expected IllegalStateException to be thrown.");
+		} catch (IllegalStateException ex) {
+			assertThat(ex.getMessage()).endsWith(intersection.toString());
+		}
 	}
 }

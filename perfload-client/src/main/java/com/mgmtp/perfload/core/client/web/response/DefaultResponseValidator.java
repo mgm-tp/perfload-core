@@ -16,6 +16,8 @@
 package com.mgmtp.perfload.core.client.web.response;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Sets.intersection;
 
 import java.util.List;
 import java.util.Set;
@@ -70,6 +72,11 @@ public class DefaultResponseValidator implements ResponseValidator {
 		checkArgument(forbiddenStatusCodes != null, "Parameter 'forbiddenStatusCodes' may not be null.");
 		checkArgument(errorPatterns != null, "Parameter 'errorPatterns' may not be null.");
 
+		Set<Integer> intersection = intersection(allowedStatusCodes, forbiddenStatusCodes);
+		checkState(intersection.isEmpty(),
+				"Allowed and forbidden status codes must be mutually exclusive but have the following intersection: %s",
+				intersection);
+
 		this.allowedStatusCodes = ImmutableSet.copyOf(allowedStatusCodes);
 		this.forbiddenStatusCodes = ImmutableSet.copyOf(forbiddenStatusCodes);
 		this.errorPatterns = ImmutableList.copyOf(errorPatterns);
@@ -88,7 +95,7 @@ public class DefaultResponseValidator implements ResponseValidator {
 
 		int statusCode = responseInfo.getStatusCode();
 		boolean success = !forbiddenStatusCodes.contains(statusCode);
-		if (!allowedStatusCodes.isEmpty() && !allowedStatusCodes.contains(statusCode)) {
+		if (success && !allowedStatusCodes.isEmpty() && !allowedStatusCodes.contains(statusCode)) {
 			success = false;
 		}
 		if (!success) {
