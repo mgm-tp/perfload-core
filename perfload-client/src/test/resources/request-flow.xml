@@ -21,7 +21,7 @@
 		<param name="myParam">42</param>
 	</request>
 	<request type="POST" uri="/foo/bar.tax">
-		<body resourcePath="fooResource" />
+		<body resourcePath="fooResource" resourceType="binary" />
 		<detailExtraction name="extractDetail"><![CDATA[myParamToExtract=([^"]+)"]]></detailExtraction>
 	</request>
 	<request type="POST" uri="/foo/bar.tax">
@@ -29,7 +29,7 @@
 		<param name="param1">param1value1</param>
 		<param name="param1">param1value2</param>
 		<param name="param2"><![CDATA[param<2>value]]></param>
-		<body resourcePath="fooResource" resourceCharset="UTF-8" />
+		<body resourcePath="fooResource" resourceType="text" />
 		<headerExtraction name="header1" />
 		<headerExtraction name="header2" placeholderName="myHeader2" />
 		<detailExtraction name="extractDetail1"><![CDATA[myParamToExtract=([^"]+)"]]></detailExtraction>

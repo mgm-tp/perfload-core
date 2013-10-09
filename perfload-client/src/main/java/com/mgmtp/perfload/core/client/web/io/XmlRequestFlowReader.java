@@ -105,15 +105,15 @@ public final class XmlRequestFlowReader {
 			if (bodyElement != null) {
 				String bodyContent = emptyToNull(bodyElement.getText());
 				String resPath = bodyElement.attributeValue("resourcePath");
-				String resCharset = bodyElement.attributeValue("resourceCharset");
+				String resourceType = bodyElement.attributeValue("resourceType");
 
-				checkState(bodyContent != null ^ (resPath != null || resCharset != null),
-						"Resource attributes can only be specified when no body content is specified.");
+				checkState(bodyContent != null ^ (resPath != null && resourceType != null),
+						"Must specify either body content or resource path and type. [" + requestElem.asXML() + "]");
 
 				if (bodyContent != null) {
 					body = Body.create(bodyContent);
 				} else {
-					body = Body.create(resPath, resCharset);
+					body = Body.create(resPath, resourceType);
 				}
 			}
 

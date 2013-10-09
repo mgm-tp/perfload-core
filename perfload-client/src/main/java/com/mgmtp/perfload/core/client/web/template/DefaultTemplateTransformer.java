@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
@@ -99,21 +100,26 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 		Body body = template.getBody();
 		if (body != null) {
 			byte[] content = body.getContent();
-			String charset = body.getCharset();
 			if (content != null) {
-				String bodyAsString = new String(content, charset);
+				// content comes from request flow and is always considered UTF-8
+				String bodyAsString = new String(content, Charsets.UTF_8);
 				bodyAsString = resolvePlaceholders(bodyAsString, placeholderContainer);
 				body = Body.create(bodyAsString);
 			} else {
 				String resourcePath = resolvePlaceholders(body.getResourcePath(), placeholderContainer);
+				ResourceType resourceType = ResourceType
+						.valueOf(resolvePlaceholders(body.getResourceType(), placeholderContainer));
 				byte[] byteContent = toByteArray(getResource(resourcePath));
-				if (charset != null) {
-					String transformedCharset = resolvePlaceholders(charset, placeholderContainer);
-					String stringContent = resolvePlaceholders(new String(byteContent, transformedCharset),
-							placeholderContainer);
-					body = Body.create(stringContent);
-				} else {
-					body = Body.create(byteContent);
+				switch (resourceType) {
+					case text:
+						String stringContent = resolvePlaceholders(new String(byteContent, Charsets.UTF_8), placeholderContainer);
+						body = Body.create(stringContent);
+						break;
+					case binary:
+						body = Body.create(byteContent);
+						break;
+					default:
+						throw new IllegalStateException("Invalid resource type: " + resourceType);
 				}
 			}
 		}

@@ -485,26 +485,25 @@ public final class RequestTemplate {
 
 	public static class Body {
 		private final byte[] content;
-		private final String charset;
 		private final String resourcePath;
+		private final String resourceType;
 
 		/**
 		 * Either content or resource path (and optionally charset) must be specified.
 		 * 
 		 * @param content
-		 *            the body content string
+		 *            the body content
 		 * @param resourcePath
 		 *            the path to the body resource
-		 * @param charset
-		 *            the character set to use for reading the content; if {@code null} the content
-		 *            is considered binary
+		 * @param resourceType
+		 *            the type of the resource
 		 */
-		private Body(final byte[] content, final String resourcePath, final String charset) {
-			checkState(content != null ^ resourcePath != null,
-					"Must specify either content or resource path, but not both.");
+		private Body(final byte[] content, final String resourcePath, final String resourceType) {
+			checkState(content != null ^ (resourcePath != null && resourceType != null),
+					"Must specify either body content or resource path and type.");
 			this.content = content;
 			this.resourcePath = resourcePath;
-			this.charset = charset;
+			this.resourceType = resourceType;
 		}
 
 		/**
@@ -516,7 +515,7 @@ public final class RequestTemplate {
 		 * @return the Body object
 		 */
 		public static Body create(final String content) {
-			return new Body(content.getBytes(Charsets.UTF_8), null, Charsets.UTF_8.name());
+			return new Body(content.getBytes(Charsets.UTF_8), null, ResourceType.text.name());
 		}
 
 		/**
@@ -524,13 +523,12 @@ public final class RequestTemplate {
 		 * 
 		 * @param resourcePath
 		 *            the path of the classpath resource to load the body from
-		 * @param charset
-		 *            the character set to use when reading the resource; if {@code null}, the
-		 *            resource is considered binary
+		 * @param resourceType
+		 *            the type of the resource
 		 * @return the Body object
 		 */
-		public static Body create(final String resourcePath, final String charset) {
-			return new Body(null, resourcePath, charset);
+		public static Body create(final String resourcePath, final String resourceType) {
+			return new Body(null, resourcePath, resourceType);
 		}
 
 		/**
@@ -559,10 +557,10 @@ public final class RequestTemplate {
 		}
 
 		/**
-		 * @return the charset
+		 * @return the resourceType
 		 */
-		public String getCharset() {
-			return charset;
+		public String getResourceType() {
+			return resourceType;
 		}
 
 		@Override
@@ -570,7 +568,7 @@ public final class RequestTemplate {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((content == null) ? 0 : content.hashCode());
-			result = prime * result + ((charset == null) ? 0 : charset.hashCode());
+			result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
 			result = prime * result + ((resourcePath == null) ? 0 : resourcePath.hashCode());
 			return result;
 		}
@@ -594,11 +592,11 @@ public final class RequestTemplate {
 			} else if (!content.equals(other.content)) {
 				return false;
 			}
-			if (charset == null) {
-				if (other.charset != null) {
+			if (resourceType == null) {
+				if (other.resourceType != null) {
 					return false;
 				}
-			} else if (!charset.equals(other.charset)) {
+			} else if (!resourceType.equals(other.resourceType)) {
 				return false;
 			}
 			if (resourcePath == null) {

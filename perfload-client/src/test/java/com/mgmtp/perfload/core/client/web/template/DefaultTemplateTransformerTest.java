@@ -121,7 +121,7 @@ public class DefaultTemplateTransformerTest {
 	@Test
 	public void testTransformationWithBinaryBodyResource() throws IOException {
 		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
-				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", null),
+				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", ResourceType.binary.name()),
 				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
@@ -137,12 +137,12 @@ public class DefaultTemplateTransformerTest {
 	@Test
 	public void testTransformationWithTextBodyResource() throws IOException {
 		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
-				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", "${charset}"),
+				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", "${resourceType}"),
 				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
 		pc.put("resource", "fooResource");
-		pc.put("charset", "UTF-8");
+		pc.put("resourceType", ResourceType.text.name());
 		pc.put("test", "testvalue");
 
 		TemplateTransformer transformer = new DefaultTemplateTransformer();

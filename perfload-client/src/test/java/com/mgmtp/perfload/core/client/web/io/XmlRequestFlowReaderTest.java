@@ -31,6 +31,7 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
+import com.mgmtp.perfload.core.client.web.template.ResourceType;
 
 /**
  * @author rnaegele
@@ -61,7 +62,7 @@ public class XmlRequestFlowReaderTest {
 		assertThat(template.getUri()).isEqualTo("/foo/bar.tax");
 		assertThat(template.getBody().getContent()).isNull();
 		assertThat(template.getBody().getResourcePath()).isEqualTo("fooResource");
-		assertThat(template.getBody().getCharset()).isNull();
+		assertThat(template.getBody().getResourceType()).isEqualTo(ResourceType.binary.name());
 		assertThat(template.getRequestHeaders().isEmpty()).isTrue();
 		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
 		assertThat(template.getRequestParameters().isEmpty()).isTrue();
@@ -80,7 +81,7 @@ public class XmlRequestFlowReaderTest {
 		assertThat(template.getUri()).isEqualTo("/foo/bar.tax");
 		assertThat(template.getBody().getContent()).isNull();
 		assertThat(template.getBody().getResourcePath()).isEqualTo("fooResource");
-		assertThat(template.getBody().getCharset()).isEqualTo(Charsets.UTF_8.name());
+		assertThat(template.getBody().getResourceType()).isEqualTo(ResourceType.text.name());
 
 		SetMultimap<String, String> headers = template.getRequestHeaders();
 		assertThat(headers.size()).isEqualTo(1);
@@ -125,9 +126,9 @@ public class XmlRequestFlowReaderTest {
 		assertThat(headers.get("header2")).contains("header2value");
 
 		Body body = template.getBody();
-		assertThat(new String(body.getContent(), body.getCharset())).
-				matches("Some multi-line\\s+body content\\s+\\Q^°~+?ß&/%$§@€\\E\\s+blubb");
-		assertThat(body.getCharset()).isEqualTo(Charsets.UTF_8.name());
+		assertThat(new String(body.getContent(), Charsets.UTF_8))
+				.matches("Some multi-line\\s+body content\\s+\\Q^°~+?ß&/%$§@€\\E\\s+blubb");
+		assertThat(body.getResourceType()).isEqualTo(ResourceType.text.name());
 		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
 		assertThat(template.getDetailExtractions().isEmpty()).isTrue();
 
