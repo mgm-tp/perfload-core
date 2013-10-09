@@ -21,22 +21,11 @@ import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 
 /**
- * Interface for a response parser.
+ * Interface for a response detail extractor.
  * 
  * @author rnaegele
  */
-public interface ResponseParser {
-
-	/**
-	 * Validates the response. Implementations may e. g. parse the response body for certain error
-	 * indicators or check the HTTP status code.
-	 * 
-	 * @param responseInfo
-	 *            the {@link ResponseInfo} object wrapping response information
-	 * @throws InvalidResponseException
-	 *             if the response is not valid
-	 */
-	void validate(final ResponseInfo responseInfo) throws InvalidResponseException;
+public interface DetailExtractor {
 
 	/**
 	 * Extracts strings from a response that may later be used to resolve placeholders in

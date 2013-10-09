@@ -33,21 +33,19 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.config.annotations.AllowedStatusCodes;
 import com.mgmtp.perfload.core.client.web.config.annotations.ErrorPatterns;
 import com.mgmtp.perfload.core.client.web.config.annotations.ForbiddenStatusCodes;
-import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 
 /**
- * Default response parser implementation.
+ * Default response validator implementation.
  * 
  * @author rnaegele
  */
 @Singleton
 @ThreadSafe
 @Immutable
-public final class DefaultResponseParser implements ResponseParser {
+public class DefaultResponseValidator implements ResponseValidator {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final List<Pattern> errorPatterns;
@@ -66,7 +64,7 @@ public final class DefaultResponseParser implements ResponseParser {
 	 *            {@link Matcher#find()}.
 	 */
 	@Inject
-	public DefaultResponseParser(@AllowedStatusCodes final Set<Integer> allowedStatusCodes,
+	public DefaultResponseValidator(@AllowedStatusCodes final Set<Integer> allowedStatusCodes,
 			@ForbiddenStatusCodes final Set<Integer> forbiddenStatusCodes, @ErrorPatterns final List<Pattern> errorPatterns) {
 		checkArgument(allowedStatusCodes != null, "Parameter 'allowdStatusCodes' may not be null.");
 		checkArgument(forbiddenStatusCodes != null, "Parameter 'forbiddenStatusCodes' may not be null.");
@@ -106,65 +104,6 @@ public final class DefaultResponseParser implements ResponseParser {
 				}
 			} else {
 				log.warn("Response body is empty or not recognized as text. Skip checking for error pattern: {}", pattern);
-			}
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see DetailExtraction#DetailExtraction(String, String, String, String, String, String)
-	 */
-	@Override
-	public void extractDetails(final ResponseInfo responseInfo, final List<DetailExtraction> detailExtractions,
-			final PlaceholderContainer placeholderContainer) throws PatternNotFoundException {
-		log.debug("Extracting details from response...");
-
-		for (DetailExtraction detailExtraction : detailExtractions) {
-			String name = detailExtraction.getName();
-			boolean indexed = detailExtraction.isIndexed();
-			String regex = detailExtraction.getPattern();
-			Pattern pattern = Pattern.compile(regex);
-			Matcher matcher = pattern.matcher(responseInfo.getBodyAsString());
-
-			boolean found = false;
-			for (int i = 0;; ++i) {
-				if (matcher.find()) {
-					found = true;
-					String extractedValue = matcher.group(detailExtraction.getGroupIndex());
-					if (indexed) {
-						// multiple matches possible, so don't break out of loop
-						String indexedName = name + "#" + i;
-						log.debug("Extracted indexed detail '{}': {}", indexedName, extractedValue);
-						placeholderContainer.put(indexedName, extractedValue);
-						responseInfo.addDetailExtractionName(indexedName);
-					} else {
-						log.debug("Extracted detail '{}': {}", name, extractedValue);
-						placeholderContainer.put(name, extractedValue);
-						responseInfo.addDetailExtractionName(name);
-						break;
-					}
-				} else {
-					break;
-				}
-			}
-			if (!found) {
-				String defaultValue = detailExtraction.getDefaultValue();
-				if (defaultValue != null) {
-					if (indexed) {
-						String indexedName = name + "#0";
-						log.info("Detail '{}' not found in response. Using default indexed value: {}", indexedName, defaultValue);
-						placeholderContainer.put(indexedName, defaultValue);
-						responseInfo.addDetailExtractionName(indexedName);
-					} else {
-						log.info("Detail '{}' not found in response. Using default value: {}", name, defaultValue);
-						placeholderContainer.put(name, defaultValue);
-						responseInfo.addDetailExtractionName(name);
-					}
-				} else if (detailExtraction.isFailIfNotFound()) {
-					throw new PatternNotFoundException("Pattern '" + pattern
-							+ "' not found in response and no default value set!");
-				}
 			}
 		}
 	}

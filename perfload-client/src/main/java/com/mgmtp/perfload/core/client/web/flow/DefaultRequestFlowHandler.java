@@ -37,8 +37,10 @@ import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
 import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.request.InvalidRequestHandlerException;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
+import com.mgmtp.perfload.core.client.web.response.DetailExtractor;
+import com.mgmtp.perfload.core.client.web.response.HeaderExtractor;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
-import com.mgmtp.perfload.core.client.web.response.ResponseParser;
+import com.mgmtp.perfload.core.client.web.response.ResponseValidator;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.core.client.web.template.TemplateTransformer;
 
@@ -59,7 +61,9 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	private final List<RequestFlow> requestFlows;
 	private final HttpClientManager httpClientManager;
 	private final TemplateTransformer templateTransformer;
-	private final ResponseParser responseParser;
+	private final ResponseValidator responseValidator;
+	private final DetailExtractor detailExtractor;
+	private final HeaderExtractor headerExtractor;
 	private final WaitingTimeManager waitingTimeManager;
 	private final PlaceholderContainer placeholderContainer;
 	private final Set<RequestFlowEventListener> listeners;
@@ -78,8 +82,12 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	 *            the {@link HttpClientManager} for executing HTTP requests
 	 * @param templateTransformer
 	 *            the {@link TemplateTransformer} used to make request template executable
-	 * @param responseParser
-	 *            the {@link ResponseParser} far parsing HTTP reponses
+	 * @param responseValidator
+	 *            the {@link ResponseValidator} for validating the HTTP reponses
+	 * @param detailExtractor
+	 *            the {@link DetailExtractor} for extracting details from the reponse bodies
+	 * @param headerExtractor
+	 *            the {@link HeaderExtractor} for extracting headers from the reponses
 	 * @param waitingTimeManager
 	 *            the {@link WaitingTimeManager} that introduces a waiting time as configured before
 	 *            each request
@@ -96,14 +104,17 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	@Inject
 	DefaultRequestFlowHandler(final List<RequestFlow> requestFlows, final Map<String, RequestHandler> requestHandlers,
 			final HttpClientManager httpClientManager, final TemplateTransformer templateTransformer,
-			final ResponseParser responseParser,
-			final WaitingTimeManager waitingTimeManager, final PlaceholderContainer placeholderContainer,
-			final Set<RequestFlowEventListener> listeners, final ErrorHandler errorHandler, final UUID executionId) {
+			final ResponseValidator responseValidator, final DetailExtractor detailExtractor,
+			final HeaderExtractor headerExtractor, final WaitingTimeManager waitingTimeManager,
+			final PlaceholderContainer placeholderContainer, final Set<RequestFlowEventListener> listeners,
+			final ErrorHandler errorHandler, final UUID executionId) {
 		this.requestFlows = requestFlows;
 		this.requestHandlers = requestHandlers;
 		this.httpClientManager = httpClientManager;
 		this.templateTransformer = templateTransformer;
-		this.responseParser = responseParser;
+		this.responseValidator = responseValidator;
+		this.detailExtractor = detailExtractor;
+		this.headerExtractor = headerExtractor;
 		this.waitingTimeManager = waitingTimeManager;
 		this.placeholderContainer = placeholderContainer;
 		this.listeners = listeners;
@@ -164,8 +175,10 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 							log.debug(responseInfo.toString());
 
 							// process response
-							responseParser.validate(responseInfo);
-							responseParser.extractDetails(responseInfo, executableTemplate.getDetailExtractions(),
+							responseValidator.validate(responseInfo);
+							detailExtractor.extractDetails(responseInfo, executableTemplate.getDetailExtractions(),
+									placeholderContainer);
+							headerExtractor.extractHeaders(responseInfo, executableTemplate.getHeaderExtractions(),
 									placeholderContainer);
 						}
 					} catch (Exception ex) {

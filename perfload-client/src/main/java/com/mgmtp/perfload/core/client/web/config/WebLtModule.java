@@ -66,8 +66,12 @@ import com.mgmtp.perfload.core.client.web.flow.RequestFlowHandler;
 import com.mgmtp.perfload.core.client.web.io.XmlRequestFlowReader;
 import com.mgmtp.perfload.core.client.web.request.HttpRequestHandler;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
-import com.mgmtp.perfload.core.client.web.response.DefaultResponseParser;
-import com.mgmtp.perfload.core.client.web.response.ResponseParser;
+import com.mgmtp.perfload.core.client.web.response.DefaultDetailExtractor;
+import com.mgmtp.perfload.core.client.web.response.DefaultHeaderExtractor;
+import com.mgmtp.perfload.core.client.web.response.DefaultResponseValidator;
+import com.mgmtp.perfload.core.client.web.response.DetailExtractor;
+import com.mgmtp.perfload.core.client.web.response.HeaderExtractor;
+import com.mgmtp.perfload.core.client.web.response.ResponseValidator;
 import com.mgmtp.perfload.core.client.web.template.DefaultTemplateTransformer;
 import com.mgmtp.perfload.core.client.web.template.TemplateTransformer;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
@@ -109,7 +113,9 @@ public class WebLtModule extends AbstractWebLtModule {
 		bindRequestHandler("TRACE").to(HttpRequestHandler.class);
 
 		bind(TemplateTransformer.class).to(DefaultTemplateTransformer.class);
-		bind(ResponseParser.class).to(DefaultResponseParser.class);
+		bind(ResponseValidator.class).to(DefaultResponseValidator.class);
+		bind(DetailExtractor.class).to(DefaultDetailExtractor.class);
+		bind(HeaderExtractor.class).to(DefaultHeaderExtractor.class);
 		bind(ErrorHandler.class).to(WebErrorHandler.class);
 
 		// Create an extra binding for the HttpClientManagementListener using a qualifying annotation.

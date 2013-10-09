@@ -17,6 +17,6 @@
 
 -->
 <requestFlow>
-	<request type="GET" uri="http://www.heise.de/" />
-	<request type="GET" uri="http://www.heise.de/newsticker" />
+	<request type="GET" uri="uri_does_not_matter_due_to_mock" />
+	<request type="GET" uri="uri_does_not_matter_either_due_to_mock" />
 </requestFlow>
