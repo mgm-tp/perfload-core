@@ -16,13 +16,10 @@
 package com.mgmtp.perfload.core.client.config;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.binder.LinkedBindingBuilder;
@@ -40,11 +37,12 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  * @author rnaegele
  */
 public abstract class AbstractLtModule extends AbstractModule {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private Multibinder<LtProcessEventListener> ltProcessListeners;
 	private Multibinder<LtRunnerEventListener> ltRunnerListeners;
 	private MapBinder<String, LtDriver> ltDrivers;
+	private MapBinder<String, DriverSelectionPredicate> ltDriverPredicates;
 
 	protected final PropertiesMap testplanProperties;
 
@@ -67,6 +65,7 @@ public abstract class AbstractLtModule extends AbstractModule {
 		ltProcessListeners = Multibinder.newSetBinder(binder(), LtProcessEventListener.class);
 		ltRunnerListeners = Multibinder.newSetBinder(binder(), LtRunnerEventListener.class);
 		ltDrivers = MapBinder.newMapBinder(binder(), String.class, LtDriver.class);
+		ltDriverPredicates = MapBinder.newMapBinder(binder(), String.class, DriverSelectionPredicate.class);
 		doConfigure();
 	}
 
@@ -114,34 +113,7 @@ public abstract class AbstractLtModule extends AbstractModule {
 	 * 
 	 * @see MapBinder#addBinding(Object)
 	 */
-	protected final LinkedBindingBuilder<LtDriver> bindLtDriver(final String key) {
-		return ltDrivers.addBinding(key);
-	}
-
-	/**
-	 * Returns the driver implementation to be used for a certain operation. If there are property
-	 * key starting with {@code operation.<operation>.procInfo}, the driver with the key "script" is
-	 * looked up in the given map and return. Otherwise the driver with the key "dummy" is
-	 * returned."
-	 * 
-	 * @param operation
-	 *            the operation
-	 * @param properties
-	 *            the properties
-	 * @param drivers
-	 *            a map of driver implementations
-	 * @return the driver instance
-	 */
-	protected LtDriver selectDriver(final String operation, final PropertiesMap properties, final Map<String, LtDriver> drivers) {
-		Map<String, String> map = Maps.filterKeys(properties, new Predicate<String>() {
-			@Override
-			public boolean apply(final String input) {
-				return input.startsWith("operation." + operation + ".procInfo");
-			}
-		});
-
-		LtDriver ltDriver = map.isEmpty() ? drivers.get("dummy") : drivers.get("script");
-		logger.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
-		return ltDriver;
+	protected final DriverBindingBuilder bindLtDriver(final String driverKey) {
+		return new DriverBindingBuilder(driverKey, ltDrivers, ltDriverPredicates);
 	}
 }

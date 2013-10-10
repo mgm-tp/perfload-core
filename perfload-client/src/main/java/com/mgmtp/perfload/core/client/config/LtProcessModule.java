@@ -16,6 +16,7 @@
 package com.mgmtp.perfload.core.client.config;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.filterKeys;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
@@ -145,8 +148,24 @@ final class LtProcessModule extends AbstractLtModule {
 		bindLtRunnerEventListener().to(LtClientListener.class);
 
 		// default driver implementations
-		bindLtDriver("dummy").to(DummyLtDriver.class);
-		bindLtDriver("script").to(ScriptLtDriver.class);
+		bindLtDriver("script").forPredicate(new DriverSelectionPredicate() {
+			@Override
+			public boolean apply(final String operation, final PropertiesMap properties) {
+				return !filterKeys(properties, new Predicate<String>() {
+					@Override
+					public boolean apply(final String input) {
+						return input.startsWith("operation." + operation + ".procInfo");
+					}
+				}).isEmpty();
+			}
+		}).to(ScriptLtDriver.class);
+
+		bindLtDriver("dummy").forPredicate(new DriverSelectionPredicate() {
+			@Override
+			public boolean apply(final String operation, final PropertiesMap properties) {
+				return properties.containsKey("operation." + operation + ".dummy");
+			}
+		}).to(DummyLtDriver.class);
 	}
 
 	/**
@@ -195,19 +214,28 @@ final class LtProcessModule extends AbstractLtModule {
 	/**
 	 * Provides the driver implementation to be used for the given operation.
 	 * 
-	 * @see AbstractLtModule#selectDriver(String, PropertiesMap, Map)
 	 * @param operation
 	 *            the operation
 	 * @param properties
 	 *            the properties
-	 * @param drivers
-	 *            a map of driver implementations
+	 * @param driverProviders
+	 *            a map of driver implementation providers
+	 * @param driverPredicates
+	 *            a map of predicates for driver selection
 	 * @return the driver instance
 	 */
 	@Provides
 	protected LtDriver provideDriverImplementation(@Operation final String operation, final PropertiesMap properties,
-			final Map<String, LtDriver> drivers) {
-		return selectDriver(operation, properties, drivers);
+			final Map<String, Provider<LtDriver>> driverProviders, final Map<String, DriverSelectionPredicate> driverPredicates) {
+		for (Entry<String, DriverSelectionPredicate> entry : driverPredicates.entrySet()) {
+			DriverSelectionPredicate predicate = entry.getValue();
+			if (predicate.apply(operation, properties)) {
+				LtDriver ltDriver = driverProviders.get(entry.getKey()).get();
+				logger.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
+				return ltDriver;
+			}
+		}
+		throw new IllegalStateException("No suitable LtDriver implementation found for operation '" + operation + "'");
 	}
 
 	/**

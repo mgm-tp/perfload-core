@@ -45,8 +45,8 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
+import com.mgmtp.perfload.core.client.config.DriverSelectionPredicate;
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
-import com.mgmtp.perfload.core.client.driver.LtDriver;
 import com.mgmtp.perfload.core.client.event.LtRunnerEventListener;
 import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.client.web.WebErrorHandler;
@@ -136,20 +136,12 @@ public class WebLtModule extends AbstractWebLtModule {
 
 		install(new HttpClientManagerModule());
 
-		bindLtDriver("web").to(WebLtDriver.class);
-	}
-
-	@Provides
-	protected LtDriver provideDriverImplementation(@Operation final String operation, final PropertiesMap properties,
-			final Map<String, LtDriver> drivers) {
-
-		if (properties.containsKey("operation." + operation + ".requestflows")) {
-			LtDriver ltDriver = drivers.get("web");
-			log.info("Using driver for operation '{}': {}", operation, ltDriver.getClass().getName());
-			return ltDriver;
-		}
-
-		return super.selectDriver(operation, properties, drivers);
+		bindLtDriver("web").forPredicate(new DriverSelectionPredicate() {
+			@Override
+			public boolean apply(final String operation, final PropertiesMap properties) {
+				return properties.containsKey("operation." + operation + ".requestflows");
+			}
+		}).to(WebLtDriver.class);
 	}
 
 	/**
