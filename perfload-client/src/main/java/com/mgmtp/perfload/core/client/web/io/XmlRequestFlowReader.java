@@ -47,7 +47,7 @@ import com.mgmtp.perfload.core.common.xml.Dom4jReader;
  */
 public final class XmlRequestFlowReader {
 
-	private static final String SCHEMA_RESOURCE = "request-flow.xsd";
+	private static final String SCHEMA_RESOURCE = "perfload-request-flow.xsd";
 
 	private final String resourcePath;
 	private final String resourceName;

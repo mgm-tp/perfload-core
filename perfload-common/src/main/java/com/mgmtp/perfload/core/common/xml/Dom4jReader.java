@@ -57,6 +57,7 @@ public final class Dom4jReader {
 		factory.setValidating(true); // turn on validation
 		factory.setNamespaceAware(true);
 
+		//		factory.setFeature("http://apache.org/xml/features/validation/schema", true);
 		if (xIncludeAware) {
 			// allow XIncludes
 			factory.setFeature("http://apache.org/xml/features/xinclude", true);

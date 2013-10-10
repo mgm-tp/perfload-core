@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="perfload-testplan.xsd">
+<testplan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"	xmlns:xi="http://www.w3.org/2001/XInclude"
+		xsi:noNamespaceSchemaLocation="http://mgm-tp.github.io/perfload/schema/1.0/perfload-testplan.xsd">
 	<module>DummyModule</module>
 	<loadProfile>loadprofile.perfload</loadProfile>
 	<testJars />
