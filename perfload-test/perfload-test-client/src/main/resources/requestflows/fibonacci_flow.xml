@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<requestFlow>
+<requestFlow xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://mgm-tp.github.io/perfload/schema/1.0/perfload-request-flow.xsd">
 	<request type="GET" uri="/fibonacci" uriAlias="fibAlias">
 		<param name="n">${n}</param>
 		<detailExtraction name="fibn" >(${fibn})</detailExtraction>
