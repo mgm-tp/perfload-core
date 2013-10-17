@@ -73,8 +73,10 @@ public class ForkedProcessClientRunner extends AbstractClientRunner {
 				List<String> commands = newArrayList();
 				commands.add(javaExe.getPath());
 				maybeAddMaxHeap(commands, procConfig.getJvmArgs());
-				if (new File(clientDir, "logback.xml").exists()) {
-					commands.add("-Dlogback.configurationFile=logback.xml");
+				File logbackFile = new File(clientDir, "logback.xml");
+				if (logbackFile.exists()) {
+					log.info("Using custom logback config file: {}", logbackFile);
+					commands.add("-Dlogback.configurationFile=" + logbackFile.getAbsolutePath());
 				}
 				commands.add("-DdaemonId=" + procConfig.getDaemonId());
 				commands.add("-DprocessId=" + procConfig.getProcessId());
