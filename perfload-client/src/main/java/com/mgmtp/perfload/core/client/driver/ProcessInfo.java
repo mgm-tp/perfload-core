@@ -36,6 +36,7 @@ public class ProcessInfo {
 	private final List<String> commands;
 	private final boolean redirectProcessOutput;
 	private final String logPrefix;
+	private final boolean waitFor;
 
 	/**
 	 * @param directory
@@ -45,20 +46,21 @@ public class ProcessInfo {
 	 * @param commands
 	 *            the list of commands that is passed to the ProcessBuilder
 	 * @param redirectProcessOutput
-	 *            whether the process' output is to be redirected to the perfLoad client's log file,
+	 *            whether the process' output is to be redirected to the perfLoad client's log file
 	 * @param logPrefix
 	 *            the prefix that is to be prepended to the process' output, may be null
+	 * @param waitFor
+	 *            whether the process' termination should be awaited
 	 */
 	public ProcessInfo(final String directory, final boolean freshEnvironment, final Map<String, String> envVars,
-			final List<String> commands,
-			final boolean redirectProcessOutput,
-			final String logPrefix) {
+			final List<String> commands, final boolean redirectProcessOutput, final String logPrefix, final boolean waitFor) {
 		this.directory = directory;
 		this.freshEnvironment = freshEnvironment;
 		this.envVars = ImmutableMap.copyOf(envVars);
 		this.commands = ImmutableList.copyOf(commands);
 		this.redirectProcessOutput = redirectProcessOutput;
 		this.logPrefix = logPrefix;
+		this.waitFor = waitFor;
 	}
 
 	/**
@@ -102,6 +104,13 @@ public class ProcessInfo {
 	 */
 	public String getLogPrefix() {
 		return logPrefix;
+	}
+
+	/**
+	 * @return the waitFor
+	 */
+	public boolean isWaitFor() {
+		return waitFor;
 	}
 
 	@Override

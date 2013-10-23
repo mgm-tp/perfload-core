@@ -427,26 +427,29 @@ final class LtProcessModule extends AbstractLtModule {
 	 * necessary:
 	 * 
 	 * <pre>
-	 * # the working directory for the new process
+	 * # The working directory for the new process
 	 * operation.myOperation.procInfo.dir=/home/foo/bar
 	 *
-	 * # should the process inherit the environment or get a fresh one?
+	 * # Should the process inherit the environment or get a fresh one?
 	 * operation.myOperation.procInfo.freshEnvironment=true
 	 *
-	 * # environment variable for the new process
+	 * # Environment variable for the new process
 	 * operation.myOperation.procInfo.envVars.APP_OPTS=-Dfoo=bar
 	 * operation.myOperation.procInfo.envVars.MY_ENV_VAR=baz
 	 *
-	 * # commands for the new process (starting at 1)
+	 * # Commands for the new process (starting at 1)
 	 * operation.myOperation.procInfo.commands.1=/bin/sh -c ./my_script.sh
 	 * operation.myOperation.procInfo.commands.2=-param1
 	 * operation.myOperation.procInfo.commands.3=-param2=42
 	 *
-	 * # should the process' output be redirected to perfLoad's client log?
+	 * # Should the process' output be redirected to perfLoad's client log?
 	 * operation.myOperation.procInfo.redirectProcessOutput=true
 	 *
-	 * # optional prefix to be used for the process's log when log is redirected
+	 * # Optional prefix to be used for the process's log when log is redirected.
 	 * operation.myOperation.procInfo.logPrefix=myProc>
+	 *
+	 * # Should the process' termination should be awaited? Defaults to true.
+	 * operation.myOperation.procInfo.waitFor=false
 	 * </pre>
 	 * 
 	 * @param operation
@@ -465,8 +468,9 @@ final class LtProcessModule extends AbstractLtModule {
 		List<String> commands = PropertiesUtils.getSubList(properties, baseKey + ".commands");
 		boolean redirectProcessOutput = properties.getBoolean(baseKey + ".redirectProcessOutput");
 		String logPrefix = properties.get(baseKey + ".logPrefix");
+		boolean waitFor = properties.getBoolean(baseKey + ".waitFor", true);
 
-		return new ProcessInfo(directory, freshEnvironment, envVars, commands, redirectProcessOutput, logPrefix);
+		return new ProcessInfo(directory, freshEnvironment, envVars, commands, redirectProcessOutput, logPrefix, waitFor);
 	}
 
 	@Provides

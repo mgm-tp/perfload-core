@@ -62,7 +62,7 @@ public class ScriptLtDriver implements LtDriver {
 		ProcessInfo processInfo = processInfoProvider.get();
 
 		log.info("Executing script driver...");
-		log.info("Using proccess information: {}", processInfo);
+		log.info("Using process information: {}", processInfo);
 
 		ProcessBuilder pb = new ProcessBuilder(processInfo.getCommands());
 
@@ -96,10 +96,12 @@ public class ScriptLtDriver implements LtDriver {
 					new LoggingGobbleCallback(Level.ERROR, processInfo.getLogPrefix()));
 		}
 
-		int exitCode = process.waitFor();
+		if (processInfo.isWaitFor()) {
+			int exitCode = process.waitFor();
+			log.info("External process terminated with exit code {}.", exitCode);
+		}
 		ti.stop();
 
-		log.info("External process terminated with exit code {}.", exitCode);
 		loggerProvider.get().logResult(System.currentTimeMillis(), ti, ti, "SCRIPT", null, null, executionIdProvider.get(),
 				UUID.randomUUID());
 	}

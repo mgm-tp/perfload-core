@@ -38,6 +38,7 @@ public class LtProcessModuleTest {
 		props.put("operation.test.procInfo.commands.1", "java -jar foo.jar -param=foo");
 		props.put("operation.test.procInfo.redirectProcessOutput", "true");
 		props.put("operation.test.procInfo.logPrefix", "prefix>");
+		props.put("operation.test.procInfo.waitFor", "false");
 
 		LtProcessModule module = new LtProcessModule(null, null, 0, 0);
 
@@ -48,5 +49,6 @@ public class LtProcessModuleTest {
 		assertThat(processInfo.getCommands()).contains("java -jar foo.jar -param=foo");
 		assertThat(processInfo.isRedirectProcessOutput()).isTrue();
 		assertThat(processInfo.getLogPrefix()).isEqualTo("prefix>");
+		assertThat(processInfo.isWaitFor()).isFalse();
 	}
 }
