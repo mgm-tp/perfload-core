@@ -50,6 +50,7 @@ import org.testng.annotations.Test;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.inject.util.Providers;
 import com.mgmtp.perfload.core.client.util.ConstantWaitingTimeStrategy;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
@@ -81,29 +82,33 @@ import com.mgmtp.perfload.logging.TimeInterval;
  */
 public class DefaultRequestFlowHandlerTest {
 
-	private final HttpClientManager httpClientManager = new DefaultHttpClientManager(new Provider<HttpClient>() {
-		@Override
-		public HttpClient get() {
-			HttpClient httpClient = mock(HttpClient.class);
-			HttpResponse response = mock(HttpResponse.class);
-			ClientConnectionManager connMgr = mock(ClientConnectionManager.class);
+	private final Provider<HttpClientManager> httpClientManagerProvider = Providers
+			.<HttpClientManager>of(new DefaultHttpClientManager(
+					new Provider<HttpClient>() {
+						@Override
+						public HttpClient get() {
+							HttpClient httpClient = mock(HttpClient.class);
+							HttpResponse response = mock(HttpResponse.class);
+							ClientConnectionManager connMgr = mock(ClientConnectionManager.class);
 
-			when(httpClient.getConnectionManager()).thenReturn(connMgr);
-			when(response.getStatusLine()).thenReturn(new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "ok"));
-			when(response.getEntity()).thenReturn(new ByteArrayEntity(new byte[] { 42 }));
-			when(response.getAllHeaders()).thenReturn(
-					new Header[] {},
-					new Header[] { new BasicHeader("foo", "bar") }
-					);
+							when(httpClient.getConnectionManager()).thenReturn(connMgr);
+							when(response.getStatusLine()).thenReturn(
+									new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "ok"));
+							when(response.getEntity()).thenReturn(new ByteArrayEntity(new byte[] { 42 }));
+							when(response.getAllHeaders()).thenReturn(
+									new Header[] {},
+									new Header[] { new BasicHeader("foo", "bar") }
+									);
 
-			try {
-				when(httpClient.execute(Matchers.<HttpUriRequest>any(), Matchers.<HttpContext>any())).thenReturn(response);
-			} catch (Exception ex) {
-				throw new AssertionError(ex.getMessage());
-			}
-			return httpClient;
-		}
-	}, UUID.randomUUID(), "myOperation", WebLtModule.CONTENT_TYPE_PATTERNS);
+							try {
+								when(httpClient.execute(Matchers.<HttpUriRequest>any(), Matchers.<HttpContext>any()))
+										.thenReturn(response);
+							} catch (Exception ex) {
+								throw new AssertionError(ex.getMessage());
+							}
+							return httpClient;
+						}
+					}, UUID.randomUUID(), "myOperation", WebLtModule.CONTENT_TYPE_PATTERNS));
 
 	private final Provider<String> targetHostProvider = new Provider<String>() {
 		@Override
@@ -139,7 +144,7 @@ public class DefaultRequestFlowHandlerTest {
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
 		List<RequestFlow> requestFlows = newArrayList(flow, flow);
 
-		HttpRequestHandler requestHandler = new HttpRequestHandler(targetHostProvider);
+		HttpRequestHandler requestHandler = new HttpRequestHandler(httpClientManagerProvider, targetHostProvider);
 		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("GET", requestHandler, "POST",
 				requestHandler);
 		MockRequestFlowListener mockListener = new MockRequestFlowListener();
@@ -154,7 +159,7 @@ public class DefaultRequestFlowHandlerTest {
 
 		List<Pattern> pattern = asList(Pattern.compile("no_error_pattern"));
 
-		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers, httpClientManager,
+		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						Collections.<Integer>emptySet(), pattern), new DefaultDetailExtractor(), new DefaultHeaderExtractor(),
 				new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
@@ -184,7 +189,7 @@ public class DefaultRequestFlowHandlerTest {
 		List<RequestFlow> requestFlows = newArrayList(flow, flow);
 
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows,
-				Collections.<String, RequestHandler>emptyMap(), null, null, null, null, null, new WaitingTimeManager(0L,
+				Collections.<String, RequestHandler>emptyMap(), null, null, null, null, new WaitingTimeManager(0L,
 						new ConstantWaitingTimeStrategy(0L)), null, Collections.<RequestFlowEventListener>emptySet(),
 				new WebErrorHandler(), UUID.randomUUID());
 
@@ -207,10 +212,10 @@ public class DefaultRequestFlowHandlerTest {
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
 		List<RequestFlow> requestFlows = newArrayList(flow, flow);
 
-		HttpRequestHandler requestHandler = new HttpRequestHandler(targetHostProvider);
+		HttpRequestHandler requestHandler = new HttpRequestHandler(httpClientManagerProvider, targetHostProvider);
 		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("POST", requestHandler);
 
-		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers, httpClientManager,
+		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), null, null, null, new WaitingTimeManager(0L,
 						new ConstantWaitingTimeStrategy(0L)), null, Collections.<RequestFlowEventListener>emptySet(),
 				new WebErrorHandler(), UUID.randomUUID());
@@ -242,7 +247,7 @@ public class DefaultRequestFlowHandlerTest {
 
 		List<Pattern> pattern = asList(Pattern.compile("no_error_pattern"));
 
-		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers, httpClientManager,
+		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						ImmutableSet.<Integer>of(404), pattern), null, null, new WaitingTimeManager(0L,
 						new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
@@ -271,7 +276,7 @@ public class DefaultRequestFlowHandlerTest {
 
 		List<Pattern> pattern = asList(Pattern.compile("no_error_pattern"));
 
-		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers, httpClientManager,
+		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						ImmutableSet.<Integer>of(404), pattern), new DefaultDetailExtractor(), new DefaultHeaderExtractor(),
 				new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),

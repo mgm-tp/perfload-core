@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.UUID;
 
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
@@ -37,8 +36,7 @@ public class MockRequestHandler implements RequestHandler {
 	}
 
 	@Override
-	public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template, final UUID requestId)
-			throws IOException {
+	public ResponseInfo execute(final RequestTemplate template, final UUID requestId) throws IOException {
 		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(), "test content".getBytes(),
 				"test content", "UTF-8", "text/plain", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
 				UUID.randomUUID(), requestId);

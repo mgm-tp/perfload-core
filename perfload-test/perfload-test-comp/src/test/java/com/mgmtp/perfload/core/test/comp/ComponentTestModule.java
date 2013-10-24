@@ -26,7 +26,6 @@ import com.mgmtp.perfload.core.client.config.AbstractLtModule;
 import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.client.web.config.WebLtModule;
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
@@ -82,9 +81,7 @@ public class ComponentTestModule extends AbstractLtModule {
 
 	static class MockRequestHandler implements RequestHandler {
 		@Override
-		public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template,
-				final UUID requestId)
-				throws IOException {
+		public ResponseInfo execute(final RequestTemplate template, final UUID requestId) throws IOException {
 			return new ResponseInfo("GET", "/foo", 200, "OK", Collections.<String, String>emptyMap(), "<html></html>".getBytes(),
 					"<html></html>", "UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
 					UUID.randomUUID(), requestId);

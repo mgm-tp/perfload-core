@@ -67,9 +67,12 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 public class HttpRequestHandler implements RequestHandler {
 
 	private final Provider<String> targetHostProvider;
+	private final Provider<HttpClientManager> httpClientManagerProvider;
 
 	@Inject
-	public HttpRequestHandler(@TargetHost final Provider<String> targetHostProvider) {
+	public HttpRequestHandler(final Provider<HttpClientManager> httpClientManagerProvider,
+			@TargetHost final Provider<String> targetHostProvider) {
+		this.httpClientManagerProvider = httpClientManagerProvider;
 		this.targetHostProvider = targetHostProvider;
 	}
 
@@ -95,13 +98,12 @@ public class HttpRequestHandler implements RequestHandler {
 	}
 
 	@Override
-	public ResponseInfo execute(final HttpClientManager httpClientManager, final RequestTemplate template, final UUID requestId)
-			throws Exception {
+	public ResponseInfo execute(final RequestTemplate template, final UUID requestId) throws Exception {
 		URI uri = createAbsoluteURI(template.getUri());
 		List<NameValuePair> params = transformRequestParams(template.getRequestParameters());
 		HttpRequestBase request = createRequest(template.getType(), uri, params, template.getBody());
 		request.setHeaders(transformRequestHeaders(template.getRequestHeaders()));
-		ResponseInfo responseInfo = httpClientManager.executeRequest(request, requestId);
+		ResponseInfo responseInfo = httpClientManagerProvider.get().executeRequest(request, requestId);
 		responseInfo.setUriAlias(template.getUriAlias());
 		return responseInfo;
 	}

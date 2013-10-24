@@ -34,7 +34,6 @@ import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEvent;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.request.InvalidRequestHandlerException;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.client.web.response.DetailExtractor;
@@ -59,7 +58,6 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 
 	private final Map<String, RequestHandler> requestHandlers;
 	private final List<RequestFlow> requestFlows;
-	private final HttpClientManager httpClientManager;
 	private final TemplateTransformer templateTransformer;
 	private final ResponseValidator responseValidator;
 	private final DetailExtractor detailExtractor;
@@ -78,8 +76,6 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	 * @param requestHandlers
 	 *            a map of {@link RequestHandler}s; must contain a request handler for each type of
 	 *            request in the request flow
-	 * @param httpClientManager
-	 *            the {@link HttpClientManager} for executing HTTP requests
 	 * @param templateTransformer
 	 *            the {@link TemplateTransformer} used to make request template executable
 	 * @param responseValidator
@@ -103,14 +99,12 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	 */
 	@Inject
 	DefaultRequestFlowHandler(final List<RequestFlow> requestFlows, final Map<String, RequestHandler> requestHandlers,
-			final HttpClientManager httpClientManager, final TemplateTransformer templateTransformer,
-			final ResponseValidator responseValidator, final DetailExtractor detailExtractor,
-			final HeaderExtractor headerExtractor, final WaitingTimeManager waitingTimeManager,
-			final PlaceholderContainer placeholderContainer, final Set<RequestFlowEventListener> listeners,
-			final ErrorHandler errorHandler, final UUID executionId) {
+			final TemplateTransformer templateTransformer, final ResponseValidator responseValidator,
+			final DetailExtractor detailExtractor, final HeaderExtractor headerExtractor,
+			final WaitingTimeManager waitingTimeManager, final PlaceholderContainer placeholderContainer,
+			final Set<RequestFlowEventListener> listeners, final ErrorHandler errorHandler, final UUID executionId) {
 		this.requestFlows = requestFlows;
 		this.requestHandlers = requestHandlers;
-		this.httpClientManager = httpClientManager;
 		this.templateTransformer = templateTransformer;
 		this.responseValidator = responseValidator;
 		this.detailExtractor = detailExtractor;
@@ -170,7 +164,7 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 									type));
 						}
 
-						responseInfo = handler.execute(httpClientManager, executableTemplate, requestId);
+						responseInfo = handler.execute(executableTemplate, requestId);
 						if (responseInfo != null) {
 							log.debug(responseInfo.toString());
 

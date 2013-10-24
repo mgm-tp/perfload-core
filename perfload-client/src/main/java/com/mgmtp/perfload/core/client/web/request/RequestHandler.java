@@ -17,7 +17,6 @@ package com.mgmtp.perfload.core.client.web.request;
 
 import java.util.UUID;
 
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 
@@ -31,13 +30,11 @@ public interface RequestHandler {
 	/**
 	 * Handles a request.
 	 * 
-	 * @param httpClientManager
-	 *            the {@link HttpClientManager}
 	 * @param template
 	 *            the request template
 	 * @param requestId
 	 *            the unique request id
 	 * @return a response info object
 	 */
-	ResponseInfo execute(HttpClientManager httpClientManager, RequestTemplate template, UUID requestId) throws Exception;
+	ResponseInfo execute(RequestTemplate template, UUID requestId) throws Exception;
 }
