@@ -29,11 +29,12 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
  */
 public class DriverTestRunner {
 
-	public static void runDriver(final AbstractWebLtModule driverModule, final String operation, final String target)
-			throws Exception {
+	public static void runDriver(final AbstractWebLtModule driverModule, final String operation, final String target,
+			final PropertiesMap testplanProperties) throws Exception {
 		PropertiesMap properties = driverModule.getProperties();
 		properties.put("wtm.strategy.constant.waitingTimeMillis", "0");
 		properties.put("wtm.beforeTestStartMillis", "0");
+		properties.putAll(testplanProperties);
 
 		ModulesLoader ml = new ModulesLoader(new DriverTestModule(driverModule, properties, operation, target), properties,
 				new MockClient(), 1, 1);
