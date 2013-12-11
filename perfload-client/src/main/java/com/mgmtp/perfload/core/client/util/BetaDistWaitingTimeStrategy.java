@@ -18,7 +18,7 @@ package com.mgmtp.perfload.core.client.util;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import JSci.maths.statistics.BetaDistribution;
+import org.apache.commons.math3.distribution.BetaDistribution;
 
 /**
  * Beta-distributed waiting time strategy.
@@ -43,7 +43,7 @@ public final class BetaDistWaitingTimeStrategy extends AbstractDistWaitingTimeSt
 	@Override
 	public long calculateWaitingTime() {
 		BetaDistribution betaDist = new BetaDistribution(betaDistParamA, betaDistParamB);
-		double probability = betaDist.cumulative(Math.random());
+		double probability = betaDist.cumulativeProbability(Math.random());
 		return calculateNormedValue(probability);
 	}
 }

@@ -198,6 +198,11 @@
 				<version>3.1</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-math3</artifactId>
+				<version>3.2</version>
+			</dependency>
+			<dependency>
 				<groupId>dom4j</groupId>
 				<artifactId>dom4j</artifactId>
 				<version>1.6.1</version>
@@ -218,11 +223,6 @@
 						<artifactId>commons-logging</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>jsci</groupId>
-				<artifactId>jsci-core</artifactId>
-				<version>1.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
