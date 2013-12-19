@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.time.StopWatch;
 import org.testng.annotations.Test;
 
-import com.mgmtp.perfload.core.client.util.concurrent.DelayingExecutorService;
-
 /**
  * @author rnaegele
  */
@@ -72,33 +70,6 @@ public class DelayingExecutorServiceTest {
 		}
 
 		stopBarrier.await();
-		Thread.sleep(1000L);
-
-		assertTrue(sw.getTime() < EPSILON);
-
-		sw.reset();
-		sw.start();
-
-		for (int i = 0; i < 10; ++i) {
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(1L);
-						stopBarrier.await();
-					} catch (Exception ex) {
-						throw new AssertionError(ex);
-					}
-				}
-			};
-
-			ScheduledFuture<?> future = execSrv.schedule(r, 0L, TimeUnit.NANOSECONDS);
-
-			// compare with epsilon to make up for bad accuracy
-			assertTrue(abs(future.getDelay(TimeUnit.MILLISECONDS)) < EPSILON);
-		}
-
-		execSrv.shutdown();
 
 		assertTrue(sw.getTime() < EPSILON);
 	}
