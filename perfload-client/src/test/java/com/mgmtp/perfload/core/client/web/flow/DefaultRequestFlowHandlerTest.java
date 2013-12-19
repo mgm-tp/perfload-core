@@ -126,19 +126,19 @@ public class DefaultRequestFlowHandlerTest {
 	public void testNormalFlow() throws Exception {
 		RequestTemplate getTemplate1 = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate getTemplate2 = new RequestTemplate("GET", "false", "/testuri?param=value", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate getTemplate3 = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of("param", "value"), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate getTemplate4 = new RequestTemplate("GET", "false", "/testuri?param1=value1", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of("param2", "value2"), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate postTemplate = new RequestTemplate("POST", "false", "http://localhost/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 
 		List<RequestTemplate> templates = newArrayList(getTemplate1, getTemplate2, getTemplate3, getTemplate4, postTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
@@ -179,10 +179,10 @@ public class DefaultRequestFlowHandlerTest {
 	public void testInterrupt() throws Exception {
 		RequestTemplate getTemplate = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate postTemplate = new RequestTemplate("POST", "false", "http://localhost/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 
 		List<RequestTemplate> templates = newArrayList(getTemplate, postTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
@@ -206,7 +206,7 @@ public class DefaultRequestFlowHandlerTest {
 	public void testInvalidRequestHandler() throws Exception {
 		RequestTemplate getTemplate = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 
 		List<RequestTemplate> templates = newArrayList(getTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
@@ -233,10 +233,10 @@ public class DefaultRequestFlowHandlerTest {
 	public void testInvalidResponse() throws Exception {
 		RequestTemplate getTemplate = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate postTemplate = new RequestTemplate("POST", "false", "http://localhost/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 
 		List<RequestTemplate> templates = newArrayList(getTemplate, postTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
@@ -262,10 +262,10 @@ public class DefaultRequestFlowHandlerTest {
 	public void testSkippedRequest() throws Exception {
 		RequestTemplate skippedTemplate = new RequestTemplate("GET", "true", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 		RequestTemplate executedTemplate = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
 
 		List<RequestTemplate> templates = newArrayList(skippedTemplate, executedTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);

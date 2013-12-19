@@ -81,6 +81,7 @@ public final class XmlRequestFlowReader {
 			String skip = defaultString(emptyToNull(requestElem.attributeValue("skip")), "false");
 			String uri = requestElem.attributeValue("uri");
 			String uriAlias = emptyToNull(requestElem.attributeValue("uriAlias"));
+			String validateResponse = defaultString(emptyToNull(requestElem.attributeValue("validateResponse")), "true");
 
 			@SuppressWarnings("unchecked")
 			List<Element> params = requestElem.elements("param");
@@ -151,7 +152,7 @@ public final class XmlRequestFlowReader {
 			}
 
 			templates.add(new RequestTemplate(type, skip, uri, uriAlias, headersMultiMap, paramsMultiMap, body,
-					extractHeadersList, extractDetailsList));
+					extractHeadersList, extractDetailsList, validateResponse));
 		}
 
 		return new RequestFlow(resourceName, templates);

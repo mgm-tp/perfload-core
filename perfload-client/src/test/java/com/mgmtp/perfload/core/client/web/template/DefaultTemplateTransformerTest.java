@@ -61,7 +61,7 @@ public class DefaultTemplateTransformerTest {
 		DetailExtraction deActual = new DetailExtraction("foo", "${foo}", "1", null, "false", "false");
 		RequestTemplate template = new RequestTemplate("${type}", "${skip}", "${uri}", "${uriAlias}", headers, params,
 				Body.create("blubb ${foo} blubb ${foo} blubb"),
-				ImmutableList.<HeaderExtraction>of(heActual), ImmutableList.<DetailExtraction>of(deActual));
+				ImmutableList.<HeaderExtraction>of(heActual), ImmutableList.<DetailExtraction>of(deActual), "${skip}");
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
 		pc.put("type", "GET");
@@ -84,7 +84,7 @@ public class DefaultTemplateTransformerTest {
 		assertFalse(executableTemplate.isSkipped());
 		assertEquals(executableTemplate.getUri(), "http://localhost");
 		assertEquals(executableTemplate.getUriAlias(), "myUriAlias");
-
+		assertFalse(executableTemplate.isValidateResponse());
 		assertEquals(executableTemplate.getBody().getContent(), "blubb .*? blubb .*? blubb".getBytes(Charsets.UTF_8.name()));
 
 		HeaderExtraction heExpected = new HeaderExtraction("header1", "blubb");
@@ -112,7 +112,7 @@ public class DefaultTemplateTransformerTest {
 		ImmutableSetMultimap.<String, String>of();
 		template = new RequestTemplate("GET", "true", "testuri/param1/${value1}/param2/${value2}", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
-				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList());
+				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "false");
 		executableTemplate = transformer.makeExecutable(template, pc);
 
 		assertEquals(executableTemplate.getUri(), "testuri/param1/value1_transformed/param2/${value2}");
@@ -122,7 +122,7 @@ public class DefaultTemplateTransformerTest {
 	public void testTransformationWithBinaryBodyResource() throws IOException {
 		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
 				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", ResourceType.binary.name()),
-				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
+				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of(), "true");
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
 		pc.put("resource", "fooResource");
@@ -138,7 +138,7 @@ public class DefaultTemplateTransformerTest {
 	public void testTransformationWithTextBodyResource() throws IOException {
 		RequestTemplate template = new RequestTemplate("GET", "false", "uri", "alias", ImmutableSetMultimap.<String, String>of(),
 				ImmutableSetMultimap.<String, String>of(), Body.create("${resource}", "${resourceType}"),
-				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of());
+				ImmutableList.<HeaderExtraction>of(), ImmutableList.<DetailExtraction>of(), "true");
 
 		PlaceholderContainer pc = new DefaultPlaceholderContainer();
 		pc.put("resource", "fooResource");

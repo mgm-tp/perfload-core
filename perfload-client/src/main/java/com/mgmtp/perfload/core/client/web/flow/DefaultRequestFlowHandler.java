@@ -169,7 +169,9 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 							log.debug(responseInfo.toString());
 
 							// process response
-							responseValidator.validate(responseInfo);
+							if (executableTemplate.isValidateResponse()) {
+								responseValidator.validate(responseInfo);
+							}
 							detailExtractor.extractDetails(responseInfo, executableTemplate.getDetailExtractions(),
 									placeholderContainer);
 							headerExtractor.extractHeaders(responseInfo, executableTemplate.getHeaderExtractions(),

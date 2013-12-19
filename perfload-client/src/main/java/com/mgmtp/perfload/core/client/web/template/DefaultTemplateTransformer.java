@@ -96,6 +96,9 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 		// Resolve placeholders in URI alias
 		String uriAlias = resolvePlaceholders(template.getUriAlias(), placeholderContainer);
 
+		// Resolve placeholders in validateResponse
+		String validateResponse = resolvePlaceholders(template.getValidateResponse(), placeholderContainer);
+
 		// Resolve placeholders in body, if body is of type text
 		Body body = template.getBody();
 		if (body != null) {
@@ -156,6 +159,6 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 		}
 
 		return new RequestTemplate(type, skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
-				transformedHeaderExtractions, transformedDetailExtractions);
+				transformedHeaderExtractions, transformedDetailExtractions, validateResponse);
 	}
 }

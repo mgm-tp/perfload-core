@@ -49,6 +49,7 @@ public final class RequestTemplate {
 	private final List<DetailExtraction> detailExtractions;
 	private final Body body;
 	private final String skip;
+	private final String validateResponse;
 
 	/**
 	 * @param type
@@ -65,7 +66,8 @@ public final class RequestTemplate {
 	 */
 	public RequestTemplate(final String type, final String skip, final String uri, final String uriAlias,
 			final SetMultimap<String, String> requestHeaders, final SetMultimap<String, String> requestParameters,
-			final Body body, final List<HeaderExtraction> headerExtractions, final List<DetailExtraction> detailExtractions) {
+			final Body body, final List<HeaderExtraction> headerExtractions, final List<DetailExtraction> detailExtractions,
+			final String validateResponse) {
 		checkArgument(type != null, "Parameter 'type' must not be null.");
 		checkArgument(uri != null, "Parameter 'uri' must not be null.");
 		checkArgument(requestHeaders != null, "Parameter 'requestHeaders' must not be null.");
@@ -81,6 +83,7 @@ public final class RequestTemplate {
 		this.body = body;
 		this.headerExtractions = ImmutableList.copyOf(headerExtractions);
 		this.detailExtractions = ImmutableList.copyOf(detailExtractions);
+		this.validateResponse = validateResponse;
 	}
 
 	/**
@@ -150,6 +153,20 @@ public final class RequestTemplate {
 		return detailExtractions;
 	}
 
+	/**
+	 * @return the validateResponse
+	 */
+	public String getValidateResponse() {
+		return validateResponse;
+	}
+
+	/**
+	 * @return the validateResponse
+	 */
+	public boolean isValidateResponse() {
+		return Boolean.parseBoolean(validateResponse);
+	}
+
 	@Override
 	public String toString() {
 		return toDefaultString(this);
@@ -159,14 +176,16 @@ public final class RequestTemplate {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (body == null ? 0 : body.hashCode());
-		result = prime * result + (detailExtractions == null ? 0 : detailExtractions.hashCode());
-		result = prime * result + (headerExtractions == null ? 0 : headerExtractions.hashCode());
-		result = prime * result + (requestHeaders == null ? 0 : requestHeaders.hashCode());
-		result = prime * result + (requestParameters == null ? 0 : requestParameters.hashCode());
-		result = prime * result + (type == null ? 0 : type.hashCode());
-		result = prime * result + (uri == null ? 0 : uri.hashCode());
-		result = prime * result + (uriAlias == null ? 0 : uriAlias.hashCode());
+		result = prime * result + ((body == null) ? 0 : body.hashCode());
+		result = prime * result + ((detailExtractions == null) ? 0 : detailExtractions.hashCode());
+		result = prime * result + ((headerExtractions == null) ? 0 : headerExtractions.hashCode());
+		result = prime * result + ((requestHeaders == null) ? 0 : requestHeaders.hashCode());
+		result = prime * result + ((requestParameters == null) ? 0 : requestParameters.hashCode());
+		result = prime * result + ((skip == null) ? 0 : skip.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + ((uri == null) ? 0 : uri.hashCode());
+		result = prime * result + ((uriAlias == null) ? 0 : uriAlias.hashCode());
+		result = prime * result + ((validateResponse == null) ? 0 : validateResponse.hashCode());
 		return result;
 	}
 
@@ -217,6 +236,13 @@ public final class RequestTemplate {
 		} else if (!requestParameters.equals(other.requestParameters)) {
 			return false;
 		}
+		if (skip == null) {
+			if (other.skip != null) {
+				return false;
+			}
+		} else if (!skip.equals(other.skip)) {
+			return false;
+		}
 		if (type == null) {
 			if (other.type != null) {
 				return false;
@@ -236,6 +262,13 @@ public final class RequestTemplate {
 				return false;
 			}
 		} else if (!uriAlias.equals(other.uriAlias)) {
+			return false;
+		}
+		if (validateResponse == null) {
+			if (other.validateResponse != null) {
+				return false;
+			}
+		} else if (!validateResponse.equals(other.validateResponse)) {
 			return false;
 		}
 		return true;
