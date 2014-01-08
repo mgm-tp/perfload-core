@@ -78,6 +78,7 @@
 									<includeTypes>jar</includeTypes>
 									<overWriteReleases>true</overWriteReleases>
 									<overWriteSnapshots>true</overWriteSnapshots>
+									<stripVersion>true</stripVersion>
 								</configuration>
 							</execution>
 						</executions>
@@ -87,7 +88,7 @@
 						<artifactId>build-helper-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>reserve-deamon-ports</id>
+								<id>reserve-daemon-port</id>
 								<goals>
 									<goal>reserve-network-port</goal>
 								</goals>
@@ -225,7 +226,6 @@
 									<resources>
 										<resource>
 											<directory>${basedir}/config</directory>
-											<filtering>true</filtering>
 										</resource>
 									</resources>
 								</configuration>

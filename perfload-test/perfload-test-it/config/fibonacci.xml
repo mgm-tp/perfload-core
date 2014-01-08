@@ -21,7 +21,7 @@
 	<module>com.mgmtp.perfload.core.test.client.FibonacciModule</module>
 	<loadProfile>fibonacci.perfload</loadProfile>
 	<testJars>
-		<testJar>perfload-test-client-${project.version}.jar</testJar>
+		<testJar>perfload-test-client.jar</testJar>
 	</testJars>
 	<!--
 	<jvmargs>
