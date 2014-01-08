@@ -30,6 +30,8 @@
 
 	<url>https://github.com/mgm-tp/perfload-core</url>
 
+	<inceptionYear>2002</inceptionYear>
+
 	<issueManagement>
 		<system>Github Issue Tracker</system>
 		<url>https://github.com/mgm-tp/perfload/issues</url>
