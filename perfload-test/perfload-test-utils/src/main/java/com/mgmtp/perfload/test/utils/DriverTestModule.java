@@ -51,7 +51,7 @@ public class DriverTestModule extends AbstractWebLtModule {
 	protected void doConfigureWebModule() {
 		bindConstant().annotatedWith(Operation.class).to(operation);
 		bindConstant().annotatedWith(Target.class).to(target);
-
+		bind(TestExecutor.class);
 		bindRequestFlowEventListener().to(ResponseContentDumpListener.class);
 
 		install(Modules.override(driverModule).with(new AbstractModule() {

@@ -17,7 +17,6 @@ package com.mgmtp.perfload.test.utils;
 
 import com.google.inject.Injector;
 import com.mgmtp.perfload.core.client.config.ModulesLoader;
-import com.mgmtp.perfload.core.client.runner.LtRunner;
 import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
 
@@ -40,7 +39,7 @@ public class DriverTestRunner {
 				new MockClient(), 1, 1);
 
 		Injector inj = ml.createInjector();
-		LtRunner runner = inj.getInstance(LtRunner.class);
-		runner.execute();
+		TestExecutor executor = inj.getInstance(TestExecutor.class);
+		executor.runDriver();
 	}
 }
