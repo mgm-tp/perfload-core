@@ -19,7 +19,7 @@
 	<parent>
 		<artifactId>perfload-core</artifactId>
 		<groupId>com.mgmtp.perfload</groupId>
-		<version>4.8.0-SNAPSHOT</version>
+		<version>4.7.1</version>
 	</parent>
 	<artifactId>perfload-client</artifactId>
 	<name>mgm perfLoad Client</name>
