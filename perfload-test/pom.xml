@@ -27,11 +27,11 @@
 	<description>mgm perfLoad Test</description>
 
 	<modules>
+		<module>perfload-test-utils</module>
 		<module>perfload-test-comp</module>
 		<module>perfload-test-app</module>
 		<module>perfload-test-client</module>
 		<module>perfload-test-it</module>
-		<module>perfload-test-utils</module>
 	</modules>
 
 </project>
