@@ -22,5 +22,5 @@ package com.mgmtp.perfload.core.client.web.template;
  * @since 4.7.0
  */
 public enum ResourceType {
-	binary, text;
+	binary, text
 }
