@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.mgmtp.perfload.core.common.util.LtUtils.toDefaultString;
 
+import java.util.Arrays;
 import java.util.List;
 
 import net.jcip.annotations.Immutable;
@@ -426,7 +427,7 @@ public final class RequestTemplate {
 		}
 
 		public boolean isIndexed() {
-			return indexedString != null ? Boolean.parseBoolean(indexedString) : false;
+			return indexedString != null && Boolean.parseBoolean(indexedString);
 		}
 
 		/**
@@ -600,9 +601,9 @@ public final class RequestTemplate {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((content == null) ? 0 : content.hashCode());
-			result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
+			result = prime * result + Arrays.hashCode(content);
 			result = prime * result + ((resourcePath == null) ? 0 : resourcePath.hashCode());
+			result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
 			return result;
 		}
 
@@ -618,18 +619,7 @@ public final class RequestTemplate {
 				return false;
 			}
 			Body other = (Body) obj;
-			if (content == null) {
-				if (other.content != null) {
-					return false;
-				}
-			} else if (!content.equals(other.content)) {
-				return false;
-			}
-			if (resourceType == null) {
-				if (other.resourceType != null) {
-					return false;
-				}
-			} else if (!resourceType.equals(other.resourceType)) {
+			if (!Arrays.equals(content, other.content)) {
 				return false;
 			}
 			if (resourcePath == null) {
@@ -637,6 +627,13 @@ public final class RequestTemplate {
 					return false;
 				}
 			} else if (!resourcePath.equals(other.resourcePath)) {
+				return false;
+			}
+			if (resourceType == null) {
+				if (other.resourceType != null) {
+					return false;
+				}
+			} else if (!resourceType.equals(other.resourceType)) {
 				return false;
 			}
 			return true;
