@@ -70,7 +70,7 @@ public class XmlRequestFlowReaderTest {
 		List<DetailExtraction> detailExtractions = template.getDetailExtractions();
 		assertThat(detailExtractions).hasSize(1);
 		DetailExtraction ed = getOnlyElement(detailExtractions);
-		assertThat(ed.getPattern().toString()).isEqualTo("myParamToExtract=([^\"]+)\"");
+		assertThat(ed.getPattern()).isEqualTo("myParamToExtract=([^\"]+)\"");
 		assertThat(ed.getName()).isEqualTo("extractDetail");
 		assertThat(ed.getDefaultValue()).isNull();
 		assertThat(ed.getGroupIndex()).isEqualTo(1);
@@ -105,13 +105,13 @@ public class XmlRequestFlowReaderTest {
 		assertThat(detailExtractions.size()).isEqualTo(2);
 
 		ed = get(detailExtractions, 0);
-		assertThat(ed.getPattern().toString()).isEqualTo("myParamToExtract=([^\"]+)\"");
+		assertThat(ed.getPattern()).isEqualTo("myParamToExtract=([^\"]+)\"");
 		assertThat(ed.getName()).isEqualTo("extractDetail1");
 		assertThat(ed.getDefaultValue()).isNull();
 		assertThat(ed.getGroupIndex()).isEqualTo(1);
 
 		ed = get(detailExtractions, 1);
-		assertThat(ed.getPattern().toString()).isEqualTo("myParamToExtract=([^\"]+)\"");
+		assertThat(ed.getPattern()).isEqualTo("myParamToExtract=([^\"]+)\"");
 		assertThat(ed.getName()).isEqualTo("extractDetail2");
 		assertThat(ed.getDefaultValue()).isEqualTo("mydefault");
 		assertThat(ed.getGroupIndex()).isEqualTo(2);
