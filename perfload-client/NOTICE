@@ -9,7 +9,7 @@ Copyright 2002-2014 mgm technology partners GmbH
 From: 'an unknown organization'
   - AOP alliance (http://aopalliance.sourceforge.net) aopalliance:aopalliance:jar:1.0
     License: Public Domain 
-  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:15.0
+  - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:18.0
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - javax.inject (http://code.google.com/p/atinject/) javax.inject:javax.inject:jar:1
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
@@ -41,15 +41,15 @@ From: 'MetaStuff Ltd.' (http://sourceforge.net/projects/dom4j)
 
 
 From: 'QOS.ch' (http://www.qos.ch)
-  - Logback Classic Module (http://logback.qos.ch) ch.qos.logback:logback-classic:jar:1.0.13
+  - Logback Classic Module (http://logback.qos.ch) ch.qos.logback:logback-classic:jar:1.1.2
     License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)
     License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
-  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.0.13
+  - Logback Core Module (http://logback.qos.ch) ch.qos.logback:logback-core:jar:1.1.2
     License: Eclipse Public License - v 1.0  (http://www.eclipse.org/legal/epl-v10.html)
     License: GNU Lesser General Public License  (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
-  - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.5
+  - JCL 1.1.1 implemented over SLF4J (http://www.slf4j.org) org.slf4j:jcl-over-slf4j:jar:1.7.7
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
-  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.5
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.7
     License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
 
 From: 'The Apache Software Foundation' (http://www.apache.org/)
@@ -57,9 +57,9 @@ From: 'The Apache Software Foundation' (http://www.apache.org/)
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Commons IO (http://commons.apache.org/io/) commons-io:commons-io:jar:2.4
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Commons Lang (http://commons.apache.org/lang/) org.apache.commons:commons-lang3:jar:3.1
+  - Apache Commons Lang (http://commons.apache.org/proper/commons-lang/) org.apache.commons:commons-lang3:jar:3.3.2
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Commons Math (http://commons.apache.org/proper/commons-math/) org.apache.commons:commons-math3:jar:3.2
+  - Apache Commons Math (http://commons.apache.org/proper/commons-math/) org.apache.commons:commons-math3:jar:3.3
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Apache HttpClient (http://hc.apache.org/httpcomponents-client) org.apache.httpcomponents:httpclient:jar:4.3.4
     License: Apache License, Version 2.0  (LICENSE.txt)
