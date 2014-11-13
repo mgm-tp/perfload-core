@@ -15,27 +15,6 @@
  */
 package com.mgmtp.perfload.core.console;
 
-import static com.google.common.collect.Lists.newArrayListWithCapacity;
-import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
-import static org.apache.commons.io.IOUtils.closeQuietly;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.net.ConnectException;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
@@ -59,6 +38,27 @@ import com.mgmtp.perfload.core.console.model.Daemon;
 import com.mgmtp.perfload.core.console.status.FileStatusTransformer;
 import com.mgmtp.perfload.core.console.status.StatusHandler;
 import com.mgmtp.perfload.core.console.status.StatusTransformer;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.MessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.net.ConnectException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Represents perfLoad's management console. This class is responsible for running and controlling
@@ -240,7 +240,7 @@ public final class LtConsole {
 						connectLatch.countDown();
 						break;
 					case TEST_PROC_DISCONNECTED:
-						LOG.info("Client process disconnected: {}", payload.getContent());
+						LOG.info("Client process disconnected: {}", payload.<Serializable>getContent());
 						break;
 					case TEST_PROC_READY:
 						readyLatch.countDown();

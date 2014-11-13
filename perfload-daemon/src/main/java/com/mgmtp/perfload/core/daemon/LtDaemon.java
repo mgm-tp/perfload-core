@@ -15,32 +15,6 @@
  */
 package com.mgmtp.perfload.core.daemon;
 
-import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isConsoleChannel;
-import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isTestprocChannel;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Predicates;
@@ -59,12 +33,38 @@ import com.mgmtp.perfload.core.common.config.TestJar;
 import com.mgmtp.perfload.core.common.util.StreamGobbler;
 import com.mgmtp.perfload.core.daemon.util.AbstractClientRunner;
 import com.mgmtp.perfload.core.daemon.util.ForkedProcessClientRunner;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.MessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isConsoleChannel;
+import static com.mgmtp.perfload.core.common.clientserver.ChannelPredicates.isTestprocChannel;
 
 /**
  * Represents a perfLoad daemon process. A perfLoad daemon is responsible for spawning test
  * processes. It acts as a server that communicates with its clients (i. e. test processes and
  * management console).
- * 
+ *
  * @author rnaegele
  */
 public class LtDaemon {
@@ -73,55 +73,14 @@ public class LtDaemon {
 
 	/**
 	 * Creates a new instance.
-	 * 
-	 * @param clientDir
-	 *            the client's installation and working directory
-	 * @param abstractClientRunner
-	 *            the {@link AbstractClientRunner} implementation used to run client processes
-	 * @param server
-	 *            the {@link Server} implementation for the daemon
+	 *
+	 * @param clientDir            the client's installation and working directory
+	 * @param abstractClientRunner the {@link AbstractClientRunner} implementation used to run client processes
+	 * @param server               the {@link Server} implementation for the daemon
 	 */
 	public LtDaemon(final File clientDir, final AbstractClientRunner abstractClientRunner, final Server server) {
 		this.server = server;
 		this.server.addServerMessageListener(new DaemonMessageListener(clientDir, abstractClientRunner));
-	}
-
-	/**
-	 * Starts the daemon creating the server. Further actions are triggered by requests from
-	 * management console and test processes.
-	 */
-	public void execute() {
-		log().info("Initializing...");
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				// Count down the latch, so the daemon can exit.
-				// Also executed when the user hits Ctrl-C
-				if (doneLatch != null) {
-					doneLatch.countDown();
-					try {
-						// TODO timeouts configurable?
-						Thread.sleep(2000L);
-					} catch (InterruptedException ex) {
-						//
-					}
-				}
-				server.shutdown();
-				log().info("Good bye.");
-			}
-		});
-
-		server.bind();
-
-		try {
-			// Keep the daemon alive
-			doneLatch.await();
-			log().info("Exiting...");
-		} catch (InterruptedException ex) {
-			// cannot normally happen
-			log().error(ex.getMessage(), ex);
-		}
 	}
 
 	public static void main(final String... args) {
@@ -188,6 +147,44 @@ public class LtDaemon {
 		log().info("Good bye.");
 	}
 
+	/**
+	 * Starts the daemon creating the server. Further actions are triggered by requests from
+	 * management console and test processes.
+	 */
+	public void execute() {
+		log().info("Initializing...");
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				// Count down the latch, so the daemon can exit.
+				// Also executed when the user hits Ctrl-C
+				if (doneLatch != null) {
+					doneLatch.countDown();
+					try {
+						// TODO timeouts configurable?
+						Thread.sleep(2000L);
+					} catch (InterruptedException ex) {
+						//
+					}
+				}
+				server.shutdown();
+				log().info("Good bye.");
+			}
+		});
+
+		server.bind();
+
+		try {
+			// Keep the daemon alive
+			doneLatch.await();
+			log().info("Exiting...");
+		} catch (InterruptedException ex) {
+			// cannot normally happen
+			log().error(ex.getMessage(), ex);
+		}
+	}
+
 	private final class DaemonMessageListener implements ServerMessageListener {
 		private final ExecutorService execService = Executors.newCachedThreadPool();
 		private final Set<String> testJarNames = new ConcurrentSkipListSet<>();
@@ -231,9 +228,7 @@ public class LtDaemon {
 		}
 
 		@Override
-		public void messageReceived(final ChannelHandlerContext ctx, final ChannelContainer channelContainer,
-				final MessageEvent e) {
-
+		public void messageReceived(final ChannelHandlerContext ctx, final ChannelContainer channelContainer, final MessageEvent e) {
 			try {
 				final Payload payload = (Payload) e.getMessage();
 				switch (payload.getPayloadType()) {
@@ -290,7 +285,7 @@ public class LtDaemon {
 						});
 						break;
 					case TEST_PROC_DISCONNECTED:
-						log().info("Client process disconnected: {}", payload.getContent());
+						log().info("Client process disconnected: {}", payload.<Serializable>getContent());
 						e.getChannel().write(payload);
 						channelContainer.getChannel(isConsoleChannel()).write(payload);
 						break;
