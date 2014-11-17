@@ -15,27 +15,6 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Sets.newHashSet;
-import static org.apache.commons.io.FileUtils.toFile;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
@@ -45,6 +24,27 @@ import com.mgmtp.perfload.core.common.config.TestConfig;
 import com.mgmtp.perfload.core.common.config.TestplanConfig;
 import com.mgmtp.perfload.core.console.meta.LtMetaInfo.Executions;
 import com.mgmtp.perfload.core.console.model.Daemon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.net.URL;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.apache.commons.io.FileUtils.toFile;
 
 /**
  * Creates meta information on a test and dumps it to a file.
@@ -52,22 +52,20 @@ import com.mgmtp.perfload.core.console.model.Daemon;
  * @author rnaegele
  */
 public class LtMetaInfoHandler {
-	private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
-
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * Creates meta information on a test.
 	 * 
-	 * @param finishTimestamp
-	 *            timestamp taken at test start
 	 * @param startTimestamp
 	 *            timestamp taken at test finish
+	 * @param finishTimestamp
+	 *            timestamp taken at test start
 	 * @param config
-	 *            the {@link TestplanConfig} instance
+	 *            the {@link com.mgmtp.perfload.core.common.config.TestplanConfig} instance
 	 * @return the meta information object
 	 */
-	public LtMetaInfo createMetaInformation(final long startTimestamp, final long finishTimestamp, final TestplanConfig config,
+	public LtMetaInfo createMetaInformation(final ZonedDateTime startTimestamp, final ZonedDateTime finishTimestamp, final TestplanConfig config,
 			final List<Daemon> daemons) {
 		LtMetaInfo metaInfo = new LtMetaInfo();
 		metaInfo.setStartTimestamp(startTimestamp);
@@ -132,9 +130,9 @@ public class LtMetaInfoHandler {
 		pr.printf("test.file=%s", metaInfo.getTestplanFileName());
 		pr.println();
 
-		pr.printf("test.start=%s", DATE_FORMAT.format(metaInfo.getStartTimestamp()));
+		pr.printf("test.start=%s", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(metaInfo.getStartTimestamp()));
 		pr.println();
-		pr.printf("test.finish=%s", DATE_FORMAT.format(metaInfo.getFinishTimestamp()));
+		pr.printf("test.finish=%s", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(metaInfo.getFinishTimestamp()));
 		pr.println();
 
 		List<Daemon> daemonList = metaInfo.getDaemons();

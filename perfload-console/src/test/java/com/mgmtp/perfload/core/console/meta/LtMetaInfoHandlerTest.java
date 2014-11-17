@@ -15,21 +15,22 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import static org.testng.Assert.assertEquals;
+import com.google.common.collect.ImmutableList;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
+import com.mgmtp.perfload.core.common.config.XmlConfigReader;
+import com.mgmtp.perfload.core.console.model.Daemon;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.testng.annotations.Test;
-
-import com.google.common.collect.ImmutableList;
-import com.mgmtp.perfload.core.common.config.TestplanConfig;
-import com.mgmtp.perfload.core.common.config.XmlConfigReader;
-import com.mgmtp.perfload.core.console.model.Daemon;
+import static org.testng.Assert.assertEquals;
 
 /**
  * @author rnaegele
@@ -40,9 +41,9 @@ public class LtMetaInfoHandlerTest {
 	@Test
 	public void testMetaInfoForLoadProfileTest() throws Exception {
 		XmlConfigReader reader = new XmlConfigReader(new File("src/test/resources"), "testplan_loadprofile.xml");
-		long now = System.currentTimeMillis();
+		ZonedDateTime now = ZonedDateTime.now();
 		Properties props = createMetaProperties(reader, now);
-		String timestamp = DATE_FORMAT.format(now);
+		String timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(now);
 
 		assertEquals(props.getProperty("test.file"), "testplan_loadprofile.xml");
 		assertEquals(props.getProperty("test.start"), timestamp);
@@ -50,8 +51,7 @@ public class LtMetaInfoHandlerTest {
 		assertEquals(props.getProperty("daemon.1"), "localhost:8042");
 		assertEquals(props.getProperty("daemon.2"), "localhost:8043");
 		assertEquals(props.getProperty("targets"), "myTarget1,myTarget2");
-		assertEquals(props.getProperty("operations"),
-				"myOperation1,myOperation2,myOperation3,myOperation4,myOperation5,myOperation6");
+		assertEquals(props.getProperty("operations"), "myOperation1,myOperation2,myOperation3,myOperation4,myOperation5,myOperation6");
 		assertEquals(props.getProperty("executions.myOperation1.myTarget1"), "1");
 		assertEquals(props.getProperty("executions.myOperation1.myTarget2"), "1");
 		assertEquals(props.getProperty("executions.myOperation2.myTarget1"), "2");
@@ -66,7 +66,7 @@ public class LtMetaInfoHandlerTest {
 		assertEquals(props.getProperty("executions.myOperation6.myTarget2"), "4");
 	}
 
-	private Properties createMetaProperties(final XmlConfigReader configReader, final long timestamp) throws Exception,
+	private Properties createMetaProperties(final XmlConfigReader configReader, final ZonedDateTime timestamp) throws Exception,
 			IOException {
 		TestplanConfig config = configReader.readConfig();
 		LtMetaInfoHandler handler = new LtMetaInfoHandler();

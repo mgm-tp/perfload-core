@@ -15,12 +15,13 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import static com.google.common.collect.Lists.newArrayList;
+import com.mgmtp.perfload.core.console.model.Daemon;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
-import com.mgmtp.perfload.core.console.model.Daemon;
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Pojo that holds meta information on a test run.
@@ -34,13 +35,13 @@ public class LtMetaInfo {
 	private String testplanFileName;
 	private final List<String> lpTargets = newArrayList();
 	private final List<String> lpOperations = newArrayList();
-	private long startTimestamp;
-	private long finishTimestamp;
+	private ZonedDateTime startTimestamp;
+	private ZonedDateTime finishTimestamp;
 
 	/**
 	 * @return the startTimestamp
 	 */
-	public long getStartTimestamp() {
+	public ZonedDateTime getStartTimestamp() {
 		return startTimestamp;
 	}
 
@@ -48,14 +49,14 @@ public class LtMetaInfo {
 	 * @param startTimestamp
 	 *            the startTimestamp to set
 	 */
-	public void setStartTimestamp(final long startTimestamp) {
+	public void setStartTimestamp(final ZonedDateTime startTimestamp) {
 		this.startTimestamp = startTimestamp;
 	}
 
 	/**
 	 * @return the finishTimestamp
 	 */
-	public long getFinishTimestamp() {
+	public ZonedDateTime getFinishTimestamp() {
 		return finishTimestamp;
 	}
 
@@ -63,7 +64,7 @@ public class LtMetaInfo {
 	 * @param finishTimestamp
 	 *            the finishTimestamp to set
 	 */
-	public void setFinishTimestamp(final long finishTimestamp) {
+	public void setFinishTimestamp(final ZonedDateTime finishTimestamp) {
 		this.finishTimestamp = finishTimestamp;
 	}
 

@@ -47,6 +47,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.ConnectException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -91,8 +92,8 @@ public final class LtConsole {
 	private volatile int clientCount;
 	private volatile boolean testSuccessful = true;
 
-	private long startTimestamp;
-	private long finishTimestamp;
+	private ZonedDateTime startTimestamp;
+	private ZonedDateTime finishTimestamp;
 
 	/**
 	 * Creates a new instance.
@@ -367,7 +368,7 @@ public final class LtConsole {
 	private void runTest() throws InterruptedException, TimeoutException {
 		awaitLatch(readyLatch, "Timeout waiting until test is ready to be started.");
 
-		startTimestamp = System.currentTimeMillis();
+		startTimestamp = ZonedDateTime.now();
 		LOG.info("Running test...");
 
 		Payload payload = new Payload(PayloadType.START);
@@ -397,7 +398,7 @@ public final class LtConsole {
 
 	private void disconnectFromDaemons() throws InterruptedException {
 		doneLatch.await();
-		finishTimestamp = System.currentTimeMillis();
+		finishTimestamp = ZonedDateTime.now();
 
 		LOG.info("Waiting for status polling to complete...");
 
