@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 mgm perfLoad Test Client
-Copyright 2002-2014 mgm technology partners GmbH
+Copyright 2002-2015 mgm technology partners GmbH
 
 From: 'an unknown organization'
   - AOP alliance (http://aopalliance.sourceforge.net) aopalliance:aopalliance:jar:1.0
@@ -25,11 +25,11 @@ From: 'FasterXML' (http://fasterxml.com)
     License: GNU Lesser General Public License (LGPL), Version 2.1  (http://www.fsf.org/licensing/licenses/lgpl.txt)
 
 From: 'Google, Inc.' (http://www.google.com)
-  - Google Guice - Core Library (http://code.google.com/p/google-guice/guice/) com.google.inject:guice:jar:3.0
+  - Google Guice - Core Library (https://github.com/google/guice/guice) com.google.inject:guice:jar:4.0-beta5
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Google Guice - Extensions - AssistedInject (http://code.google.com/p/google-guice/extensions-parent/guice-assistedinject/) com.google.inject.extensions:guice-assistedinject:jar:3.0
+  - Google Guice - Extensions - AssistedInject (https://github.com/google/guice/extensions-parent/guice-assistedinject) com.google.inject.extensions:guice-assistedinject:jar:4.0-beta5
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Google Guice - Extensions - MultiBindings (http://code.google.com/p/google-guice/extensions-parent/guice-multibindings/) com.google.inject.extensions:guice-multibindings:jar:3.0
+  - Google Guice - Extensions - MultiBindings (https://github.com/google/guice/extensions-parent/guice-multibindings) com.google.inject.extensions:guice-multibindings:jar:4.0-beta5
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'JBoss by Red Hat' (http://www.jboss.org)

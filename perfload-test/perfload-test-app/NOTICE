@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 mgm perfLoad Testapp
-Copyright 2002-2014 mgm technology partners GmbH
+Copyright 2002-2015 mgm technology partners GmbH
 
 From: 'an unknown organization'
   - Guava: Google Core Libraries for Java (http://code.google.com/p/guava-libraries/guava) com.google.guava:guava:bundle:18.0

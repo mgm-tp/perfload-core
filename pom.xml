@@ -285,17 +285,17 @@
 			<dependency>
 				<groupId>com.google.inject</groupId>
 				<artifactId>guice</artifactId>
-				<version>3.0</version>
+				<version>${guice.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.inject.extensions</groupId>
 				<artifactId>guice-multibindings</artifactId>
-				<version>3.0</version>
+				<version>${guice.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.inject.extensions</groupId>
 				<artifactId>guice-assistedinject</artifactId>
-				<version>3.0</version>
+				<version>${guice.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.inject</groupId>
@@ -439,5 +439,6 @@
 	</profiles>
 	<properties>
 		<jetty.version>6.1.26</jetty.version>
+		<guice.version>4.0-beta5</guice.version>
 	</properties>
 </project>
