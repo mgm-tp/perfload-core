@@ -68,7 +68,7 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
 
 /**
  * Represents a test process and runs the test threads associated with this process.
- * 
+ *
  * @author rnaegele
  */
 public final class LtProcess implements ClientMessageListener {
@@ -97,10 +97,11 @@ public final class LtProcess implements ClientMessageListener {
 	 * @param contextProvider
 	 *            Guice provider for {@link LtContext}
 	 * @param listeners
-	 *            {@link LtProcessEventListener} to react on {@link LtProcessEvent}s triggered by
-	 *            this class
+	 *            {@link LtProcessEventListener} to react on {@link LtProcessEvent}s triggered
+	 *            by this class
 	 * @param execService
-	 *            The executor service for running {@link LtRunner} instances (i. e. test threads)
+	 *            The executor service for running {@link LtRunner} instances (i. e. test
+	 *            threads)
 	 * @param daemonClient
 	 *            {@link Client} that talks to the daemon
 	 * @param config
@@ -162,7 +163,7 @@ public final class LtProcess implements ClientMessageListener {
 
 	/**
 	 * Schedules all test threads associated with this process.
-	 * 
+	 *
 	 * @return The overall status of this process after termination.
 	 */
 	protected LtStatus execute() {
@@ -199,74 +200,75 @@ public final class LtProcess implements ClientMessageListener {
 				// Must wrap because we must get and fill the LtContext inside the run method,
 				// i. e. this must happen on the same thread that executes the runner.
 				// LtContext is thread-scoped!
-				Runnable runnerWrapper = new Runnable() {
-					@Override
-					public void run() {
+				Runnable runnerWrapper = () -> {
 
-						// Get instance for the current thread and fill it.
-						LtContext context = contextProvider.get();
-						context.setOperation(ti.getOperation());
-						context.setTarget(ti.getTarget());
-						context.setThreadId(threadId);
+					// Get instance for the current thread and fill it.
+					LtContext context = contextProvider.get();
+					context.setOperation(ti.getOperation());
+					context.setTarget(ti.getTarget());
+					context.setThreadId(threadId);
 
-						LtRunner testRunner = ltRunnerProvider.get();
+					LtRunner testRunner = ltRunnerProvider.get();
 
-						long actualStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-						LOG.info("Execution time delta (actualStartTime - scheduledStartTime): {} - {} = {}", new Object[] {
-								actualStartTime, scheduledStartTime, actualStartTime - scheduledStartTime });
-						LOG.info("Thread pool status [activeCount={}, poolSize={}, largestPoolSize={}]",
-								new Object[] { execService.getActiveCount(), execService.getPoolSize(),
-										execService.getLargestPoolSize() });
+					long actualStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+					LOG.info("Execution time delta (actualStartTime - scheduledStartTime): {} - {} = {}", new Object[] {
+							actualStartTime, scheduledStartTime, actualStartTime - scheduledStartTime });
+					LOG.info("Thread pool status [activeCount={}, poolSize={}, largestPoolSize={}]",
+							new Object[] { execService.getActiveCount(), execService.getPoolSize(),
+							execService.getLargestPoolSize() });
 
-						testRunner.execute();
-					}
+					testRunner.execute();
 				};
 				execService.schedule(runnerWrapper, ti.getStartTime(), TimeUnit.MILLISECONDS);
 			}
 
 			final int taskCount = testInfoList.size();
-			Callable<LtStatus> poller = new Callable<LtStatus>() {
-				@Override
-				public LtStatus call() throws InterruptedException {
-					try {
-						for (int i = 0; i < taskCount; ++i) {
-							try {
-								execService.takeNextCompleted().get();
-							} catch (CancellationException ex) {
-								// Cannot happen because we do not cancel tasks
-								LOG.error(ex.getMessage(), ex);
-							} catch (ExecutionException ex) {
-								Throwable cause = ex.getCause();
-								LOG.error(cause.getMessage(), cause);
-								if (cause instanceof AbortionException) {
-									AbortionException abex = (AbortionException) cause;
-									if (abex.getStatus() == LtStatus.ERROR) {
-										daemonClient.sendMessage(new Payload(PayloadType.ERROR));
-									}
-									execService.shutdownNow();
-									execService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-									return abex.getStatus();
-								}
-							} finally {
-								LOG.debug(MemoryInfo.getMemoryInfo(Unit.KIBIBYTES));
-							}
-						}
-						return LtStatus.SUCCESSFUL;
-
-					} finally {
-						daemonClient.sendMessage(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessKey(processId,
-								daemonId)));
+			Callable<LtStatus> poller = () -> {
+				try {
+					for (int i = 0; i < taskCount; ++i) {
 						try {
-							exitLatch.await(5L, TimeUnit.SECONDS);
-						} catch (InterruptedException ex) {
-							//
+							execService.takeNextCompleted().get();
+						} catch (CancellationException ex1) {
+							// Cannot happen because we do not cancel tasks
+							LOG.error(ex1.getMessage(), ex1);
+						} catch (ExecutionException ex2) {
+							Throwable cause = ex2.getCause();
+							LOG.error(cause.getMessage(), cause);
+							if (cause instanceof AbortionException) {
+								AbortionException abex = (AbortionException) cause;
+								if (abex.getStatus() == LtStatus.ERROR) {
+									daemonClient.sendMessage(new Payload(PayloadType.ERROR));
+								}
+								execService.shutdownNow();
+								execService.awaitTermination(30L, TimeUnit.SECONDS);
+								return abex.getStatus();
+							}
+						} finally {
+							LOG.info("{} out of {} executions completed.", i + 1, taskCount);
+							LOG.debug(MemoryInfo.getMemoryInfo(Unit.KIBIBYTES));
 						}
 					}
+					return LtStatus.SUCCESSFUL;
+
+				} finally {
+					LOG.debug("Disconnecting...");
+					daemonClient.sendMessage(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessKey(processId, daemonId)));
+					LOG.debug("Disconnected from daemon. Awaiting exit latch...");
+					try {
+						exitLatch.await(5L, TimeUnit.SECONDS);
+					} catch (InterruptedException ex3) {
+						//
+					}
+					LOG.debug("Finished status polling.");
 				}
 			};
-
 			if (!execService.isShutdown()) {
+				LOG.debug("Schedule status poller...");
 				result = execService.schedule(poller, 30L, TimeUnit.SECONDS).get();
+				LOG.debug("Polling result: {}", result);
+				execService.shutdownNow();
+				execService.awaitTermination(30L, TimeUnit.SECONDS);
+				LOG.debug("Test process finished.");
 			}
 			return result;
 		} catch (InterruptedException ex) {
@@ -278,7 +280,6 @@ public final class LtProcess implements ClientMessageListener {
 		} finally {
 			fireProcessFinished(result);
 		}
-
 	}
 
 	private void fireProcessStarted() {
@@ -333,7 +334,7 @@ public final class LtProcess implements ClientMessageListener {
 		int daemonPort = -1;
 		File testLibDir = null;
 		String[] testJarNames = null;
-
+		boolean debug = false;
 		try {
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i].equals("-processId")) {
@@ -356,6 +357,10 @@ public final class LtProcess implements ClientMessageListener {
 					testJarNames = args[++i].split(";");
 					continue;
 				}
+				if (args[i].equals("-debug-inline")) {
+					debug = Boolean.parseBoolean(args[++i]);
+					continue;
+				}
 			}
 			checkArgument(processId != null && daemonId != null && daemonPort != -1);
 		} catch (Exception ex) {
@@ -363,7 +368,9 @@ public final class LtProcess implements ClientMessageListener {
 			ex.printStackTrace();
 			System.out.println();
 			printUsage();
-			System.exit(-1);
+			if (!debug) {
+				System.exit(-1);
+			}
 		}
 
 		final CountDownLatch propsLatch = new CountDownLatch(1);
@@ -376,6 +383,7 @@ public final class LtProcess implements ClientMessageListener {
 		client.connect();
 		client.sendMessage(new Payload(PayloadType.TEST_PROC_CONNECTED, processId));
 
+		int exitCode = 0;
 		try {
 			if (!propsLatch.await(2L, TimeUnit.MINUTES)) {
 				throw new TimeoutException("Timeout waiting for properties.");
@@ -410,8 +418,8 @@ public final class LtProcess implements ClientMessageListener {
 			checkState(AbstractLtModule.class.isAssignableFrom(moduleClass), "'" + moduleClassName + "' must extend '"
 					+ AbstractLtModule.class.getName() + "'.");
 
-			Constructor<? extends AbstractLtModule> constructor =
-					moduleClass.asSubclass(AbstractLtModule.class).getConstructor(PropertiesMap.class);
+			Constructor<? extends AbstractLtModule> constructor = moduleClass.asSubclass(AbstractLtModule.class)
+					.getConstructor(PropertiesMap.class);
 			PropertiesMap testplanProperties = config.getProperties();
 			AbstractLtModule testplanModule = constructor.newInstance(testplanProperties);
 			ModulesLoader modulesLoader = new ModulesLoader(testplanModule, testplanProperties, client, daemonId, processId);
@@ -426,8 +434,12 @@ public final class LtProcess implements ClientMessageListener {
 		} catch (Exception ex) {
 			client.sendMessage(new Payload(PayloadType.ERROR));
 			LOG.error(ex.getMessage(), ex);
+			exitCode = 1;
 		} finally {
 			client.disconnect();
+		}
+		if (!debug) {
+			System.exit(exitCode);
 		}
 	}
 
@@ -450,7 +462,7 @@ public final class LtProcess implements ClientMessageListener {
 				case ABORT:
 					LOG.info("Test aborted.");
 					e.getChannel().write(new Payload(PayloadType.TEST_PROC_DISCONNECTED, new ProcessKey(processId, daemonId)));
-					e.getChannel().close().awaitUninterruptibly();
+					e.getChannel().close().awaitUninterruptibly(30L, TimeUnit.SECONDS);
 					System.exit(-1);
 					break;
 				case CONFIG:

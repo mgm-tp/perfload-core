@@ -18,6 +18,7 @@ package com.mgmtp.perfload.core.test.comp;
 import static com.google.common.base.Joiner.on;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -30,9 +31,9 @@ import com.mgmtp.perfload.core.common.config.ProcessConfig;
 import com.mgmtp.perfload.core.daemon.util.AbstractClientRunner;
 
 /**
- * {@link AbstractClientRunner} that does not fork separates processes but runs {@link LtProcess} instances in the same VM for
- * easier debugging.
- * 
+ * {@link AbstractClientRunner} that does not fork separates processes but runs {@link LtProcess}
+ * instances in the same VM for easier debugging.
+ *
  * @author rnaegele
  */
 public class InlineClientRunner extends AbstractClientRunner {
@@ -49,15 +50,16 @@ public class InlineClientRunner extends AbstractClientRunner {
 
 	@Override
 	public Future<Integer> runClient(final File clientDir, final ProcessConfig procConfig, final List<String> arguments) {
-		log.info("Running inline test process with arguments: {}", on(' ').join(arguments));
+		List<String> argsList = new ArrayList<>(arguments);
+		argsList.add("-debug-inline");
+		argsList.add("true");
 
-		return execService.submit(new Runnable() {
-			@Override
-			public void run() {
-				final String[] args = new String[arguments.size()];
-				LtProcess.main(arguments.toArray(args));
-			}
-		}, 0);
+		log.info("Running inline test process with arguments: {}", on(' ').join(argsList));
+
+		Runnable r = () -> {
+			final String[] args = new String[argsList.size()];
+			LtProcess.main(argsList.toArray(args));
+		};
+		return execService.submit(r, 0);
 	}
-
 }

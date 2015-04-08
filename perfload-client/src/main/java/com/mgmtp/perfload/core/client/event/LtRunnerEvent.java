@@ -21,35 +21,35 @@ import com.mgmtp.perfload.core.client.runner.LtRunner;
 
 /**
  * Represents an event triggered by {@link LtRunner} when a test run starts and finishes.
- * 
+ *
  * @author rnaegele
  * @see LtRunnerEventListener
  */
 public final class LtRunnerEvent {
 
-	private final Exception exception;
+	private final Throwable throwable;
 
 	public LtRunnerEvent() {
-		this(null);
+	this(null);
 	}
 
 	/**
-	 * @param exception
-	 *            an exception that may have been thrown
+	 * @param throwable
+	 *            a throwable that may have been thrown
 	 */
-	public LtRunnerEvent(final Exception exception) {
-		this.exception = exception;
+	public LtRunnerEvent(final Throwable throwable) {
+	this.throwable = throwable;
 	}
 
 	/**
-	 * @return the exception
+	 * @return the throwable
 	 */
-	public Exception getException() {
-		return exception;
+	public Throwable getThrowable() {
+		return throwable;
 	}
 
 	@Override
 	public String toString() {
-		return toDefaultString(this);
+	return toDefaultString(this);
 	}
 }

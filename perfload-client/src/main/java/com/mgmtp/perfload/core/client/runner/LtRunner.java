@@ -32,7 +32,7 @@ import com.mgmtp.perfload.core.common.util.LtUtils;
 
 /**
  * This class is responsible for executing {@link LtDriver} implementations.
- * 
+ *
  * @author rnaegele
  */
 public final class LtRunner {
@@ -64,14 +64,14 @@ public final class LtRunner {
 
 	/**
 	 * Executes the {@link LtDriver load test driver} implementation triggering
-	 * {@link LtRunnerEvent}s. The interrupt status is checked before executing the driver calling
-	 * {@link LtUtils#checkInterrupt()}. An interrupted thread leads to the abortion of the whole
-	 * test.
-	 * 
+	 * {@link LtRunnerEvent}s. The interrupt status is checked before executing the driver
+	 * calling {@link LtUtils#checkInterrupt()}. An interrupted thread leads to the abortion of
+	 * the whole test.
+	 *
 	 * @see LtRunnerEventListener
 	 */
 	public void execute() {
-		Exception exception = null;
+		Throwable throwable = null;
 		try {
 			waitingTimeManager.sleepBeforeTestStart();
 			fireRunStarted();
@@ -79,7 +79,7 @@ public final class LtRunner {
 			checkInterrupt();
 			driver.execute();
 		} catch (InterruptedException ex) {
-			exception = ex;
+			throwable = ex;
 
 			// If an InterruptedException is thrown, a thread's interrupt status is reset.
 			// Thus, we need to interrupt it again.
@@ -87,11 +87,11 @@ public final class LtRunner {
 
 			// Check for the interrupt causing the abortion of the test.
 			checkInterrupt();
-		} catch (Exception ex) {
-			exception = ex;
-			errorHandler.execute(ex);
+		} catch (Throwable th) {
+			throwable = th;
+			errorHandler.execute(th);
 		} finally {
-			fireRunFinished(exception);
+			fireRunFinished(throwable);
 		}
 	}
 
@@ -104,8 +104,8 @@ public final class LtRunner {
 		}
 	}
 
-	private void fireRunFinished(final Exception exception) {
-		LtRunnerEvent event = new LtRunnerEvent(exception);
+	private void fireRunFinished(final Throwable throwable) {
+		LtRunnerEvent event = new LtRunnerEvent(throwable);
 		log.debug("fireRunFinished: {}", event);
 		for (LtRunnerEventListener listener : listeners) {
 			log.debug("Executing listener: {}", listener);

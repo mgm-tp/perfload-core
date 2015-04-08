@@ -50,7 +50,7 @@ public class StatusInfoTest {
 				.error(error)
 				.activeThreads(activeThreads)
 				.stackTrace(stackTrace)
-				.exception(exception)
+				.throwable(exception)
 				.finished(finished)
 				.build();
 
@@ -84,7 +84,7 @@ public class StatusInfoTest {
 		stackTrace = sw.toString();
 
 		si = new Builder(si)
-				.exception(exception)
+				.throwable(exception)
 				.build();
 
 		assertEquals(si.getStackTrace(), stackTrace);

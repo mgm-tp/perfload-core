@@ -83,8 +83,7 @@ public class ComponentTest {
 		StatusTransformer transformer = new FileStatusTransformer(config.getTotalThreadCount(), new File("target",
 				"ltStatus.txt"), new File("target", "loadprofile.txt"), "UTF-8");
 		LtConsole console = new LtConsole(config, Executors.newCachedThreadPool(new DaemonThreadFactory()),
-				transformer, new LtMetaInfoHandler(), asList(new Daemon(1, "localhost", DAEMON_PORT)), false, false,
-				300000L);
+				transformer, new LtMetaInfoHandler(), asList(new Daemon(1, "localhost", DAEMON_PORT)), false, false, 300000L);
 		console.execute();
 
 		assertEquals(console.isTestSuccessful(), true);
