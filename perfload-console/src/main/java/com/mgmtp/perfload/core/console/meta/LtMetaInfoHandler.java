@@ -15,17 +15,9 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ListMultimap;
-import com.mgmtp.perfload.core.common.config.LoadProfileEvent;
-import com.mgmtp.perfload.core.common.config.TestConfig;
-import com.mgmtp.perfload.core.common.config.TestplanConfig;
-import com.mgmtp.perfload.core.console.meta.LtMetaInfo.Executions;
-import com.mgmtp.perfload.core.console.model.Daemon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.apache.commons.io.FileUtils.toFile;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -42,13 +34,21 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Sets.newHashSet;
-import static org.apache.commons.io.FileUtils.toFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ListMultimap;
+import com.mgmtp.perfload.core.common.config.LoadProfileEvent;
+import com.mgmtp.perfload.core.common.config.TestConfig;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
+import com.mgmtp.perfload.core.console.meta.LtMetaInfo.Executions;
+import com.mgmtp.perfload.core.console.model.Daemon;
 
 /**
  * Creates meta information on a test and dumps it to a file.
- * 
+ *
  * @author rnaegele
  */
 public class LtMetaInfoHandler {
@@ -56,7 +56,7 @@ public class LtMetaInfoHandler {
 
 	/**
 	 * Creates meta information on a test.
-	 * 
+	 *
 	 * @param startTimestamp
 	 *            timestamp taken at test finish
 	 * @param finishTimestamp
@@ -87,12 +87,7 @@ public class LtMetaInfoHandler {
 			String target = entry.getKey();
 			Collection<String> operations = entry.getValue();
 			for (final String operation : uniqueOperations) {
-				int executions = Collections2.filter(operations, new Predicate<String>() {
-					@Override
-					public boolean apply(final String input) {
-						return input.equals(operation);
-					}
-				}).size();
+				int executions = Collections2.filter(operations, input -> input.equals(operation)).size();
 				metaInfo.addExecutions(operation, target, executions);
 			}
 		}
@@ -101,7 +96,7 @@ public class LtMetaInfoHandler {
 
 	/**
 	 * Dumps the specified meta information to specified writer.
-	 * 
+	 *
 	 * @param metaInfo
 	 *            the meta information object
 	 * @param writer
@@ -130,9 +125,9 @@ public class LtMetaInfoHandler {
 		pr.printf("test.file=%s", metaInfo.getTestplanFileName());
 		pr.println();
 
-		pr.printf("test.start=%s", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(metaInfo.getStartTimestamp()));
+		pr.printf("test.start=%s", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(metaInfo.getStartTimestamp()));
 		pr.println();
-		pr.printf("test.finish=%s", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(metaInfo.getFinishTimestamp()));
+		pr.printf("test.finish=%s", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(metaInfo.getFinishTimestamp()));
 		pr.println();
 
 		List<Daemon> daemonList = metaInfo.getDaemons();

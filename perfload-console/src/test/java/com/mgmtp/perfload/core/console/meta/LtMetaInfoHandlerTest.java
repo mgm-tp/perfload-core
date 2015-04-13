@@ -15,12 +15,7 @@
  */
 package com.mgmtp.perfload.core.console.meta;
 
-import com.google.common.collect.ImmutableList;
-import com.mgmtp.perfload.core.common.config.TestplanConfig;
-import com.mgmtp.perfload.core.common.config.XmlConfigReader;
-import com.mgmtp.perfload.core.console.model.Daemon;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,20 +25,24 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
-import static org.testng.Assert.assertEquals;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableList;
+import com.mgmtp.perfload.core.common.config.TestplanConfig;
+import com.mgmtp.perfload.core.common.config.XmlConfigReader;
+import com.mgmtp.perfload.core.console.model.Daemon;
 
 /**
  * @author rnaegele
  */
 public class LtMetaInfoHandlerTest {
-	private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
 
 	@Test
 	public void testMetaInfoForLoadProfileTest() throws Exception {
 		XmlConfigReader reader = new XmlConfigReader(new File("src/test/resources"), "testplan_loadprofile.xml");
 		ZonedDateTime now = ZonedDateTime.now();
 		Properties props = createMetaProperties(reader, now);
-		String timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(now);
+		String timestamp = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(now);
 
 		assertEquals(props.getProperty("test.file"), "testplan_loadprofile.xml");
 		assertEquals(props.getProperty("test.start"), timestamp);
@@ -67,7 +66,7 @@ public class LtMetaInfoHandlerTest {
 	}
 
 	private Properties createMetaProperties(final XmlConfigReader configReader, final ZonedDateTime timestamp) throws Exception,
-			IOException {
+	IOException {
 		TestplanConfig config = configReader.readConfig();
 		LtMetaInfoHandler handler = new LtMetaInfoHandler();
 		LtMetaInfo metaInfo = handler.createMetaInformation(timestamp, timestamp, config,
