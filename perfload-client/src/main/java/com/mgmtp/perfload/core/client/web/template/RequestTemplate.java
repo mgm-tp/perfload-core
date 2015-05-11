@@ -15,7 +15,7 @@
  */
 package com.mgmtp.perfload.core.client.web.template;
 
-import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.mgmtp.perfload.core.common.util.LtUtils.toDefaultString;
@@ -34,7 +34,7 @@ import com.google.common.collect.SetMultimap;
 /**
  * Represents a pre-configured, possibly parameterized, request that is executed during the test
  * after resolving any parameters. A list of request templates make up a request flow.
- * 
+ *
  * @author rnaegele
  */
 @ThreadSafe
@@ -177,16 +177,16 @@ public final class RequestTemplate {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((body == null) ? 0 : body.hashCode());
-		result = prime * result + ((detailExtractions == null) ? 0 : detailExtractions.hashCode());
-		result = prime * result + ((headerExtractions == null) ? 0 : headerExtractions.hashCode());
-		result = prime * result + ((requestHeaders == null) ? 0 : requestHeaders.hashCode());
-		result = prime * result + ((requestParameters == null) ? 0 : requestParameters.hashCode());
-		result = prime * result + ((skip == null) ? 0 : skip.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		result = prime * result + ((uri == null) ? 0 : uri.hashCode());
-		result = prime * result + ((uriAlias == null) ? 0 : uriAlias.hashCode());
-		result = prime * result + ((validateResponse == null) ? 0 : validateResponse.hashCode());
+		result = prime * result + (body == null ? 0 : body.hashCode());
+		result = prime * result + (detailExtractions == null ? 0 : detailExtractions.hashCode());
+		result = prime * result + (headerExtractions == null ? 0 : headerExtractions.hashCode());
+		result = prime * result + (requestHeaders == null ? 0 : requestHeaders.hashCode());
+		result = prime * result + (requestParameters == null ? 0 : requestParameters.hashCode());
+		result = prime * result + (skip == null ? 0 : skip.hashCode());
+		result = prime * result + (type == null ? 0 : type.hashCode());
+		result = prime * result + (uri == null ? 0 : uri.hashCode());
+		result = prime * result + (uriAlias == null ? 0 : uriAlias.hashCode());
+		result = prime * result + (validateResponse == null ? 0 : validateResponse.hashCode());
 		return result;
 	}
 
@@ -524,7 +524,7 @@ public final class RequestTemplate {
 
 		/**
 		 * Either content or resource path (and optionally charset) must be specified.
-		 * 
+		 *
 		 * @param content
 		 *            the body content
 		 * @param resourcePath
@@ -543,7 +543,7 @@ public final class RequestTemplate {
 		/**
 		 * Creates a new Body instance from the specified content string. Uses UTF-8 as character
 		 * set internally.
-		 * 
+		 *
 		 * @param content
 		 *            the content string
 		 * @return the Body object
@@ -554,7 +554,7 @@ public final class RequestTemplate {
 
 		/**
 		 * Creates a new Body instance from the specified resource path and character set.
-		 * 
+		 *
 		 * @param resourcePath
 		 *            the path of the classpath resource to load the body from
 		 * @param resourceType
@@ -567,7 +567,7 @@ public final class RequestTemplate {
 
 		/**
 		 * Creates a new Body instance from the specified binary content.
-		 * 
+		 *
 		 * @param content
 		 *            the body content
 		 * @return the Body object
@@ -602,8 +602,8 @@ public final class RequestTemplate {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + Arrays.hashCode(content);
-			result = prime * result + ((resourcePath == null) ? 0 : resourcePath.hashCode());
-			result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
+			result = prime * result + (resourcePath == null ? 0 : resourcePath.hashCode());
+			result = prime * result + (resourceType == null ? 0 : resourceType.hashCode());
 			return result;
 		}
 

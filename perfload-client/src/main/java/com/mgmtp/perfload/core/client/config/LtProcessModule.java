@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
@@ -79,7 +81,7 @@ import com.mgmtp.perfload.logging.SimpleLogger;
 
 /**
  * Guice module for binding perfLoad's core classes.
- * 
+ *
  * @author rnaegele
  */
 final class LtProcessModule extends AbstractLtModule {
@@ -92,7 +94,7 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * Creates a new instance.
-	 * 
+	 *
 	 * @param testplanProperties
 	 *            properties set in the testplan xml file
 	 * @param client
@@ -148,31 +150,19 @@ final class LtProcessModule extends AbstractLtModule {
 		bindLtRunnerEventListener().to(LtClientListener.class);
 
 		// default driver implementations
-		bindLtDriver("script").forPredicate(new DriverSelectionPredicate() {
-			@Override
-			public boolean apply(final String operation, final PropertiesMap properties) {
-				return !filterKeys(properties, new Predicate<String>() {
-					@Override
-					public boolean apply(final String input) {
-						return input.startsWith("operation." + operation + ".procInfo");
-					}
-				}).isEmpty();
-			}
-		}).to(ScriptLtDriver.class);
+		bindLtDriver("script").forPredicate(
+				(operation, properties) -> !filterKeys(properties,
+						(Predicate<String>) input -> input.startsWith("operation." + operation + ".procInfo")).isEmpty()).to(ScriptLtDriver.class);
 
-		bindLtDriver("dummy").forPredicate(new DriverSelectionPredicate() {
-			@Override
-			public boolean apply(final String operation, final PropertiesMap properties) {
-				return properties.containsKey("operation." + operation + ".dummy");
-			}
-		}).to(DummyLtDriver.class);
+		bindLtDriver("dummy").forPredicate((operation, properties) -> properties.containsKey("operation." + operation + ".dummy")).to(
+				DummyLtDriver.class);
 	}
 
 	/**
 	 * Loads properties from the properties file {@code perfload.utf8.props} in the classpath root,
 	 * if present. The file must be a UTF-8 encoded properties file. It is loaded using
 	 * {@link Properties#load(java.io.Reader)}.
-	 * 
+	 *
 	 * @return a map with properties
 	 */
 	@Override
@@ -213,7 +203,7 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * Provides the driver implementation to be used for the given operation.
-	 * 
+	 *
 	 * @param operation
 	 *            the operation
 	 * @param properties
@@ -240,7 +230,7 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * Provides the version of perfLoad as specified in the Maven pom.
-	 * 
+	 *
 	 * @return the version string
 	 */
 	@Provides
@@ -262,7 +252,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * Provides the {@link DelayingExecutorService} used to run test threads. Registers a done
 	 * callback with the executor service that cleans up the thread scope when a thread is done
 	 * calling {@link ThreadScope#cleanUp()}.
-	 * 
+	 *
 	 * @param threadScope
 	 *            the {@link ThreadScope} instance
 	 * @return the {@link DelayingExecutorService} implementation
@@ -272,12 +262,9 @@ final class LtProcessModule extends AbstractLtModule {
 	protected DelayingExecutorService provideExecutorService(final ThreadScope threadScope) {
 		DelayingExecutorService execService = new DelayingExecutorService();
 		// Take care of thread scope clean-up whenever a task is done.
-		execService.setDoneCallback(new Runnable() {
-			@Override
-			public void run() {
-				LoggerFactory.getLogger(getClass()).info("Cleaning up thread scope...");
-				threadScope.cleanUp();
-			}
+		execService.setDoneCallback(() -> {
+			LoggerFactory.getLogger(getClass()).info("Cleaning up thread scope...");
+			threadScope.cleanUp();
 		});
 
 		return execService;
@@ -291,8 +278,9 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * <p>
-	 * Provides a list of configured local ip addresses. If the client has multiple network
-	 * interface cards, multiple ip addresses may be configured. The format is
+	 * Provides {@link Iterator} of local ip addresses that cycles indefinitely over the underlying
+	 * list of ip addresses, thus implementing round robin behavior. If the client has multiple
+	 * network interface cards, multiple ip addresses may be configured. The format is
 	 * {@code ipaddress.<index>}, e. g.:
 	 * </p>
 	 * <p>
@@ -302,21 +290,15 @@ final class LtProcessModule extends AbstractLtModule {
 	 * {@code ipaddress.4=192.168.19.124}<br />
 	 * {@code ipaddress.5=192.168.19.125}
 	 * </p>
-	 * 
+	 *
 	 * @param properties
 	 *            the properties
-	 * @return a list of {@link InetAddress} objects
+	 * @return an {@link Iterator} of {@link InetAddress} objects
 	 */
 	@Provides
 	@Singleton
-	protected List<InetAddress> provideLocalAddresses(final PropertiesMap properties) throws IOException {
-		Collection<String> addresses = Maps.filterKeys(properties, new Predicate<String>() {
-			@Override
-			public boolean apply(final String input) {
-				return input.startsWith("ipaddress.");
-			}
-		}).values();
-
+	protected Iterator<InetAddress> provideLocalAddressesIterable(final PropertiesMap properties) throws IOException {
+		Collection<String> addresses = Maps.filterKeys(properties, input -> input.startsWith("ipaddress.")).values();
 		List<InetAddress> result = newArrayList();
 
 		for (String addressString : addresses) {
@@ -327,45 +309,31 @@ final class LtProcessModule extends AbstractLtModule {
 			result.add(address);
 		}
 
-		return ImmutableList.copyOf(result);
+		return Iterators.cycle(ImmutableList.copyOf(result));
 	}
 
 	/**
-	 * <p>
-	 * Provides the IP address the thread with the given id should use.
-	 * </p>
-	 * <p>
-	 * The assignment of an ip address to a host configuration depends on the specified threadId.
-	 * The index of the ip address in the list of ip addresses is determined as follows:
-	 * </p>
-	 * <p>
-	 * {@code int size = ipAddresses.size();}<br />
-	 * {@code int index = threadId <= size ? threadId - 1 : threadId % size;}
-	 * </p>
-	 * 
-	 * @see #provideLocalAddresses(PropertiesMap)
+	 * Provides a local IP address from the list of configured addresses using the {@link Iterator}
+	 * returned by {@link #provideLocalAddressesIterable(PropertiesMap)}.
+	 *
 	 * @param addresses
-	 *            the list of {@link InetAddress} objects
-	 * @param threadId
-	 *            the id of the thread
+	 *            the {@link Iterator} of {@link InetAddress} objects
 	 * @return the {@link InetAddress} object, or {@code null} no addresses are configured
 	 */
 	@Provides
 	@ThreadScoped
-	protected InetAddress provideLocalAddress(final List<InetAddress> addresses, @ThreadId final int threadId) {
-		if (addresses.isEmpty()) {
-			return null;
+	protected InetAddress provideLocalAddress(final Iterator<InetAddress> addresses) {
+		if (addresses.hasNext()) {
+			InetAddress address = addresses.next();
+			logger.info("Providing local address: {}", address);
+			return address;
 		}
-
-		int size = addresses.size();
-		int index = threadId <= size ? threadId - 1 : threadId % size;
-
-		return addresses.get(index);
+		return null;
 	}
 
 	/**
 	 * Provides the operation of the current thread.
-	 * 
+	 *
 	 * @param context
 	 *            the context used to look up the operation.
 	 * @return the operation
@@ -378,7 +346,7 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * Provides the target of the current thread.
-	 * 
+	 *
 	 * @param context
 	 *            the context used to look up the target.
 	 * @return the target
@@ -391,7 +359,7 @@ final class LtProcessModule extends AbstractLtModule {
 
 	/**
 	 * Provides the id of the current thread.
-	 * 
+	 *
 	 * @param context
 	 *            the context used to look up the operation.
 	 * @return the one-based thread id
@@ -407,7 +375,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * Provides the host for the given target from the following property:
 	 * </p>
 	 * {@code target.<target>.host}
-	 * 
+	 *
 	 * @param target
 	 *            the target
 	 * @param properties
@@ -425,7 +393,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * Provides the process info object used to create a process for the given operation by the
 	 * {@link ScriptLtDriver}. Below is an example with comments describing the properties
 	 * necessary:
-	 * 
+	 *
 	 * <pre>
 	 * # The working directory for the new process
 	 * operation.myOperation.procInfo.dir=/home/foo/bar
@@ -451,7 +419,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * # Should the process' termination should be awaited? Defaults to true.
 	 * operation.myOperation.procInfo.waitFor=false
 	 * </pre>
-	 * 
+	 *
 	 * @param operation
 	 *            the operation
 	 * @param properties

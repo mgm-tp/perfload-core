@@ -16,9 +16,9 @@
 package com.mgmtp.perfload.core.client.web.mock;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.UUID;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
@@ -37,8 +37,21 @@ public class MockRequestHandler implements RequestHandler {
 
 	@Override
 	public ResponseInfo execute(final RequestTemplate template, final UUID requestId) throws IOException {
-		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(), "test content".getBytes(),
-				"test content", "UTF-8", "text/plain", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
-				UUID.randomUUID(), requestId);
+		return new ResponseInfo.Builder()
+				.methodType("GET")
+				.uri("/foo")
+				.statusCode(statusCode)
+				.statusMsg("")
+				.headers(ImmutableSetMultimap.of())
+				.body("test content".getBytes())
+				.bodyAsString("test content")
+				.charset("UTF-8")
+				.contentType("text/plain")
+				.timestamp(System.currentTimeMillis())
+				.timeIntervalBeforeBody(new TimeInterval())
+				.timeIntervalTotal(new TimeInterval())
+				.executionId(UUID.randomUUID())
+				.requestId(requestId)
+				.build();
 	}
 }

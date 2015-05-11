@@ -41,7 +41,7 @@ import com.mgmtp.perfload.core.client.web.config.annotations.ForbiddenStatusCode
 
 /**
  * Default response validator implementation.
- * 
+ *
  * @author rnaegele
  */
 @Singleton
@@ -85,7 +85,7 @@ public class DefaultResponseValidator implements ResponseValidator {
 	/**
 	 * Validates the response checking for forbidden status codes, valid status codes, and parsing
 	 * for errors in the response body, in that order.
-	 * 
+	 *
 	 * @throws InvalidResponseException
 	 *             if the response is not valid
 	 */

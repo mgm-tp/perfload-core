@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
@@ -42,9 +43,22 @@ public class DefaultResponseValidatorTest {
 	private static final byte[] INVALID_BODY_BYTES = "<html>This response body is invalid".getBytes(Charsets.UTF_8);
 
 	private ResponseInfo createResponseInfo(final int statusCode, final byte[] body) throws UnsupportedEncodingException {
-		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(),
-				body, new String(body, "UTF-8"), "UTF-8", "text/html", System.currentTimeMillis(),
-				new TimeInterval(), new TimeInterval(), UUID.randomUUID(), UUID.randomUUID());
+		return new ResponseInfo.Builder()
+				.methodType("GET")
+				.uri("/foo")
+				.statusCode(statusCode)
+				.statusMsg("")
+				.body(body)
+				.bodyAsString(new String(body, "UTF-8"))
+				.headers(ImmutableSetMultimap.of())
+				.charset("UTF-8")
+				.contentType("text/html")
+				.timestamp(System.currentTimeMillis())
+				.timeIntervalBeforeBody(new TimeInterval())
+				.timeIntervalTotal(new TimeInterval())
+				.executionId(UUID.randomUUID())
+				.requestId(UUID.randomUUID())
+				.build();
 	}
 
 	@Test

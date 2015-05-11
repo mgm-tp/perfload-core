@@ -16,24 +16,23 @@
 package com.mgmtp.perfload.core.test.comp;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
 import com.google.inject.util.Modules;
 import com.mgmtp.perfload.core.client.config.AbstractLtModule;
+import com.mgmtp.perfload.core.client.config.annotations.TargetHost;
 import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.client.web.config.WebLtModule;
-import com.mgmtp.perfload.core.client.web.request.RequestHandler;
-import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
-import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
 import com.mgmtp.perfload.logging.SimpleLogger;
-import com.mgmtp.perfload.logging.TimeInterval;
+import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 /**
  * @author rnaegele
@@ -49,14 +48,37 @@ public class ComponentTestModule extends AbstractLtModule {
 		install(Modules.override(new WebLtModule(testplanProperties)).with(new AbstractWebLtModule(testplanProperties) {
 			@Override
 			protected void doConfigureWebModule() {
-				bindRequestHandler("GET").to(MockRequestHandler.class);
+				try {
+					final MockWebServer webServer = new MockWebServer();
+					MockResponse mockResponse = new MockResponse()
+							.addHeader("foo", "bar")
+							.setResponseCode(200)
+							.setHeader("Content-Type", "text/html")
+							.setBody("<html></html>");
+
+					IntStream.range(0, 80).forEach(i -> webServer.enqueue(mockResponse));
+					webServer.start();
+					bind(MockWebServer.class).toInstance(webServer);
+					bindConstant().annotatedWith(TargetHost.class).to(webServer.getUrl("").toString());
+
+					Runtime.getRuntime().addShutdownHook(new Thread() {
+						@Override
+						public void run() {
+							try {
+								webServer.shutdown();
+							} catch (IOException ex) {
+								logger.error(ex.getMessage(), ex);
+							}
+						}
+					});
+				} catch (IOException ex) {
+					Throwables.propagate(ex);
+				}
 
 				// Test should always fail on any error
-				bind(ErrorHandler.class).toInstance(new ErrorHandler() {
-					@Override
-					public void execute(final Throwable th) throws AbortionException {
-						throw new AbortionException(LtStatus.ERROR, th.getMessage(), th);
-					}
+				bind(ErrorHandler.class).toInstance(th -> {
+					logger.error(th.getMessage(), th);
+					throw new AbortionException(LtStatus.ERROR, th.getMessage(), th);
 				});
 
 				bind(SimpleLogger.class).toInstance(new SimpleLogger() {
@@ -77,14 +99,5 @@ public class ComponentTestModule extends AbstractLtModule {
 				});
 			}
 		}));
-	}
-
-	static class MockRequestHandler implements RequestHandler {
-		@Override
-		public ResponseInfo execute(final RequestTemplate template, final UUID requestId) throws IOException {
-			return new ResponseInfo("GET", "/foo", 200, "OK", Collections.<String, String>emptyMap(), "<html></html>".getBytes(),
-					"<html></html>", "UTF-8", "text/html", System.currentTimeMillis(), new TimeInterval(), new TimeInterval(),
-					UUID.randomUUID(), requestId);
-		}
 	}
 }

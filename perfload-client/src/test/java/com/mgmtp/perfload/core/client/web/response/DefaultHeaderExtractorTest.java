@@ -24,7 +24,7 @@ import java.util.UUID;
 
 import org.testng.annotations.Test;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
@@ -35,9 +35,20 @@ import com.mgmtp.perfload.logging.TimeInterval;
  */
 public class DefaultHeaderExtractorTest {
 	private ResponseInfo createResponseInfo() {
-		return new ResponseInfo("GET", "/foo", 200, "", ImmutableMap.<String, String>of("header1", "value1"),
-				null, null, "UTF-8", "text/html", System.currentTimeMillis(),
-				new TimeInterval(), new TimeInterval(), UUID.randomUUID(), UUID.randomUUID());
+		return new ResponseInfo.Builder()
+				.methodType("GET")
+				.uri("/foo")
+				.statusCode(200)
+				.statusMsg("")
+				.headers(ImmutableSetMultimap.of("header1", "value1"))
+				.charset("UTF-8")
+				.contentType("text/html")
+				.timestamp(System.currentTimeMillis())
+				.timeIntervalBeforeBody(new TimeInterval())
+				.timeIntervalTotal(new TimeInterval())
+				.executionId(UUID.randomUUID())
+				.requestId(UUID.randomUUID())
+				.build();
 	}
 
 	@Test

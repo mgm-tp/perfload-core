@@ -21,13 +21,13 @@ import static org.fest.assertions.api.Assertions.entry;
 import static org.testng.Assert.assertEquals;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.testng.annotations.Test;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
@@ -40,9 +40,22 @@ public class DefaultDetailExtractorTest {
 	private static final byte[] VALID_BODY_BYTES = "<html>This response body is valid</html>".getBytes(Charsets.UTF_8);
 
 	private ResponseInfo createResponseInfo(final int statusCode, final byte[] body) throws UnsupportedEncodingException {
-		return new ResponseInfo("GET", "/foo", statusCode, "", Collections.<String, String>emptyMap(),
-				body, new String(body, "UTF-8"), "UTF-8", "text/html", System.currentTimeMillis(),
-				new TimeInterval(), new TimeInterval(), UUID.randomUUID(), UUID.randomUUID());
+		return new ResponseInfo.Builder()
+				.methodType("GET")
+				.uri("/foo")
+				.statusCode(statusCode)
+				.statusMsg("")
+				.headers(ImmutableSetMultimap.of())
+				.body(body)
+				.bodyAsString(new String(body, "UTF-8"))
+				.charset("UTF-8")
+				.contentType("text/html")
+				.timestamp(System.currentTimeMillis())
+				.timeIntervalBeforeBody(new TimeInterval())
+				.timeIntervalTotal(new TimeInterval())
+				.executionId(UUID.randomUUID())
+				.requestId(UUID.randomUUID())
+				.build();
 	}
 
 	@Test

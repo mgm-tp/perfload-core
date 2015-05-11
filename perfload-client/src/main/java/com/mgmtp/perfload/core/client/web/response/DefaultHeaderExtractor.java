@@ -16,6 +16,7 @@
 package com.mgmtp.perfload.core.client.web.response;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
@@ -25,12 +26,13 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.SetMultimap;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
 
 /**
  * Default header extractor implementation.
- * 
+ *
  * @author rnaegele
  */
 @Singleton
@@ -41,7 +43,7 @@ public class DefaultHeaderExtractor implements HeaderExtractor {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @see HeaderExtraction#HeaderExtraction(String, String)
 	 */
 	@Override
@@ -51,7 +53,8 @@ public class DefaultHeaderExtractor implements HeaderExtractor {
 
 		for (HeaderExtraction headerExtraction : headerExtractions) {
 			String name = headerExtraction.getName();
-			String value = responseInfo.getHeaders().get(name);
+			SetMultimap<String, String> headers = responseInfo.getHeaders();
+			String value = headers.get(name).stream().collect(Collectors.joining("; "));
 			log.debug("Extracting header '{}={}'", name, value);
 
 			String placeholderName = headerExtraction.getPlaceholderName();

@@ -15,6 +15,8 @@
  */
 package com.mgmtp.perfload.core.client.web.request;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
@@ -22,14 +24,14 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 
 /**
  * Interface for handling requests.
- * 
+ *
  * @author rnaegele
  */
 public interface RequestHandler {
 
 	/**
 	 * Handles a request.
-	 * 
+	 *
 	 * @param template
 	 *            the request template
 	 * @param requestId
@@ -37,4 +39,27 @@ public interface RequestHandler {
 	 * @return a response info object
 	 */
 	ResponseInfo execute(RequestTemplate template, UUID requestId) throws Exception;
+
+	/**
+	 * Creates a URI contatenating the specified {@code base} and {@code relativeUri}.
+	 *
+	 * @param base
+	 *            the URI base
+	 * @param relativeUri
+	 *            the uri
+	 * @return the final URI used to make the request
+	 * @throws URISyntaxException
+	 *             if the given string violates RFC 2396
+	 */
+	default URI createUri(final String base, final String relativeUri) throws URISyntaxException {
+		URI uri = new URI(relativeUri);
+		if (!uri.isAbsolute()) {
+			String uriBase = base;
+			if (!uriBase.endsWith("/") && !relativeUri.startsWith("/")) {
+				uriBase += "/";
+			}
+			uri = new URI(uriBase + relativeUri);
+		}
+		return uri;
+	}
 }

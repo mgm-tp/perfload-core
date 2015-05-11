@@ -13,39 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mgmtp.perfload.core.client.web.http;
+package com.mgmtp.perfload.core.client.web.okhttp;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import javax.inject.Provider;
-
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.testng.annotations.Test;
-
-import com.mgmtp.perfload.core.client.web.event.HttpClientManagementListener;
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 
 /**
  * @author rnaegele
  */
-public class HttpClientManagementListenerTest {
+public class OkHttpManagerCloseListenerTest {
 
 	@Test
-	public void testListener() {
-		final HttpClientManager hcm = mock(HttpClientManager.class);
+	public void testListener() throws Exception {
+		final OkHttpManager mgr = mock(OkHttpManager.class);
 
-		HttpClientManagementListener listener = new HttpClientManagementListener(new Provider<HttpClientManager>() {
-			@Override
-			public HttpClientManager get() {
-				return hcm;
-			}
-		});
+		OkHttpManagerCloseListener listener = new OkHttpManagerCloseListener(() -> mgr);
 
 		listener.runStarted(null);
 		listener.runFinished(null);
 
 		// Must have been called exactly once.
-		verify(hcm, VerificationModeFactory.times(1)).shutdown();
+		verify(mgr, VerificationModeFactory.times(1)).close();
 	}
 }

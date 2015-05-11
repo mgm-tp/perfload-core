@@ -32,7 +32,7 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtract
 
 /**
  * Default detail extractor implementation.
- * 
+ *
  * @author rnaegele
  * @since 4.7.0
  */
@@ -44,7 +44,7 @@ public class DefaultDetailExtractor implements DetailExtractor {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @see DetailExtraction#DetailExtraction(String, String, String, String, String, String)
 	 */
 	@Override
@@ -69,11 +69,9 @@ public class DefaultDetailExtractor implements DetailExtractor {
 						String indexedName = name + "#" + i;
 						log.debug("Extracted indexed detail '{}': {}", indexedName, extractedValue);
 						placeholderContainer.put(indexedName, extractedValue);
-						responseInfo.addDetailExtractionName(indexedName);
 					} else {
 						log.debug("Extracted detail '{}': {}", name, extractedValue);
 						placeholderContainer.put(name, extractedValue);
-						responseInfo.addDetailExtractionName(name);
 						break;
 					}
 				} else {
@@ -87,11 +85,9 @@ public class DefaultDetailExtractor implements DetailExtractor {
 						String indexedName = name + "#0";
 						log.info("Detail '{}' not found in response. Using default indexed value: {}", indexedName, defaultValue);
 						placeholderContainer.put(indexedName, defaultValue);
-						responseInfo.addDetailExtractionName(indexedName);
 					} else {
 						log.info("Detail '{}' not found in response. Using default value: {}", name, defaultValue);
 						placeholderContainer.put(name, defaultValue);
-						responseInfo.addDetailExtractionName(name);
 					}
 				} else if (detailExtraction.isFailIfNotFound()) {
 					throw new PatternNotFoundException("Pattern '" + pattern

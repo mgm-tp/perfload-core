@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mgmtp.perfload.core.client.web.event;
+package com.mgmtp.perfload.core.client.web.okhttp;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -22,36 +22,32 @@ import javax.inject.Singleton;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
-import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mgmtp.perfload.core.client.event.LtRunnerEvent;
 import com.mgmtp.perfload.core.client.event.LtRunnerEventListener;
-import com.mgmtp.perfload.core.client.web.config.WebLtModule;
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 
 /**
- * Event listener for shutting down the {@link HttpClientManager}. After each run, a shutdown is
- * performed, so each request flow execution gets a new {@link HttpClient}. This listener is
- * registered internally by perfLoad in {@link WebLtModule}.
- * 
+ * Event listener for closing the {@link OkHttpManager}. After each run, the current thread's OkHttp
+ * client is nulled out and open connections are closed.
+ *
  * @author rnaegele
  */
 @Singleton
 @ThreadSafe
 @Immutable
-public final class HttpClientManagementListener implements LtRunnerEventListener {
+public final class OkHttpManagerCloseListener implements LtRunnerEventListener {
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	private final Provider<HttpClientManager> httpClientManagerProvider;
+	private final Provider<OkHttpManager> okHttpManagerProvider;
 
 	/**
-	 * @param httpClientManagerProvider
-	 *            the {@link HttpClientManager} provider
+	 * @param okHttpManagerProvider
+	 *            the {@link OkHttpManager} provider
 	 */
 	@Inject
-	public HttpClientManagementListener(final Provider<HttpClientManager> httpClientManagerProvider) {
-		this.httpClientManagerProvider = httpClientManagerProvider;
+	public OkHttpManagerCloseListener(final Provider<OkHttpManager> okHttpManagerProvider) {
+		this.okHttpManagerProvider = okHttpManagerProvider;
 	}
 
 	/**
@@ -63,11 +59,15 @@ public final class HttpClientManagementListener implements LtRunnerEventListener
 	}
 
 	/**
-	 * Does nothing.
+	 * Calls {@link OkHttpManager#close()}.
 	 */
 	@Override
 	public void runFinished(final LtRunnerEvent event) {
-		log.info("Closing HttpClient connections...");
-		httpClientManagerProvider.get().shutdown();
+		try {
+			log.info("Closing OkHttpManager...");
+			okHttpManagerProvider.get().close();
+		} catch (Exception ex) {
+			log.error("Error closing OkHttpManager", ex);
+		}
 	}
 }

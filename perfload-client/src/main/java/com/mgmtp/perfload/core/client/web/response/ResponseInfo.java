@@ -15,24 +15,21 @@
  */
 package com.mgmtp.perfload.core.client.web.response;
 
-import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 import static java.util.Arrays.copyOf;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.SetMultimap;
 import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Pojo for wrapping response information.
- * 
+ *
  * @author rnaegele
  */
 public final class ResponseInfo {
@@ -41,88 +38,37 @@ public final class ResponseInfo {
 	private final int statusCode;
 	private final String statusMsg;
 	private final byte[] body;
-	private final Map<String, String> headers;
-	private TimeInterval timeIntervalTotal;
-	private TimeInterval timeIntervalBeforeBody;
+	private final SetMultimap<String, String> headers;
+	private final TimeInterval timeIntervalTotal;
+	private final TimeInterval timeIntervalBeforeBody;
 	private final String uri;
-	private String uriAlias;
+	private final String uriAlias;
 	private final String methodType;
 	private final String charset;
 	private final String contentType;
 	private final String bodyAsString;
 	private Object extraInfo;
-	private long timestamp;
+	private final long timestamp;
 	private final UUID executionId;
 	private final UUID requestId;
 
-	private final Set<String> detailExtractionNames = newHashSetWithExpectedSize(3);
-
-	/**
-	 * @param methodType
-	 *            the method type (e. g. GET, POST)
-	 * @param uri
-	 *            the URI of the request
-	 * @param statusCode
-	 *            the status code
-	 * @param statusMsg
-	 *            the status message
-	 * @param headers
-	 *            a map of response headers
-	 * @param body
-	 *            the response body
-	 * @param charset
-	 *            the response character set
-	 * @param contentType
-	 *            the response content type
-	 * @param timestamp
-	 *            a timestamp taken before the request is executed
-	 * @param timeIntervalBeforeBody
-	 *            the time interval representing the execution time of the request without the
-	 *            retrieval of the request body
-	 * @param timeIntervalTotal
-	 *            the time interval representing the execution time of the request including the
-	 *            retrieval of the request body
-	 * @param executionId
-	 *            the id of the current execution
-	 * @param requestId
-	 *            the id of the current request
-	 */
-	public ResponseInfo(final String methodType, final String uri, final int statusCode, final String statusMsg,
-			final Map<String, String> headers, final byte[] body, final String bodyAsString, final String charset,
-			final String contentType, final long timestamp, final TimeInterval timeIntervalBeforeBody,
-			final TimeInterval timeIntervalTotal, final UUID executionId, final UUID requestId) {
-		this.methodType = methodType;
-		this.uri = uri;
-		this.statusCode = statusCode;
-		this.statusMsg = statusMsg;
-		this.headers = ImmutableMap.copyOf(headers);
-		this.body = body != null ? copyOf(body, body.length) : null;
-		this.bodyAsString = bodyAsString;
-		this.charset = charset;
-		this.contentType = contentType;
-		this.timestamp = timestamp;
-		this.timeIntervalBeforeBody = timeIntervalBeforeBody;
-		this.timeIntervalTotal = timeIntervalTotal;
-		this.executionId = executionId;
-		this.requestId = requestId;
-	}
-
-	/**
-	 * @param methodType
-	 *            the method type (e. g. GET, POST)
-	 * @param uri
-	 *            the URI of the request
-	 * @param timestamp
-	 *            a timestamp taken before the request is executed
-	 * @param executionId
-	 *            the id of the current execution
-	 * @param requestId
-	 *            the id of the current request
-	 */
-	public ResponseInfo(final String methodType, final String uri, final long timestamp, final UUID executionId,
-			final UUID requestId) {
-		this(methodType, uri, -1, null, ImmutableMap.<String, String>of(), null, null, null, null, timestamp, new TimeInterval(),
-				new TimeInterval(), executionId, requestId);
+	private ResponseInfo(final Builder builder) {
+		this.methodType = builder.methodType;
+		this.uri = builder.uri;
+		this.uriAlias = builder.uriAlias;
+		this.statusCode = builder.statusCode;
+		this.statusMsg = builder.statusMsg;
+		this.headers = builder.headers != null ? ImmutableSetMultimap.copyOf(builder.headers) : ImmutableSetMultimap.of();
+		this.body = builder.body;
+		this.bodyAsString = builder.bodyAsString;
+		this.charset = builder.charset;
+		this.contentType = builder.contentType;
+		this.timestamp = builder.timestamp;
+		this.timeIntervalBeforeBody = builder.timeIntervalBeforeBody;
+		this.timeIntervalTotal = builder.timeIntervalTotal;
+		this.executionId = builder.executionId;
+		this.requestId = builder.requestId;
+		this.extraInfo = builder.extraInfo;
 	}
 
 	/**
@@ -153,7 +99,7 @@ public final class ResponseInfo {
 	 * Converts and caches the response body to a string using the response character set if the
 	 * body is non-{@code null} and of type text (i. e. its content type starts with "text"). If the
 	 * character set is {@code null}, the platform default is used.
-	 * 
+	 *
 	 * @return the response body as string, or {@code null} if the body is empty or not of type text
 	 */
 	public String getBodyAsString() {
@@ -177,16 +123,12 @@ public final class ResponseInfo {
 	/**
 	 * @return the headers
 	 */
-	public Map<String, String> getHeaders() {
+	public SetMultimap<String, String> getHeaders() {
 		return headers;
 	}
 
 	public long getTimestamp() {
 		return timestamp;
-	}
-
-	public void setTimestamp(final long timestamp) {
-		this.timestamp = timestamp;
 	}
 
 	/**
@@ -196,19 +138,11 @@ public final class ResponseInfo {
 		return timeIntervalTotal;
 	}
 
-	public void setTimeIntervalTotal(final TimeInterval timeIntervalTotal) {
-		this.timeIntervalTotal = timeIntervalTotal;
-	}
-
 	/**
 	 * @return the timeIntervalBeforeBody
 	 */
 	public TimeInterval getTimeIntervalBeforeBody() {
 		return timeIntervalBeforeBody;
-	}
-
-	public void setTimeIntervalBeforeBody(final TimeInterval timeIntervalBeforeBody) {
-		this.timeIntervalBeforeBody = timeIntervalBeforeBody;
 	}
 
 	/**
@@ -223,14 +157,6 @@ public final class ResponseInfo {
 	 */
 	public String getUriAlias() {
 		return uriAlias;
-	}
-
-	/**
-	 * @param uriAlias
-	 *            an alias for the URI used for logging measurings
-	 */
-	public void setUriAlias(final String uriAlias) {
-		this.uriAlias = uriAlias;
 	}
 
 	/**
@@ -269,23 +195,6 @@ public final class ResponseInfo {
 		this.extraInfo = extraInfo;
 	}
 
-	/**
-	 * Adds the name of a detail extraction performed on this response.
-	 * 
-	 * @param name
-	 *            the detail extraction name as configured in the request flow
-	 */
-	public void addDetailExtractionName(final String name) {
-		detailExtractionNames.add(name);
-	}
-
-	/**
-	 * @return the detailExtractionNames
-	 */
-	public Set<String> getDetailExtractionNames() {
-		return ImmutableSet.copyOf(detailExtractionNames);
-	}
-
 	@Override
 	public String toString() {
 		ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
@@ -298,11 +207,136 @@ public final class ResponseInfo {
 		tsb.append("charset", charset);
 		tsb.append("extraInfo", extraInfo);
 		tsb.append("executionId", executionId);
-		tsb.append("detailExtractionNames", detailExtractionNames);
-		if (body != null) {
+		if (bodyAsString != null) {
 			tsb.append("body", bodyAsString);
 		}
 		// We don't want line breaks in the result
 		return LINE_BREAK_PATTERN.matcher(tsb.toString()).replaceAll(" ");
+	}
+
+	public static class Builder {
+		private int statusCode;
+		private String statusMsg;
+		private byte[] body;
+		private SetMultimap<String, String> headers;
+		private TimeInterval timeIntervalTotal;
+		private TimeInterval timeIntervalBeforeBody;
+		private String uri;
+		private String uriAlias;
+		private String methodType;
+		private String charset;
+		private String contentType;
+		private String bodyAsString;
+		private Object extraInfo;
+		private long timestamp;
+		private UUID executionId;
+		private UUID requestId;
+
+		public Builder() {
+			//
+		}
+
+		public Builder(final ResponseInfo responseInfo) {
+			this.statusCode = responseInfo.statusCode;
+			this.statusMsg = responseInfo.statusMsg;
+			this.body = responseInfo.body;
+			this.headers = responseInfo.headers;
+			this.timeIntervalTotal = responseInfo.timeIntervalTotal;
+			this.timeIntervalBeforeBody = responseInfo.timeIntervalBeforeBody;
+			this.uri = responseInfo.uri;
+			this.uriAlias = responseInfo.uriAlias;
+			this.methodType = responseInfo.methodType;
+			this.charset = responseInfo.charset;
+			this.contentType = responseInfo.contentType;
+			this.bodyAsString = responseInfo.bodyAsString;
+			this.extraInfo = responseInfo.extraInfo;
+			this.timestamp = responseInfo.timestamp;
+			this.executionId = responseInfo.executionId;
+			this.requestId = responseInfo.requestId;
+		}
+
+		public Builder statusCode(final int statusCode) {
+			this.statusCode = statusCode;
+			return this;
+		}
+
+		public Builder statusMsg(final String statusMsg) {
+			this.statusMsg = statusMsg;
+			return this;
+		}
+
+		public Builder body(final byte[] body) {
+			this.body = body;
+			return this;
+		}
+
+		public Builder headers(final SetMultimap<String, String> headers) {
+			this.headers = headers;
+			return this;
+		}
+
+		public Builder timeIntervalTotal(final TimeInterval timeIntervalTotal) {
+			this.timeIntervalTotal = timeIntervalTotal;
+			return this;
+		}
+
+		public Builder timeIntervalBeforeBody(final TimeInterval timeIntervalBeforeBody) {
+			this.timeIntervalBeforeBody = timeIntervalBeforeBody;
+			return this;
+		}
+
+		public Builder uri(final String uri) {
+			this.uri = uri;
+			return this;
+		}
+
+		public Builder uriAlias(final String uriAlias) {
+			this.uriAlias = uriAlias;
+			return this;
+		}
+
+		public Builder methodType(final String methodType) {
+			this.methodType = methodType;
+			return this;
+		}
+
+		public Builder charset(final String charset) {
+			this.charset = charset;
+			return this;
+		}
+
+		public Builder contentType(final String contentType) {
+			this.contentType = contentType;
+			return this;
+		}
+
+		public Builder bodyAsString(final String bodyAsString) {
+			this.bodyAsString = bodyAsString;
+			return this;
+		}
+
+		public Builder extraInfo(final Object extraInfo) {
+			this.extraInfo = extraInfo;
+			return this;
+		}
+
+		public Builder timestamp(final long timestamp) {
+			this.timestamp = timestamp;
+			return this;
+		}
+
+		public Builder executionId(final UUID executionId) {
+			this.executionId = executionId;
+			return this;
+		}
+
+		public Builder requestId(final UUID requestId) {
+			this.requestId = requestId;
+			return this;
+		}
+
+		public ResponseInfo build() {
+			return new ResponseInfo(this);
+		}
 	}
 }

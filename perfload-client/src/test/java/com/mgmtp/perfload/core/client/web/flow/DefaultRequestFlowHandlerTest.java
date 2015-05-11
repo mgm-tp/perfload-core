@@ -18,8 +18,6 @@ package com.mgmtp.perfload.core.client.web.flow;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -29,40 +27,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import javax.inject.Provider;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.protocol.HttpContext;
-import org.mockito.Matchers;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.inject.util.Providers;
 import com.mgmtp.perfload.core.client.util.ConstantWaitingTimeStrategy;
 import com.mgmtp.perfload.core.client.util.DefaultPlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
 import com.mgmtp.perfload.core.client.web.WebErrorHandler;
-import com.mgmtp.perfload.core.client.web.config.WebLtModule;
 import com.mgmtp.perfload.core.client.web.event.DefaultLoggingListener;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEventListener;
-import com.mgmtp.perfload.core.client.web.http.DefaultHttpClientManager;
-import com.mgmtp.perfload.core.client.web.http.HttpClientManager;
 import com.mgmtp.perfload.core.client.web.mock.MockRequestFlowListener;
 import com.mgmtp.perfload.core.client.web.mock.MockRequestHandler;
-import com.mgmtp.perfload.core.client.web.request.HttpRequestHandler;
+import com.mgmtp.perfload.core.client.web.okhttp.OkHttpManager;
+import com.mgmtp.perfload.core.client.web.okhttp.OkHttpRequestHandler;
 import com.mgmtp.perfload.core.client.web.request.InvalidRequestHandlerException;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.client.web.response.DefaultDetailExtractor;
@@ -75,47 +59,23 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtract
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
 import com.mgmtp.perfload.logging.ResultLogger;
-import com.mgmtp.perfload.logging.TimeInterval;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 /**
  * @author rnaegele
  */
 public class DefaultRequestFlowHandlerTest {
 
-	private final Provider<HttpClientManager> httpClientManagerProvider = Providers
-			.<HttpClientManager>of(new DefaultHttpClientManager(
-					new Provider<HttpClient>() {
-						@Override
-						public HttpClient get() {
-							HttpClient httpClient = mock(HttpClient.class);
-							HttpResponse response = mock(HttpResponse.class);
-							ClientConnectionManager connMgr = mock(ClientConnectionManager.class);
-
-							when(httpClient.getConnectionManager()).thenReturn(connMgr);
-							when(response.getStatusLine()).thenReturn(
-									new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "ok"));
-							when(response.getEntity()).thenReturn(new ByteArrayEntity(new byte[] { 42 }));
-							when(response.getAllHeaders()).thenReturn(
-									new Header[] {},
-									new Header[] { new BasicHeader("foo", "bar") }
-									);
-
-							try {
-								when(httpClient.execute(Matchers.<HttpUriRequest>any(), Matchers.<HttpContext>any()))
-										.thenReturn(response);
-							} catch (Exception ex) {
-								throw new AssertionError(ex.getMessage());
-							}
-							return httpClient;
-						}
-					}, UUID.randomUUID(), "myOperation", WebLtModule.CONTENT_TYPE_PATTERNS));
-
-	private final Provider<String> targetHostProvider = new Provider<String>() {
-		@Override
-		public String get() {
-			return "http://localhost";
-		}
-	};
+	//	private final Provider<AsyncHttpClient> ahcProvider = () -> new AsyncHttpClient();
+	//	private final Provider<CookieHandler> cookieHandlerProvider = () -> new CookieManager();
+	//	private final Provider<AhcManager> ahcManagerProvider = () -> new DefaultAhcManager(ahcProvider, new HashMap<>(), cookieHandlerProvider,
+	//			UUID.randomUUID());
+	private final Provider<UUID> uuidProvider = () -> UUID.randomUUID();
+	private final Provider<String> operationProvider = () -> "myOperation";
+	private final Provider<OkHttpManager> okHttpManagerProvider = () -> new OkHttpManager(() -> new OkHttpClient());
 
 	@AfterMethod
 	public void clearInterruptStatus() {
@@ -127,52 +87,58 @@ public class DefaultRequestFlowHandlerTest {
 		RequestTemplate getTemplate1 = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
 				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
+
 		RequestTemplate getTemplate2 = new RequestTemplate("GET", "false", "/testuri?param=value", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
 				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
+
 		RequestTemplate getTemplate3 = new RequestTemplate("GET", "false", "/testuri", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of("param", "value"), null,
 				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
+
 		RequestTemplate getTemplate4 = new RequestTemplate("GET", "false", "/testuri?param1=value1", null,
 				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of("param2", "value2"), null,
 				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
-		RequestTemplate postTemplate = new RequestTemplate("POST", "false", "http://localhost/testuri", null,
-				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of(), null,
+
+		RequestTemplate postTemplate = new RequestTemplate("POST", "false", "/testuri", null,
+				ImmutableSetMultimap.<String, String>of(), ImmutableSetMultimap.<String, String>of("param", "value"), null,
 				Collections.<HeaderExtraction>emptyList(), Collections.<DetailExtraction>emptyList(), "true");
+
+		MockWebServer server = new MockWebServer();
+		MockResponse mockResponse = new MockResponse()
+				.addHeader("foo", "bar")
+				.setResponseCode(200)
+				.setBody("ok");
+
+		IntStream.range(0, 10).forEach(i -> server.enqueue(mockResponse));
+		server.start();
+		Provider<String> targetHostProvider = () -> server.getUrl("").toString();
+		Provider<Request.Builder> requestBuilderProvider = () -> new Request.Builder();
 
 		List<RequestTemplate> templates = newArrayList(getTemplate1, getTemplate2, getTemplate3, getTemplate4, postTemplate);
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
 		List<RequestFlow> requestFlows = newArrayList(flow, flow);
 
-		HttpRequestHandler requestHandler = new HttpRequestHandler(httpClientManagerProvider, targetHostProvider);
-		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("GET", requestHandler, "POST",
-				requestHandler);
+		RequestHandler requestHandler = new OkHttpRequestHandler(okHttpManagerProvider, targetHostProvider, uuidProvider,
+				operationProvider, requestBuilderProvider);
+		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("GET", requestHandler, "POST", requestHandler);
 		MockRequestFlowListener mockListener = new MockRequestFlowListener();
 
 		final ResultLogger logger = mock(ResultLogger.class);
-		DefaultLoggingListener loggingListener = new DefaultLoggingListener(new Provider<ResultLogger>() {
-			@Override
-			public ResultLogger get() {
-				return logger;
-			}
-		});
+		DefaultLoggingListener loggingListener = new DefaultLoggingListener(() -> logger);
 
 		List<Pattern> pattern = asList(Pattern.compile("no_error_pattern"));
 
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						Collections.<Integer>emptySet(), pattern), new DefaultDetailExtractor(), new DefaultHeaderExtractor(),
-				new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
-				ImmutableSet.<RequestFlowEventListener>of(mockListener, loggingListener), new WebErrorHandler(),
-				UUID.randomUUID());
+						new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
+						ImmutableSet.<RequestFlowEventListener>of(mockListener, loggingListener), new WebErrorHandler(),
+						UUID.randomUUID());
 
 		handler.execute();
 
 		assertEquals(mockListener.getEventCalls(), 24);
-
-		verify(logger, VerificationModeFactory.atLeastOnce()).logResult(Matchers.anyString(), Matchers.anyLong(),
-				Matchers.<TimeInterval>any(), Matchers.<TimeInterval>any(), Matchers.anyString(), Matchers.anyString(),
-				Matchers.anyString(), Matchers.<UUID>any(), Matchers.<UUID>any());
 	}
 
 	@Test
@@ -191,7 +157,7 @@ public class DefaultRequestFlowHandlerTest {
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows,
 				Collections.<String, RequestHandler>emptyMap(), null, null, null, null, new WaitingTimeManager(0L,
 						new ConstantWaitingTimeStrategy(0L)), null, Collections.<RequestFlowEventListener>emptySet(),
-				new WebErrorHandler(), UUID.randomUUID());
+						new WebErrorHandler(), UUID.randomUUID());
 
 		Thread.currentThread().interrupt();
 		try {
@@ -212,13 +178,12 @@ public class DefaultRequestFlowHandlerTest {
 		RequestFlow flow = new RequestFlow("flow.xml", templates);
 		List<RequestFlow> requestFlows = newArrayList(flow, flow);
 
-		HttpRequestHandler requestHandler = new HttpRequestHandler(httpClientManagerProvider, targetHostProvider);
-		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("POST", requestHandler);
+		Map<String, RequestHandler> requestHandlers = ImmutableMap.<String, RequestHandler>of("POST", (template, requestId) -> null);
 
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), null, null, null, new WaitingTimeManager(0L,
 						new ConstantWaitingTimeStrategy(0L)), null, Collections.<RequestFlowEventListener>emptySet(),
-				new WebErrorHandler(), UUID.randomUUID());
+						new WebErrorHandler(), UUID.randomUUID());
 
 		try {
 			handler.execute();
@@ -250,8 +215,8 @@ public class DefaultRequestFlowHandlerTest {
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						ImmutableSet.<Integer>of(404), pattern), null, null, new WaitingTimeManager(0L,
-						new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
-				ImmutableSet.<RequestFlowEventListener>of(listener), new WebErrorHandler(), UUID.randomUUID());
+								new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
+								ImmutableSet.<RequestFlowEventListener>of(listener), new WebErrorHandler(), UUID.randomUUID());
 
 		handler.execute();
 
@@ -279,8 +244,8 @@ public class DefaultRequestFlowHandlerTest {
 		DefaultRequestFlowHandler handler = new DefaultRequestFlowHandler(requestFlows, requestHandlers,
 				new DefaultTemplateTransformer(), new DefaultResponseValidator(Collections.<Integer>emptySet(),
 						ImmutableSet.<Integer>of(404), pattern), new DefaultDetailExtractor(), new DefaultHeaderExtractor(),
-				new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
-				ImmutableSet.<RequestFlowEventListener>of(listener), new WebErrorHandler(), UUID.randomUUID());
+						new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)), new DefaultPlaceholderContainer(),
+						ImmutableSet.<RequestFlowEventListener>of(listener), new WebErrorHandler(), UUID.randomUUID());
 
 		handler.execute();
 

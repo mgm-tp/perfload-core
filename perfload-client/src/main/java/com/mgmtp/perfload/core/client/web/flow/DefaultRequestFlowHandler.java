@@ -49,7 +49,7 @@ import com.mgmtp.perfload.core.client.web.template.TemplateTransformer;
  * and after requests. The "after" events are fired in {@code finally} blocks so that they are also
  * triggered in case of an exception. The exception will then be available through the
  * {@link RequestFlowEvent}.
- * 
+ *
  * @author rnaegele
  */
 @ThreadScoped
@@ -70,7 +70,7 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 
 	/**
 	 * Constructs a new instance.
-	 * 
+	 *
 	 * @param requestFlows
 	 *            the list of {@link RequestFlow}s to be processed
 	 * @param requestHandlers
@@ -198,9 +198,14 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 						// exceptiohn, we need to create one. However, it must remain null, when the request is skipped in
 						// order to avoid an entry in the measuring log.
 						if (responseInfo == null && executableTemplate != null && !executableTemplate.isSkipped()) {
-							responseInfo = new ResponseInfo(template4Event.getType(), template4Event.getUri(),
-									System.currentTimeMillis(), executionId, requestId);
-							responseInfo.setUriAlias(template4Event.getUriAlias());
+							responseInfo = new ResponseInfo.Builder()
+									.methodType(template4Event.getType())
+									.uri(template4Event.getUri())
+									.uriAlias(template4Event.getUriAlias())
+									.timestamp(System.currentTimeMillis())
+									.executionId(executionId)
+									.requestId(requestId)
+									.build();
 						}
 
 						// always fire event, including skipped requests
