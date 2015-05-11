@@ -57,8 +57,4 @@ From: 'The Netty Project' (http://netty.io/)
   - Netty (http://netty.io/) io.netty:netty:bundle:3.10.1.Final
     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
-From: 'The Netty Project' (http://netty.io/)
-  - Netty (http://netty.io/) io.netty:netty:bundle:3.10.1.Final
-    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
-
 
