@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mgmtp.perfload.core.client.config.scope;
+package com.mgmtp.perfload.core.client.config.annotations;
 
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.inject.Scope;
+import javax.inject.Qualifier;
 
 /**
- * Scope annotation for {@link ThreadScope}. Types annotated with this annotation are bound in
- * {@link ThreadScope}.
- * 
+ * Qualifying annotation for the current execution's uuid.
+ *
  * @author rnaegele
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-@Scope
-public @interface ThreadScoped {
-	// marker annotation
+@Retention(RUNTIME)
+@Target({ FIELD, PARAMETER, METHOD })
+@Qualifier
+public @interface ExecutionId {
+	//
 }

@@ -38,6 +38,7 @@ import org.apache.commons.lang3.text.StrBuilder;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
 import com.mgmtp.perfload.core.client.config.annotations.TargetHost;
 import com.mgmtp.perfload.core.client.web.constants.WebConstants;
@@ -85,7 +86,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 
 	@Inject
 	public OkHttpRequestHandler(final Provider<OkHttpManager> okHttpClientManagerProvider, @TargetHost final Provider<String> targetHostProvider,
-			final Provider<UUID> executionIdProvider, @Operation final Provider<String> operationProvider,
+			@ExecutionId final Provider<UUID> executionIdProvider, @Operation final Provider<String> operationProvider,
 			final Provider<Request.Builder> requestBuilderProvider) {
 		this.okHttpClientManagerProvider = okHttpClientManagerProvider;
 		this.targetHostProvider = targetHostProvider;

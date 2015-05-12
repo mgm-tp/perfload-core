@@ -27,6 +27,7 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
 import com.mgmtp.perfload.core.common.util.LoggingGobbleCallback;
 import com.mgmtp.perfload.core.common.util.LoggingGobbleCallback.Level;
 import com.mgmtp.perfload.core.common.util.StreamGobbler;
@@ -35,7 +36,7 @@ import com.mgmtp.perfload.logging.TimeInterval;
 
 /**
  * Driver implementation for running an external script. The process is started and waited for.
- * 
+ *
  * @author rnaegele
  */
 public class ScriptLtDriver implements LtDriver {
@@ -47,7 +48,7 @@ public class ScriptLtDriver implements LtDriver {
 
 	@Inject
 	public ScriptLtDriver(final Provider<ProcessInfo> processInfoProvider, final Provider<ResultLogger> loggerProvider,
-			final Provider<UUID> executionIdProvider) {
+			@ExecutionId final Provider<UUID> executionIdProvider) {
 		this.processInfoProvider = processInfoProvider;
 		this.loggerProvider = loggerProvider;
 		this.executionIdProvider = executionIdProvider;

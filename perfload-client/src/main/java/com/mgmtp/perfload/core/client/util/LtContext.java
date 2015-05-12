@@ -15,24 +15,36 @@
  */
 package com.mgmtp.perfload.core.client.util;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import java.util.UUID;
+
 import net.jcip.annotations.NotThreadSafe;
 
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 
 /**
- * Pojo holding thread-related properties. The current instance must be fetched and initialized in
- * the same thread that executes the current test task before the actual test is executed. This
+ * Pojo holding execution-related properties. The current instance must be fetched and initialized
+ * in the same thread that executes the current test run before the actual test is executed. This
  * makes it possible to dynamically feed operation and target into a Guice-managed class.
- * 
+ *
  * @author rnaegele
  */
-@ThreadScoped
+@ExecutionScoped
 @NotThreadSafe
 public final class LtContext {
 
+	private final UUID executionId = UUID.randomUUID();
 	private String operation;
 	private String target;
 	private int threadId;
+
+	/**
+	 * @return the executionId
+	 */
+	public UUID getExecutionId() {
+		return executionId;
+	}
 
 	/**
 	 * @return the operation
@@ -46,6 +58,7 @@ public final class LtContext {
 	 *            the operation to set
 	 */
 	public void setOperation(final String operation) {
+		checkState(this.operation == null, "'operation' already set");
 		this.operation = operation;
 	}
 
@@ -61,6 +74,7 @@ public final class LtContext {
 	 *            the target to set
 	 */
 	public void setTarget(final String target) {
+		checkState(this.target == null, "'target' already set");
 		this.target = target;
 	}
 
@@ -76,6 +90,7 @@ public final class LtContext {
 	 *            the threadId to set
 	 */
 	public void setThreadId(final int threadId) {
+		checkState(this.threadId == 0, "'threadId' already set");
 		this.threadId = threadId;
 	}
 }

@@ -26,7 +26,7 @@ import com.mgmtp.perfload.core.client.config.annotations.Operation;
 import com.mgmtp.perfload.core.client.config.annotations.ProcessId;
 import com.mgmtp.perfload.core.client.config.annotations.Target;
 import com.mgmtp.perfload.core.client.config.annotations.ThreadId;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.logging.DefaultResultLogger;
 import com.mgmtp.perfload.logging.ResultLogger;
 import com.mgmtp.perfload.logging.SimpleLogger;
@@ -36,10 +36,10 @@ import com.mgmtp.perfload.logging.SimpleLogger;
  * {@link DefaultResultLogger} with Guice-specific annotations.
  * <p>
  * Note: This class must not be shared across threads.
- * 
+ *
  * @author rnaegele
  */
-@ThreadScoped
+@ExecutionScoped
 public class LtResultLogger extends DefaultResultLogger {
 
 	/**

@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.core.client.web.event.LtListenerAdapter;
 import com.mgmtp.perfload.core.client.web.event.RequestFlowEvent;
 import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
@@ -36,11 +36,11 @@ import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 /**
  * Listener for dumping response bodies to files. To be used for debugging purposes during driver
  * development only.
- * 
+ *
  * @author rnaegele
  * @since 4.7.0
  */
-@ThreadScoped
+@ExecutionScoped
 @ThreadSafe
 @Immutable
 public final class ResponseContentDumpListener extends LtListenerAdapter {

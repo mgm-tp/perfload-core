@@ -33,7 +33,6 @@ import java.util.UUID;
 import javax.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -46,6 +45,7 @@ import com.google.inject.name.Names;
 import com.mgmtp.perfload.core.client.LtProcessFactory;
 import com.mgmtp.perfload.core.client.config.annotations.ActiveThreads;
 import com.mgmtp.perfload.core.client.config.annotations.DaemonId;
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
 import com.mgmtp.perfload.core.client.config.annotations.Layer;
 import com.mgmtp.perfload.core.client.config.annotations.MeasuringLog;
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
@@ -54,8 +54,8 @@ import com.mgmtp.perfload.core.client.config.annotations.ProcessId;
 import com.mgmtp.perfload.core.client.config.annotations.Target;
 import com.mgmtp.perfload.core.client.config.annotations.TargetHost;
 import com.mgmtp.perfload.core.client.config.annotations.ThreadId;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScope;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScope;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.core.client.driver.DummyLtDriver;
 import com.mgmtp.perfload.core.client.driver.LtDriver;
 import com.mgmtp.perfload.core.client.driver.ProcessInfo;
@@ -114,14 +114,11 @@ final class LtProcessModule extends AbstractLtModule {
 
 	@Override
 	protected void doConfigure() {
-		// We need a custom thread scope for things related to test runs, because each test runs in
-		// its own thread. This gives us thread-local Guice singletons.
-		final ThreadScope threadScope = new ThreadScope();
-		bindScope(ThreadScoped.class, threadScope);
-		// We also need to get a hold of the ThreadScope instance via Guice in order to be able to
-		// call its cleanUp method after a thread is done. We need to do a clean-up in order to
-		// avoid memory leaks.
-		bind(ThreadScope.class).toInstance(threadScope);
+		// We need a custom execution scope for things related to test execution, because each test runs in
+		// its own thread. This gives us execution-local Guice singletons.
+		ExecutionScope executionScope = new ExecutionScope();
+		bindScope(ExecutionScoped.class, executionScope);
+		bind(ExecutionScope.class).toInstance(executionScope);
 
 		bind(Client.class).toInstance(client);
 
@@ -249,25 +246,14 @@ final class LtProcessModule extends AbstractLtModule {
 	}
 
 	/**
-	 * Provides the {@link DelayingExecutorService} used to run test threads. Registers a done
-	 * callback with the executor service that cleans up the thread scope when a thread is done
-	 * calling {@link ThreadScope#cleanUp()}.
+	 * Provides the {@link DelayingExecutorService} used to run test threads.
 	 *
-	 * @param threadScope
-	 *            the {@link ThreadScope} instance
-	 * @return the {@link DelayingExecutorService} implementation
+	 * @return the {@link DelayingExecutorService}
 	 */
 	@Provides
 	@Singleton
-	protected DelayingExecutorService provideExecutorService(final ThreadScope threadScope) {
-		DelayingExecutorService execService = new DelayingExecutorService();
-		// Take care of thread scope clean-up whenever a task is done.
-		execService.setDoneCallback(() -> {
-			LoggerFactory.getLogger(getClass()).info("Cleaning up thread scope...");
-			threadScope.cleanUp();
-		});
-
-		return execService;
+	protected DelayingExecutorService provideExecutorService() {
+		return new DelayingExecutorService();
 	}
 
 	@Provides
@@ -321,7 +307,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 * @return the {@link InetAddress} object, or {@code null} no addresses are configured
 	 */
 	@Provides
-	@ThreadScoped
+	@ExecutionScoped
 	protected InetAddress provideLocalAddress(final Iterator<InetAddress> addresses) {
 		if (addresses.hasNext()) {
 			InetAddress address = addresses.next();
@@ -329,6 +315,19 @@ final class LtProcessModule extends AbstractLtModule {
 			return address;
 		}
 		return null;
+	}
+
+	/**
+	 * Provides the current executionId.
+	 *
+	 * @param context
+	 *            the context used to look up the executionId.
+	 * @return the operation
+	 */
+	@Provides
+	@ExecutionId
+	protected UUID provideExecutionId(final LtContext context) {
+		return context.getExecutionId();
 	}
 
 	/**
@@ -384,7 +383,7 @@ final class LtProcessModule extends AbstractLtModule {
 	 */
 	@Provides
 	@TargetHost
-	@ThreadScoped
+	@ExecutionScoped
 	protected String provideTargetHost(@Target final String target, final PropertiesMap properties) {
 		return properties.get("target." + target + ".host");
 	}
@@ -439,11 +438,5 @@ final class LtProcessModule extends AbstractLtModule {
 		boolean waitFor = properties.getBoolean(baseKey + ".waitFor", true);
 
 		return new ProcessInfo(directory, freshEnvironment, envVars, commands, redirectProcessOutput, logPrefix, waitFor);
-	}
-
-	@Provides
-	@ThreadScoped
-	protected UUID provideExecutionId() {
-		return UUID.randomUUID();
 	}
 }

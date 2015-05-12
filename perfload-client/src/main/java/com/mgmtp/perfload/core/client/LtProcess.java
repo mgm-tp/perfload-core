@@ -23,7 +23,9 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -41,11 +43,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.assistedinject.Assisted;
 import com.mgmtp.perfload.core.client.config.AbstractLtModule;
 import com.mgmtp.perfload.core.client.config.ModulesLoader;
 import com.mgmtp.perfload.core.client.config.annotations.DaemonId;
 import com.mgmtp.perfload.core.client.config.annotations.ProcessId;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScope;
 import com.mgmtp.perfload.core.client.event.LtProcessEvent;
 import com.mgmtp.perfload.core.client.event.LtProcessEventListener;
 import com.mgmtp.perfload.core.client.lang.LocalFirstClassLoader;
@@ -78,12 +82,12 @@ public final class LtProcess implements ClientMessageListener {
 	private final int daemonId;
 	private final Set<LtProcessEventListener> listeners;
 	private final Provider<LtRunner> ltRunnerProvider;
-	private final Provider<LtContext> contextProvider;
 	private final DelayingExecutorService execService;
 	private final Client daemonClient;
 	private final CountDownLatch startLatch = new CountDownLatch(1);
 	private final CountDownLatch exitLatch = new CountDownLatch(1);
 	private final TestConfig config;
+	private final ExecutionScope executionScope;
 
 	private volatile boolean aborted = false;
 
@@ -94,33 +98,30 @@ public final class LtProcess implements ClientMessageListener {
 	 *            The id of the daemon this process is associated with
 	 * @param ltRunnerProvider
 	 *            Provider for creating {@link LtRunner} instances
-	 * @param contextProvider
-	 *            Guice provider for {@link LtContext}
 	 * @param listeners
-	 *            {@link LtProcessEventListener} to react on {@link LtProcessEvent}s triggered
-	 *            by this class
+	 *            {@link LtProcessEventListener} to react on {@link LtProcessEvent}s triggered by
+	 *            this class
 	 * @param execService
-	 *            The executor service for running {@link LtRunner} instances (i. e. test
-	 *            threads)
+	 *            The executor service for running {@link LtRunner} instances (i. e. test threads)
 	 * @param daemonClient
 	 *            {@link Client} that talks to the daemon
 	 * @param config
 	 *            the test configuration for the test process
+	 * @param executionScope
+	 *            the Guice scope for executions
 	 */
 	@Inject
 	protected LtProcess(@ProcessId final int processId, @DaemonId final int daemonId, final Provider<LtRunner> ltRunnerProvider,
-			final Provider<LtContext> contextProvider, final Set<LtProcessEventListener> listeners,
-			final DelayingExecutorService execService, final Client daemonClient,
-			@Assisted final TestConfig config) {
-
+			final Set<LtProcessEventListener> listeners, final DelayingExecutorService execService, final Client daemonClient,
+			@Assisted final TestConfig config, final ExecutionScope executionScope) {
 		this.processId = processId;
 		this.daemonId = daemonId;
 		this.ltRunnerProvider = ltRunnerProvider;
-		this.contextProvider = contextProvider;
 		this.listeners = listeners;
 		this.execService = execService;
 		this.daemonClient = daemonClient;
 		this.config = config;
+		this.executionScope = executionScope;
 	}
 
 	private List<TestInfo> setUp() {
@@ -197,27 +198,34 @@ public final class LtProcess implements ClientMessageListener {
 
 				final long scheduledStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) + ti.getStartTime();
 
-				// Must wrap because we must get and fill the LtContext inside the run method,
-				// i. e. this must happen on the same thread that executes the runner.
-				// LtContext is thread-scoped!
 				Runnable runnerWrapper = () -> {
-
-					// Get instance for the current thread and fill it.
-					LtContext context = contextProvider.get();
+					// Create instance for the current execution and populate it.
+					LtContext context = new LtContext();
 					context.setOperation(ti.getOperation());
 					context.setTarget(ti.getTarget());
 					context.setThreadId(threadId);
 
-					LtRunner testRunner = ltRunnerProvider.get();
+					try {
+						// Add context to the executions scopeCache, so the correct instances may be injected later on.
+						// LtContext is bound in ExecutionScope!
+						final Map<Key<?>, Object> scopeCache = new HashMap<>();
+						scopeCache.put(Key.get(LtContext.class), context);
 
-					long actualStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-					LOG.info("Execution time delta (actualStartTime - scheduledStartTime): {} - {} = {}", new Object[] {
-							actualStartTime, scheduledStartTime, actualStartTime - scheduledStartTime });
-					LOG.info("Thread pool status [activeCount={}, poolSize={}, largestPoolSize={}]",
-							new Object[] { execService.getActiveCount(), execService.getPoolSize(),
-							execService.getLargestPoolSize() });
+						executionScope.enterScope(context.getExecutionId(), scopeCache);
 
-					testRunner.execute();
+						LtRunner testRunner = ltRunnerProvider.get();
+
+						long actualStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+						LOG.info("Execution time delta (actualStartTime - scheduledStartTime): {} - {} = {}", new Object[] {
+								actualStartTime, scheduledStartTime, actualStartTime - scheduledStartTime });
+						LOG.info("Thread pool status [activeCount={}, poolSize={}, largestPoolSize={}]",
+								new Object[] { execService.getActiveCount(), execService.getPoolSize(),
+										execService.getLargestPoolSize() });
+
+						testRunner.execute();
+					} finally {
+						executionScope.exitScope(context.getExecutionId());
+					}
 				};
 				execService.schedule(runnerWrapper, ti.getStartTime(), TimeUnit.MILLISECONDS);
 			}

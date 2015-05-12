@@ -21,7 +21,7 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.squareup.okhttp.OkHttpClient;
 
 /**
@@ -30,7 +30,7 @@ import com.squareup.okhttp.OkHttpClient;
  *
  * @author rnaegele
  */
-@ThreadScoped
+@ExecutionScoped
 public class OkHttpManager implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OkHttpManager.class);
 

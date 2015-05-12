@@ -28,7 +28,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.core.client.runner.ErrorHandler;
 import com.mgmtp.perfload.core.client.util.PlaceholderContainer;
 import com.mgmtp.perfload.core.client.util.WaitingTimeManager;
@@ -52,7 +53,7 @@ import com.mgmtp.perfload.core.client.web.template.TemplateTransformer;
  *
  * @author rnaegele
  */
-@ThreadScoped
+@ExecutionScoped
 public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -102,7 +103,7 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 			final TemplateTransformer templateTransformer, final ResponseValidator responseValidator,
 			final DetailExtractor detailExtractor, final HeaderExtractor headerExtractor,
 			final WaitingTimeManager waitingTimeManager, final PlaceholderContainer placeholderContainer,
-			final Set<RequestFlowEventListener> listeners, final ErrorHandler errorHandler, final UUID executionId) {
+			final Set<RequestFlowEventListener> listeners, final ErrorHandler errorHandler, @ExecutionId final UUID executionId) {
 		this.requestFlows = requestFlows;
 		this.requestHandlers = requestHandlers;
 		this.templateTransformer = templateTransformer;
@@ -118,8 +119,6 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 
 	@Override
 	public void execute() throws Exception {
-		log.debug("execute({})");
-
 		Exception exception = null;
 
 		for (ListIterator<RequestFlow> it = requestFlows.listIterator(); it.hasNext();) {

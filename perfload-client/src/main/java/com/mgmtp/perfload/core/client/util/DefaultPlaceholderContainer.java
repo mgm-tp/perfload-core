@@ -23,15 +23,15 @@ import java.util.Map;
 import net.jcip.annotations.NotThreadSafe;
 
 import com.google.common.collect.ForwardingMap;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 
 /**
  * Default {@link PlaceholderContainer} implementation.
- * 
+ *
  * @author rnaegele
  */
 @NotThreadSafe
-@ThreadScoped
+@ExecutionScoped
 public class DefaultPlaceholderContainer extends ForwardingMap<String, String> implements PlaceholderContainer {
 	private final Map<String, String> placeholders = newHashMap();
 
@@ -42,7 +42,7 @@ public class DefaultPlaceholderContainer extends ForwardingMap<String, String> i
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param key
 	 *            key with which the specified value is to be associated; must be non-{@code null}
 	 * @param value

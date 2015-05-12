@@ -19,18 +19,17 @@ import java.util.Random;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
-
 /**
  * Uitility class for managing waiting times.
- * 
+ *
  * @author rnaegele
  */
-@ThreadScoped
+@Singleton
 public final class WaitingTimeManager {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -72,7 +71,7 @@ public final class WaitingTimeManager {
 	 * Sleeps the given amount of time. This method catches the {@link InterruptedException} thrown
 	 * by {@link Thread#sleep(long)} and restores the interrupt status interrupting the current
 	 * thread again.
-	 * 
+	 *
 	 * @param millis
 	 *            the sleep time in milliseconds.
 	 */

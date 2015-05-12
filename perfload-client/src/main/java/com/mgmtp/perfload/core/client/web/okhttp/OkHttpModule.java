@@ -34,7 +34,7 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
 import com.mgmtp.perfload.core.client.config.annotations.PerfLoadVersion;
-import com.mgmtp.perfload.core.client.config.scope.ThreadScoped;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
@@ -94,7 +94,7 @@ public class OkHttpModule extends AbstractWebLtModule {
 	 * @return the cookie manager
 	 */
 	@Provides
-	@ThreadScoped
+	@ExecutionScoped
 	protected CookieHandler provideCookieHandler() {
 		CookieManager cookieManager = new CookieManager();
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
