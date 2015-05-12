@@ -25,6 +25,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import com.google.inject.Inject;
 import com.mgmtp.perfload.core.client.web.net.LocalAddressSocketFactory;
+import com.squareup.okhttp.Dispatcher;
 import com.squareup.okhttp.OkHttpClient;
 
 /**
@@ -36,6 +37,8 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 
 	private SSLSocketFactory sslSocketFactory;
 	private HostnameVerifier hostnameVerifier;
+	private Dispatcher dispatcher;
+
 	private final CookieHandler cookieHandler;
 	private final Provider<InetAddress> localAddressProvider;
 
@@ -62,6 +65,17 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 	}
 
 	/**
+	 * Set an optional {@link Dispatcher} for better control of asynchronous requests.
+	 *
+	 * @param dispatcher
+	 *            the dispatcher
+	 */
+	@Inject(optional = true)
+	public void setDispatcher(final Dispatcher dispatcher) {
+		this.dispatcher = dispatcher;
+	}
+
+	/**
 	 * @param cookieHandler
 	 *            the cookie handler
 	 * @param localAddressProvider
@@ -75,7 +89,7 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 
 	/**
 	 * Creates a new OkHttpClient instance.
-	 * 
+	 *
 	 * @return the OkHttpClient
 	 */
 	@Override
@@ -83,14 +97,17 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 		OkHttpClient client = new OkHttpClient();
 		client.setFollowRedirects(true);
 		client.setFollowSslRedirects(true);
+		client.setCookieHandler(cookieHandler);
+		client.setSocketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
 		if (sslSocketFactory != null) {
 			client.setSslSocketFactory(sslSocketFactory);
 		}
 		if (hostnameVerifier != null) {
 			client.setHostnameVerifier(hostnameVerifier);
 		}
-		client.setCookieHandler(cookieHandler);
-		client.setSocketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
+		if (dispatcher != null) {
+			client.setDispatcher(dispatcher);
+		}
 		return client;
 	}
 }
