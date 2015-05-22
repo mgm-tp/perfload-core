@@ -128,6 +128,7 @@
 											<fileset dir="${it.dir}" />
 											<regexpmapper from="^([^.]+)\.default\.(.+)$" to="\1.\2" />
 										</move>
+										<copy file="${basedir}/../perfload-test-client/src/test/resources/logback.xml" todir="${it.dir}/client" />
 									</target>
 								</configuration>
 							</execution>
