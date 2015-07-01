@@ -18,7 +18,6 @@ package com.mgmtp.perfload.core.client.config.scope;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -61,9 +60,7 @@ public final class ExecutionScope implements Scope {
 	private static final String MSG_NOT_ENTERED = "Scope has not been entered. Forgot to call enterScope()?";
 	private static final String MSG_ALREADY_ENTERED = "Scope has already been entered. Forgot to call exitScope()?";
 
-	// We use WeakReferences in cae someone forgets to call disjoin. This allows the garbage collector to clean up
-	// once a scope has been exited.
-	private final ThreadLocal<WeakReference<UUID>> threadLocelExecutionIdRef = new ThreadLocal<>();
+	private final ThreadLocal<UUID> threadLocalExecutionId = new ThreadLocal<>();
 
 	private final Map<UUID, Map<Key<?>, Object>> scopeCaches = new HashMap<>();
 
@@ -88,11 +85,11 @@ public final class ExecutionScope implements Scope {
 
 		@Override
 		public T get() {
-			WeakReference<UUID> ref = threadLocelExecutionIdRef.get();
-			checkState(ref != null, MSG_NOT_ENTERED);
+			UUID executionId = threadLocalExecutionId.get();
+			requireNonNull(executionId, MSG_NOT_ENTERED);
 
-			UUID executionId = ref.get();
-			requireNonNull(ref.get(), MSG_NOT_ENTERED);
+			//			UUID executionId = ref.get();
+			//			requireNonNull(ref.get(), MSG_NOT_ENTERED);
 
 			synchronized (this) {
 				Map<Key<?>, Object> scopeCache = scopeCaches.computeIfAbsent(executionId, id -> new HashMap<>());
@@ -120,8 +117,8 @@ public final class ExecutionScope implements Scope {
 	 */
 	public synchronized void enterScope(final UUID executionId, final Map<Key<?>, Object> scopeCache) {
 		checkState(!scopeCaches.containsKey(executionId), MSG_ALREADY_ENTERED);
-		checkState(threadLocelExecutionIdRef.get() == null, MSG_ALREADY_ENTERED);
-		threadLocelExecutionIdRef.set(new WeakReference<>(executionId));
+		checkState(threadLocalExecutionId.get() == null, MSG_ALREADY_ENTERED);
+		threadLocalExecutionId.set(executionId);
 		scopeCaches.put(executionId, scopeCache);
 		LOGGER.debug("Entered scope for executionId: {}", executionId);
 	}
@@ -137,7 +134,7 @@ public final class ExecutionScope implements Scope {
 	 */
 	public synchronized void joinScope(final UUID executionId) {
 		checkState(scopeCaches.containsKey(executionId), MSG_NOT_ENTERED);
-		threadLocelExecutionIdRef.set(new WeakReference<>(executionId));
+		threadLocalExecutionId.set(executionId);
 		LOGGER.debug("Joined scope for executionId: {}", executionId);
 	}
 
@@ -152,7 +149,7 @@ public final class ExecutionScope implements Scope {
 	 */
 	public synchronized void disjoinScope(final UUID executionId) {
 		checkState(scopeCaches.containsKey(executionId), MSG_NOT_ENTERED);
-		threadLocelExecutionIdRef.remove();
+		threadLocalExecutionId.remove();
 		LOGGER.debug("Disjoined scope for executionId: {}", executionId);
 	}
 
@@ -166,8 +163,8 @@ public final class ExecutionScope implements Scope {
 	 */
 	public synchronized void exitScope(final UUID executionId) {
 		checkState(scopeCaches.containsKey(executionId), MSG_NOT_ENTERED);
-		requireNonNull(threadLocelExecutionIdRef.get() == null, MSG_NOT_ENTERED);
-		threadLocelExecutionIdRef.remove();
+		requireNonNull(threadLocalExecutionId.get() == null, MSG_NOT_ENTERED);
+		threadLocalExecutionId.remove();
 		scopeCaches.remove(executionId);
 		LOGGER.debug("Exited scope for executionId: {}", executionId);
 	}
