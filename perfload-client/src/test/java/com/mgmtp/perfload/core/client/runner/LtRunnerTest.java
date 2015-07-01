@@ -24,6 +24,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.util.Providers;
 import com.mgmtp.perfload.core.client.driver.LtDriver;
 import com.mgmtp.perfload.core.client.event.LtRunnerEvent;
 import com.mgmtp.perfload.core.client.event.LtRunnerEventListener;
@@ -50,7 +51,7 @@ public class LtRunnerTest {
 		MockDriver driver = new MockDriver(Action.success);
 
 		LtRunner runner = new LtRunner(driver, new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)),
-				ImmutableSet.<LtRunnerEventListener>of(listener), new DefaultErrorHandler());
+				Providers.of(ImmutableSet.<LtRunnerEventListener>of(listener)), new DefaultErrorHandler());
 		runner.execute();
 
 		assertEquals(driver.calls, 1);
@@ -61,8 +62,9 @@ public class LtRunnerTest {
 	public void testInterrupt() {
 		MockListener listener = new MockListener();
 
-		LtRunner runner = new LtRunner(new MockDriver(Action.success), new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)),
-				ImmutableSet.<LtRunnerEventListener>of(listener), new DefaultErrorHandler());
+		LtRunner runner = new LtRunner(new MockDriver(Action.success), new WaitingTimeManager(0L,
+				new ConstantWaitingTimeStrategy(0L)),
+				Providers.of(ImmutableSet.<LtRunnerEventListener>of(listener)), new DefaultErrorHandler());
 
 		Thread.currentThread().interrupt();
 		runAndAssertAbortionException(runner, LtStatus.INTERRUPTED);
@@ -70,19 +72,22 @@ public class LtRunnerTest {
 
 	@Test
 	public void testErrors() {
-		LtRunner runner = new LtRunner(new MockDriver(Action.abort), new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)),
-				Collections.<LtRunnerEventListener>emptySet(), new DefaultErrorHandler());
+		LtRunner runner = new LtRunner(new MockDriver(Action.abort), new WaitingTimeManager(0L,
+				new ConstantWaitingTimeStrategy(0L)),
+				Providers.of(Collections.<LtRunnerEventListener>emptySet()), new DefaultErrorHandler());
 
 		runAndAssertAbortionException(runner, LtStatus.ERROR);
 
-		runner = new LtRunner(new MockDriver(Action.interrupt), new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)),
-				Collections.<LtRunnerEventListener>emptySet(), new DefaultErrorHandler());
+		runner = new LtRunner(new MockDriver(Action.interrupt), new WaitingTimeManager(0L,
+				new ConstantWaitingTimeStrategy(0L)),
+				Providers.of(Collections.<LtRunnerEventListener>emptySet()), new DefaultErrorHandler());
 
 		runAndAssertAbortionException(runner, LtStatus.INTERRUPTED);
 
 		Thread.interrupted(); // Clear potential interrupt status
-		runner = new LtRunner(new MockDriver(Action.exception), new WaitingTimeManager(0L, new ConstantWaitingTimeStrategy(0L)),
-				Collections.<LtRunnerEventListener>emptySet(), new DefaultErrorHandler());
+		runner = new LtRunner(new MockDriver(Action.exception), new WaitingTimeManager(0L,
+				new ConstantWaitingTimeStrategy(0L)),
+				Providers.of(Collections.<LtRunnerEventListener>emptySet()), new DefaultErrorHandler());
 		runner.execute();
 	}
 
