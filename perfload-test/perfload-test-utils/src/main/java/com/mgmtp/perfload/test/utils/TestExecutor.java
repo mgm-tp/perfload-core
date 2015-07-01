@@ -15,13 +15,17 @@
  */
 package com.mgmtp.perfload.test.utils;
 
+import java.util.HashMap;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
+import com.mgmtp.perfload.core.client.config.scope.ExecutionScope;
 import com.mgmtp.perfload.core.client.event.LtProcessEvent;
 import com.mgmtp.perfload.core.client.event.LtProcessEventListener;
 import com.mgmtp.perfload.core.client.runner.LtRunner;
@@ -35,21 +39,28 @@ class TestExecutor {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final LtRunner runner;
 	private final Set<LtProcessEventListener> listeners;
+	private final ExecutionScope executionScope;
+	private final UUID executionId;
 
 	@Inject
-	TestExecutor(final LtRunner runner, final Set<LtProcessEventListener> listeners) {
+	TestExecutor(final LtRunner runner, final Set<LtProcessEventListener> listeners,
+			final ExecutionScope executionScope, @ExecutionId final UUID executionId) {
 		this.runner = runner;
 		this.listeners = listeners;
+		this.executionScope = executionScope;
+		this.executionId = executionId;
 	}
 
 	void runDriver() {
 		LtStatus status = LtStatus.ERROR;
 		fireProcessStarted();
 		try {
+			executionScope.enterScope(executionId, new HashMap<>());
 			runner.execute();
 			status = LtStatus.SUCCESSFUL;
 		} finally {
 			fireProcessFinished(status);
+			executionScope.exitScope(executionId);
 		}
 	}
 

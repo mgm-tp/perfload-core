@@ -16,9 +16,11 @@
 package com.mgmtp.perfload.test.utils;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.util.Modules;
+import com.mgmtp.perfload.core.client.config.annotations.ExecutionId;
 import com.mgmtp.perfload.core.client.config.annotations.Operation;
 import com.mgmtp.perfload.core.client.config.annotations.Target;
 import com.mgmtp.perfload.core.client.runner.ErrorHandler;
@@ -29,7 +31,7 @@ import com.mgmtp.perfload.core.common.util.PropertiesMap;
 
 /**
  * Guice module for driver unit tests. Wraps the actual driver module for execution in a unit test.
- * 
+ *
  * @author rnaegele
  * @since 4.7.0
  */
@@ -51,17 +53,16 @@ public class DriverTestModule extends AbstractWebLtModule {
 	protected void doConfigureWebModule() {
 		bindConstant().annotatedWith(Operation.class).to(operation);
 		bindConstant().annotatedWith(Target.class).to(target);
+		bind(UUID.class).annotatedWith(ExecutionId.class).toInstance(UUID.randomUUID());
+
 		bind(TestExecutor.class);
 		bindRequestFlowEventListener().to(ResponseContentDumpListener.class);
 
 		install(Modules.override(driverModule).with(new AbstractModule() {
 			@Override
 			protected void configure() {
-				bind(ErrorHandler.class).toInstance(new ErrorHandler() {
-					@Override
-					public void execute(final Throwable th) throws AbortionException {
-						throw new AbortionException(LtStatus.ERROR, th.getMessage(), th);
-					}
+				bind(ErrorHandler.class).toInstance(th -> {
+					throw new AbortionException(LtStatus.ERROR, th.getMessage(), th);
 				});
 			}
 		}));
