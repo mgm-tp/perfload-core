@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
 import com.google.common.base.Throwables;
 import com.google.inject.Key;
 import com.google.inject.Provider;
-import com.mgmtp.perfload.core.client.config.scope.ExecutionScope;
 
 /**
  * @author rnaegele
@@ -70,7 +69,7 @@ public class ExecutionScopeTest {
 		assertThat(objects.size()).isEqualTo(2);
 	}
 
-	@Test(expectedExceptions = IllegalStateException.class)
+	@Test(expectedExceptions = NullPointerException.class)
 	public void testNotEntered() {
 		ExecutionScope es = new ExecutionScope();
 		Key<Object> key = Key.get(Object.class);
