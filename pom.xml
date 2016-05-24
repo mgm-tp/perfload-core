@@ -157,6 +157,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
