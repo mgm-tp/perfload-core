@@ -64,8 +64,8 @@ public final class ResponseInfo {
 		this.charset = builder.charset;
 		this.contentType = builder.contentType;
 		this.timestamp = builder.timestamp;
-		this.timeIntervalBeforeBody = builder.timeIntervalBeforeBody;
-		this.timeIntervalTotal = builder.timeIntervalTotal;
+		this.timeIntervalBeforeBody = builder.timeIntervalBeforeBody != null ? builder.timeIntervalBeforeBody : new TimeInterval();
+		this.timeIntervalTotal = builder.timeIntervalTotal != null ? builder.timeIntervalTotal : new TimeInterval();
 		this.executionId = builder.executionId;
 		this.requestId = builder.requestId;
 		this.extraInfo = builder.extraInfo;
