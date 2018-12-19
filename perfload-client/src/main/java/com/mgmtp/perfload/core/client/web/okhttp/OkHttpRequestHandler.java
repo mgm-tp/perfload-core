@@ -30,6 +30,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.squareup.okhttp.internal.Util;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
@@ -120,7 +121,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 		try (ResponseBody body = response.body()) {
 			MediaType contentType = body != null ? body.contentType() : null;
 			String contentTypeString = contentType != null ? contentType.toString() : null;
-			Charset charset = contentType != null ? contentType.charset() : null;
+			Charset charset = contentType!=null?contentType.charset(Util.UTF_8):Util.UTF_8;
 			String responseCharset = charset != null ? charset.name() : null;
 			byte[] bodyBytes = body != null ? body.bytes() : null;
 			String bodyAsString = bodyAsString(bodyBytes, responseCharset);

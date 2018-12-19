@@ -132,9 +132,19 @@ public class XmlRequestFlowReaderTest {
 		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
 		assertThat(template.getDetailExtractions().isEmpty()).isTrue();
 
+		// fifth template
+		template = get(flow, 4);
+		assertThat(template.getType()).isEqualTo("GET");
+		assertThat(template.getUri()).isEqualTo("/foo/");
+		assertThat(template.getBody()).isNull();
+		assertThat(template.getDetailExtractions().isEmpty()).isTrue();
+		assertThat(template.getHeaderExtractions().isEmpty()).isTrue();
+		assertThat(template.getRequestHeaders().isEmpty()).isTrue();
+		assertThat(template.getId()).isEqualTo("id1");
+
 		try {
-			get(flow, 4);
-			fail("Request flow must only contain three request templates.");
+			get(flow, 5);
+			fail("Request flow must only contain five request templates.");
 		} catch (IndexOutOfBoundsException ex) {
 			// expected and thus ignored
 		}

@@ -47,4 +47,5 @@ body content
 ^°~+?ß&/%$§@€
 blubb]]></body>
 	</request>
+	<request id="id1" type="GET" uri="/foo/"/>
 </requestFlow>

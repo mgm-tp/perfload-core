@@ -42,7 +42,7 @@ import com.mgmtp.perfload.core.common.xml.Dom4jReader;
 
 /**
  * Reads the request flow from an XML file.
- * 
+ *
  * @author rnaegele
  */
 public final class XmlRequestFlowReader {
@@ -53,7 +53,7 @@ public final class XmlRequestFlowReader {
 	private final String resourceName;
 
 	/**
-	 * 
+	 *
 	 * @param resourcePath
 	 *            the path to the request flow XML resource on the classpath
 	 * @param resourceName
@@ -66,7 +66,7 @@ public final class XmlRequestFlowReader {
 
 	/**
 	 * Reads the XML resource transforming it into an objewct tree.
-	 * 
+	 *
 	 * @return the request flow instance
 	 */
 	public RequestFlow readFlow() throws ParserConfigurationException, SAXException, DocumentException {
@@ -77,6 +77,7 @@ public final class XmlRequestFlowReader {
 		List<RequestTemplate> templates = newArrayListWithCapacity(requests.size());
 
 		for (Element requestElem : requests) {
+			String id = emptyToNull(requestElem.attributeValue("id"));
 			String type = requestElem.attributeValue("type");
 			String skip = defaultString(emptyToNull(requestElem.attributeValue("skip")), "false");
 			String uri = requestElem.attributeValue("uri");
@@ -132,26 +133,17 @@ public final class XmlRequestFlowReader {
 			List<DetailExtraction> extractDetailsList = newArrayListWithCapacity(detailExtractions.size());
 			for (Element extractDetailElem : detailExtractions) {
 				String name = extractDetailElem.attributeValue("name");
-
 				String groupIndexString = extractDetailElem.attributeValue("groupIndex");
-				//				int groupIndex = groupIndexString != null ? Integer.parseInt(groupIndexString) : 1;
-
 				String defaultValue = extractDetailElem.attributeValue("defaultValue");
-
 				String indexedString = extractDetailElem.attributeValue("indexed");
-				//				boolean indexed = indexedString != null ? Boolean.parseBoolean(indexedString) : false;
-
 				String failIfNotFoundString = extractDetailElem.attributeValue("failIfNotFound");
-				//				boolean failIfNotFound = failIfNotFoundString == null || Boolean.valueOf(failIfNotFoundString);
-
 				String pattern = extractDetailElem.getText().trim();
-
-				DetailExtraction ed = new DetailExtraction(name, pattern, groupIndexString, defaultValue, indexedString,
-						failIfNotFoundString);
+				DetailExtraction ed = new DetailExtraction(name, pattern, groupIndexString, defaultValue,
+						indexedString, failIfNotFoundString);
 				extractDetailsList.add(ed);
 			}
 
-			templates.add(new RequestTemplate(type, skip, uri, uriAlias, headersMultiMap, paramsMultiMap, body,
+			templates.add(new RequestTemplate(id, type, skip, uri, uriAlias, headersMultiMap, paramsMultiMap, body,
 					extractHeadersList, extractDetailsList, validateResponse));
 		}
 

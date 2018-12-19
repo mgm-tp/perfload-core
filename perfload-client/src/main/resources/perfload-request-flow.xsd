@@ -29,6 +29,7 @@
 							<xs:element name="headerExtraction" type="headerExtraction" minOccurs="0" maxOccurs="unbounded" />
 							<xs:element name="detailExtraction" type="detailExtraction" minOccurs="0" maxOccurs="unbounded" />
 						</xs:sequence>
+						<xs:attribute name="id" type="xs:string" use="optional" />
 						<xs:attribute name="type" type="xs:string" use="required" />
 						<xs:attribute name="skip" type="xs:string" use="optional" />
 						<xs:attribute name="validateResponse" type="xs:string" use="optional" />

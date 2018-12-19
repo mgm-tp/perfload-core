@@ -41,6 +41,7 @@ import com.google.common.collect.SetMultimap;
 @Immutable
 public final class RequestTemplate {
 
+	private final String id;
 	private final String type;
 	private final String uri;
 	private final String uriAlias;
@@ -53,21 +54,25 @@ public final class RequestTemplate {
 	private final String validateResponse;
 
 	/**
+	 * @param id
+	 *            an optional id for the request
 	 * @param type
-	 *            The type of the request
+	 *            the type of the request
 	 * @param uri
-	 *            The context-relativ URL (i. e. the pathinfo part of the URL) without the query
+	 *            the context-relativ URL (i. e. the pathinfo part of the URL) without the query
 	 *            string
 	 * @param uriAlias
 	 *            an alias for the URI used for logging measurings
 	 * @param requestParameters
-	 *            A {@link SetMultimap} of request parameters
+	 *            a {@link SetMultimap} of request parameters
 	 * @param detailExtractions
-	 *            A map of details extractions
+	 *            a map of details extractions
 	 */
-	public RequestTemplate(final String type, final String skip, final String uri, final String uriAlias,
+	public RequestTemplate(final String id, final String type, final String skip, final String uri,
+			final String uriAlias,
 			final SetMultimap<String, String> requestHeaders, final SetMultimap<String, String> requestParameters,
-			final Body body, final List<HeaderExtraction> headerExtractions, final List<DetailExtraction> detailExtractions,
+			final Body body, final List<HeaderExtraction> headerExtractions,
+			final List<DetailExtraction> detailExtractions,
 			final String validateResponse) {
 		checkArgument(type != null, "Parameter 'type' must not be null.");
 		checkArgument(uri != null, "Parameter 'uri' must not be null.");
@@ -75,6 +80,7 @@ public final class RequestTemplate {
 		checkArgument(requestParameters != null, "Parameter 'requestParameters' must not be null.");
 		checkArgument(headerExtractions != null, "Parameter 'headerExtractions' must not be null.");
 		checkArgument(detailExtractions != null, "Parameter 'detailExtractions' must not be null.");
+		this.id = id;
 		this.type = type;
 		this.skip = skip;
 		this.uri = uri;
@@ -85,6 +91,22 @@ public final class RequestTemplate {
 		this.headerExtractions = ImmutableList.copyOf(headerExtractions);
 		this.detailExtractions = ImmutableList.copyOf(detailExtractions);
 		this.validateResponse = validateResponse;
+	}
+
+	public RequestTemplate(final String type, final String skip, final String uri,
+						   final String uriAlias,
+						   final SetMultimap<String, String> requestHeaders, final SetMultimap<String, String> requestParameters,
+						   final Body body, final List<HeaderExtraction> headerExtractions,
+						   final List<DetailExtraction> detailExtractions,
+						   final String validateResponse) {
+		this("",type,skip,uri,uriAlias,requestHeaders,requestParameters,body,headerExtractions,detailExtractions,validateResponse);
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -180,6 +202,7 @@ public final class RequestTemplate {
 		result = prime * result + (body == null ? 0 : body.hashCode());
 		result = prime * result + (detailExtractions == null ? 0 : detailExtractions.hashCode());
 		result = prime * result + (headerExtractions == null ? 0 : headerExtractions.hashCode());
+		result = prime * result + (id == null ? 0 : id.hashCode());
 		result = prime * result + (requestHeaders == null ? 0 : requestHeaders.hashCode());
 		result = prime * result + (requestParameters == null ? 0 : requestParameters.hashCode());
 		result = prime * result + (skip == null ? 0 : skip.hashCode());
@@ -221,6 +244,13 @@ public final class RequestTemplate {
 				return false;
 			}
 		} else if (!headerExtractions.equals(other.headerExtractions)) {
+			return false;
+		}
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
 		}
 		if (requestHeaders == null) {

@@ -26,9 +26,6 @@ import java.util.Map.Entry;
 
 import javax.inject.Singleton;
 
-import net.jcip.annotations.Immutable;
-import net.jcip.annotations.ThreadSafe;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
@@ -38,9 +35,12 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.DetailExtraction;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtraction;
 
+import net.jcip.annotations.Immutable;
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * Default implementation of a {@link TemplateTransformer}.
- * 
+ *
  * @author rnaegele
  */
 @Singleton
@@ -53,7 +53,7 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 	 * with their resolved values from the specified {@link PlaceholderContainer}. Placeholder
 	 * tokens in uri, parameter keys, parameter values, and detail extraction patterns are subject
 	 * to resolution.
-	 * 
+	 *
 	 * @param template
 	 *            the parameterized request template
 	 * @param placeholderContainer
@@ -65,6 +65,7 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 	@Override
 	public RequestTemplate makeExecutable(final RequestTemplate template, final PlaceholderContainer placeholderContainer)
 			throws IOException {
+		String id = template.getId();
 		String type = resolvePlaceholders(template.getType(), placeholderContainer);
 
 		SetMultimap<String, String> requestParameters = template.getRequestParameters();
@@ -158,7 +159,7 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 			transformedHeaderExtractions.add(transformedExtraction);
 		}
 
-		return new RequestTemplate(type, skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
+		return new RequestTemplate(id, type, skip, uri, uriAlias, resolvedHeaders, resolvedParams, body,
 				transformedHeaderExtractions, transformedDetailExtractions, validateResponse);
 	}
 }
