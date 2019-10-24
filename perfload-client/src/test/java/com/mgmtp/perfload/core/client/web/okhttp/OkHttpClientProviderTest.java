@@ -20,8 +20,6 @@ import com.mgmtp.perfload.core.client.web.template.DefaultTemplateTransformer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.logging.ResultLogger;
 import com.squareup.okhttp.OkHttpClient;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -36,7 +34,6 @@ import com.squareup.okhttp.Request;
 import javax.inject.Provider;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 /**
  * Testing the followRedirect parameter (which is configurable for each test)

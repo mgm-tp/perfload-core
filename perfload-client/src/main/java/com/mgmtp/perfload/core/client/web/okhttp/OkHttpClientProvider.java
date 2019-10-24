@@ -26,7 +26,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import com.google.inject.Inject;
 import com.mgmtp.perfload.core.client.web.net.LocalAddressSocketFactory;
-import com.mgmtp.perfload.core.common.config.TestConfig;
 import com.squareup.okhttp.Dispatcher;
 import com.squareup.okhttp.OkHttpClient;
 import org.slf4j.LoggerFactory;
