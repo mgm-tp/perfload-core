@@ -18,6 +18,7 @@ package com.mgmtp.perfload.core.client.web.okhttp;
 import java.net.CookieHandler;
 import java.net.InetAddress;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -27,6 +28,7 @@ import com.google.inject.Inject;
 import com.mgmtp.perfload.core.client.web.net.LocalAddressSocketFactory;
 import com.squareup.okhttp.Dispatcher;
 import com.squareup.okhttp.OkHttpClient;
+import org.slf4j.LoggerFactory;
 
 /**
  * A JSR 330 provider for {@link OkHttpClient} instances.
@@ -41,6 +43,27 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 
 	private final CookieHandler cookieHandler;
 	private final Provider<InetAddress> localAddressProvider;
+	// redirect behaviour has been made configurable
+	private boolean followRedirects=true; // old setting still is default behaviour
+	private static int redirectsLogged=0; // log the configured choice exactly once
+
+	/**
+	 * Sets an optional boolean whether to follow redirects (default) or not
+	 *
+	 * @param followRedirects
+	 * If present value is taken from testplan.xml where it may be configured in the following way:
+	 * <properties>
+	 *      ...
+	 *		<property name="followRedirects">false</property>
+	 * </properties>
+	 */
+	@Inject(optional = true)
+	public void setFollowRedirects(@Named("followRedirects") final String followRedirects) {
+		if( redirectsLogged++<5 ) {
+			LoggerFactory.getLogger(getClass()).warn("test runs with followRedirects=" + followRedirects);
+		}
+		this.followRedirects = Boolean.valueOf(followRedirects);
+	}
 
 	/**
 	 * Sets an optinal {@link HostnameVerifier}.
@@ -95,8 +118,8 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
 	@Override
 	public OkHttpClient get() {
 		OkHttpClient client = new OkHttpClient();
-		client.setFollowRedirects(true);
-		client.setFollowSslRedirects(true);
+		client.setFollowRedirects(followRedirects);
+		client.setFollowSslRedirects(followRedirects);
 		client.setCookieHandler(cookieHandler);
 		client.setSocketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
 		if (sslSocketFactory != null) {

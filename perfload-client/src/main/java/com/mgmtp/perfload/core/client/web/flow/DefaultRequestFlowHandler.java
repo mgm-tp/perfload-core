@@ -99,7 +99,7 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 	 *            the execution id
 	 */
 	@Inject
-	DefaultRequestFlowHandler(final List<RequestFlow> requestFlows, final Map<String, RequestHandler> requestHandlers,
+	public DefaultRequestFlowHandler(final List<RequestFlow> requestFlows, final Map<String, RequestHandler> requestHandlers,
 			final TemplateTransformer templateTransformer, final ResponseValidator responseValidator,
 			final DetailExtractor detailExtractor, final HeaderExtractor headerExtractor,
 			final WaitingTimeManager waitingTimeManager, final PlaceholderContainer placeholderContainer,
