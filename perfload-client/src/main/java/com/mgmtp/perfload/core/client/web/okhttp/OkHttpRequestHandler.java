@@ -191,6 +191,10 @@ public class OkHttpRequestHandler implements RequestHandler {
 				break;
 			case POST:
 			case PUT:
+				if (!parameters.isEmpty()) {
+					String query = createQueryStringFromParams(parameters);
+					uri = new URI(uri.getRawQuery() == null ? uri.toString() + '?' + query : uri.toString() + '&' + query);
+				}
 				Body body = template.getBody();
 				if (body != null) {
 					requestBody = RequestBody.create(null, body.getContent());
