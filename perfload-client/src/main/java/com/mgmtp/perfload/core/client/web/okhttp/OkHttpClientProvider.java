@@ -15,7 +15,6 @@
  */
 package com.mgmtp.perfload.core.client.web.okhttp;
 
-import java.net.CookieHandler;
 import java.net.InetAddress;
 
 import javax.inject.Named;
@@ -26,8 +25,27 @@ import javax.net.ssl.SSLSocketFactory;
 
 import com.google.inject.Inject;
 import com.mgmtp.perfload.core.client.web.net.LocalAddressSocketFactory;
-import com.squareup.okhttp.Dispatcher;
-import com.squareup.okhttp.OkHttpClient;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import okhttp3.Cookie;
+import okhttp3.CookieJar;
+
+import okhttp3.Dispatcher;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.tls.HandshakeCertificates;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -37,100 +55,190 @@ import org.slf4j.LoggerFactory;
  */
 public class OkHttpClientProvider implements Provider<OkHttpClient> {
 
-	private SSLSocketFactory sslSocketFactory;
-	private HostnameVerifier hostnameVerifier;
-	private Dispatcher dispatcher;
+    private static final Logger LOG = LoggerFactory.getLogger(OkHttpClientProvider.class);
 
-	private final CookieHandler cookieHandler;
-	private final Provider<InetAddress> localAddressProvider;
-	// redirect behaviour has been made configurable
-	private boolean followRedirects=true; // old setting still is default behaviour
-	private static int redirectsLogged=0; // log the configured choice exactly once
+    private Dispatcher dispatcher;
 
-	/**
-	 * Sets an optional boolean whether to follow redirects (default) or not
-	 *
-	 * @param followRedirects
-	 * If present value is taken from testplan.xml where it may be configured in the following way:
-	 * <properties>
-	 *      ...
-	 *		<property name="followRedirects">false</property>
-	 * </properties>
-	 */
-	@Inject(optional = true)
-	public void setFollowRedirects(@Named("followRedirects") final String followRedirects) {
-		if( redirectsLogged++<5 ) {
-			LoggerFactory.getLogger(getClass()).warn("test runs with followRedirects=" + followRedirects);
-		}
-		this.followRedirects = Boolean.valueOf(followRedirects);
-	}
+    private final Provider<InetAddress> localAddressProvider;
+    // redirect behaviour has been made configurable
+    private boolean followRedirects = true; // old setting still is default behaviour
+    private static int redirectsLogged = 0; // log the configured choice exactly once
 
-	/**
-	 * Sets an optinal {@link HostnameVerifier}.
-	 *
-	 * @param hostnameVerifier
-	 *            the hostname verifier
-	 */
-	@Inject(optional = true)
-	public void setHostnameVerifier(final HostnameVerifier hostnameVerifier) {
-		this.hostnameVerifier = hostnameVerifier;
-	}
+    private List<String> insecureHostsList = new ArrayList<>();
+    private boolean dumpCookiesFlag = false;
 
-	/**
-	 * Sets an optinal {@link SSLSocketFactory}.
-	 *
-	 * @param sslSocketFactory
-	 *            the ssl socket factory
-	 */
-	@Inject(optional = true)
-	public void setSslSocketFactory(final SSLSocketFactory sslSocketFactory) {
-		this.sslSocketFactory = sslSocketFactory;
-	}
+    /**
+     * Sets an optional list of hosts, which are set as unsecure hosts, checking
+     * of certificates is disabled for those hosts
+     *
+     * @param insecureHosts If present value is taken from testplan.xml where it
+     * may be configured in the following way:
+     * <properties>
+     * ...
+     * <property name="insecureHosts">localhost,a.b.com</property>
+     * </properties>
+     */
+    @Inject(optional = true)
+    public void setInsecureHosts(@Named("insecureHosts") final String insecureHosts) {
+        String[] insecureHostsArray = insecureHosts.split(",");
+        for (String insecureHost : insecureHostsArray) {
+            insecureHostsList.add(insecureHost.trim());
+        }
+    }
 
-	/**
-	 * Set an optional {@link Dispatcher} for better control of asynchronous requests.
-	 *
-	 * @param dispatcher
-	 *            the dispatcher
-	 */
-	@Inject(optional = true)
-	public void setDispatcher(final Dispatcher dispatcher) {
-		this.dispatcher = dispatcher;
-	}
+    /**
+     * Activates dumping of cookies
+     *
+     * @param dumpCookies If present value is taken from testplan.xml where it
+     * may be configured in the following way:
+     * <properties>
+     * ...
+     * <property name="dumpCookies">true</property>
+     * </properties>
+     */
+    @Inject(optional = true)
+    public void setDumpCookies(@Named("dumpCookies") final String dumpCookies) {
+        dumpCookiesFlag = Boolean.parseBoolean(dumpCookies.trim());
+    }
 
-	/**
-	 * @param cookieHandler
-	 *            the cookie handler
-	 * @param localAddressProvider
-	 *            the local address provider
-	 */
-	@Inject
-	protected OkHttpClientProvider(final CookieHandler cookieHandler, final Provider<InetAddress> localAddressProvider) {
-		this.cookieHandler = cookieHandler;
-		this.localAddressProvider = localAddressProvider;
-	}
+    /**
+     * Sets an optional boolean whether to follow redirects (default) or not
+     *
+     * @param followRedirects If present value is taken from testplan.xml where
+     * it may be configured in the following way:
+     * <properties>
+     * ...
+     * <property name="followRedirects">false</property>
+     * </properties>
+     */
+    @Inject(optional = true)
+    public void setFollowRedirects(@Named("followRedirects") final String followRedirects) {
+        if (redirectsLogged++ < 5) {
+            LoggerFactory.getLogger(getClass()).warn("test runs with followRedirects=" + followRedirects);
+        }
+        this.followRedirects = Boolean.valueOf(followRedirects);
+    }
 
-	/**
-	 * Creates a new OkHttpClient instance.
-	 *
-	 * @return the OkHttpClient
-	 */
-	@Override
-	public OkHttpClient get() {
-		OkHttpClient client = new OkHttpClient();
-		client.setFollowRedirects(followRedirects);
-		client.setFollowSslRedirects(followRedirects);
-		client.setCookieHandler(cookieHandler);
-		client.setSocketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
-		if (sslSocketFactory != null) {
-			client.setSslSocketFactory(sslSocketFactory);
-		}
-		if (hostnameVerifier != null) {
-			client.setHostnameVerifier(hostnameVerifier);
-		}
-		if (dispatcher != null) {
-			client.setDispatcher(dispatcher);
-		}
-		return client;
-	}
+    /**
+     * Set an optional {@link Dispatcher} for better control of asynchronous
+     * requests.
+     *
+     * @param dispatcher the dispatcher
+     */
+    @Inject(optional = true)
+    public void setDispatcher(final Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
+    /**
+     * @param cookieHandler the cookie handler
+     * @param localAddressProvider the local address provider
+     */
+    @Inject
+    protected OkHttpClientProvider(final Provider<InetAddress> localAddressProvider) {
+        this.localAddressProvider = localAddressProvider;
+    }
+
+    /**
+     * Creates a new OkHttpClient instance.
+     *
+     * @return the OkHttpClient
+     */
+    @Override
+    public OkHttpClient get() {
+        boolean withProxy = false;
+        OkHttpClient.Builder builder = new OkHttpClient.Builder().followRedirects(followRedirects).followSslRedirects(followRedirects);
+        builder = builder.connectTimeout(180, TimeUnit.SECONDS).writeTimeout(180, TimeUnit.SECONDS).readTimeout(180, TimeUnit.SECONDS);
+        if (withProxy) {
+            Proxy localProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8083));
+            builder = builder.proxy(localProxy);
+        }
+        builder.cookieJar(new MyCookieJar(dumpCookiesFlag));
+
+        if (insecureHostsList.size() > 0) {
+            LOG.warn("Using HandshakeCertificate.Builder for ssl factory");
+            HandshakeCertificates.Builder handshakeBuilder = new HandshakeCertificates.Builder();
+            handshakeBuilder = handshakeBuilder.addPlatformTrustedCertificates();
+            for (String insecureHost : insecureHostsList) {
+                LOG.warn("Adding insecure host '" + insecureHost + "'");
+                handshakeBuilder.addInsecureHost(insecureHost);
+            }
+            HandshakeCertificates clientCertificates = handshakeBuilder.build();
+            builder.sslSocketFactory(clientCertificates.sslSocketFactory(), clientCertificates.trustManager());
+        } else {
+            LOG.warn("Using ssl context and TrustAllManager for ssl factory");
+            try {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, new TrustManager[]{new TrustAllManager()}, null);
+                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                builder.sslSocketFactory(sslSocketFactory, new TrustAllManager());
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                LOG.error("Could not create SocketFactory due to " + e);
+            }
+        }
+        builder.socketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
+        builder.hostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        });
+        if (dispatcher != null) {
+            builder.dispatcher(dispatcher);
+        }
+        OkHttpClient client = builder.build();
+        return client;
+    }
+
+    static final class TrustAllManager implements X509TrustManager {
+
+        @Override
+        public void checkClientTrusted(final X509Certificate[] certificates, final String authType) throws CertificateException {
+            // no-op
+        }
+
+        @Override
+        public void checkServerTrusted(final X509Certificate[] certificates, final String authType) throws CertificateException {
+            // no-op
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
+    }
+
+    static class MyCookieJar implements CookieJar {
+
+        private List<Cookie> cookies;
+        private boolean dumpCookies;
+
+        MyCookieJar(boolean dumpCookies) {
+            this.dumpCookies = dumpCookies;
+        }
+
+        @Override
+        public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+            this.cookies = cookies;
+        }
+
+        @Override
+        public List<Cookie> loadForRequest(HttpUrl url) {
+            if (dumpCookies) {
+                int nCookies = cookies == null ? 0 : cookies.size();
+                if (nCookies > 0) {
+                    LOG.info("Loading following " + nCookies + " cookies for use in next request");
+                    for (Cookie cookie : cookies) {
+                        LOG.info(cookie.name() + " : " + cookie.value());
+                    }
+                } else {
+                    LOG.info("No cookies for use in next request");
+                }
+            }
+            if (cookies != null) {
+                return cookies;
+            }
+            return new ArrayList<Cookie>();
+        }
+    }
 }
