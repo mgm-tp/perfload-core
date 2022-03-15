@@ -20,6 +20,7 @@ import static java.util.Arrays.copyOf;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import okhttp3.Protocol;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -51,6 +52,7 @@ public final class ResponseInfo {
 	private final long timestamp;
 	private final UUID executionId;
 	private final UUID requestId;
+	private final Protocol protocol;
 
 	private ResponseInfo(final Builder builder) {
 		this.methodType = builder.methodType;
@@ -69,6 +71,7 @@ public final class ResponseInfo {
 		this.executionId = builder.executionId;
 		this.requestId = builder.requestId;
 		this.extraInfo = builder.extraInfo;
+		this.protocol = builder.protocol;
 	}
 
 	/**
@@ -199,6 +202,7 @@ public final class ResponseInfo {
 	public String toString() {
 		ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
 		tsb.append("uri", uri);
+		tsb.append("protocol",protocol);
 		tsb.append("methodType", methodType);
 		tsb.append("statusCode", statusCode);
 		tsb.append("timeIntervalBeforeBody", timeIntervalBeforeBody);
@@ -231,6 +235,7 @@ public final class ResponseInfo {
 		private long timestamp;
 		private UUID executionId;
 		private UUID requestId;
+		private Protocol protocol;
 
 		public Builder() {
 			//
@@ -253,6 +258,7 @@ public final class ResponseInfo {
 			this.timestamp = responseInfo.timestamp;
 			this.executionId = responseInfo.executionId;
 			this.requestId = responseInfo.requestId;
+			this.protocol = responseInfo.protocol;
 		}
 
 		public Builder statusCode(final int statusCode) {
@@ -332,6 +338,11 @@ public final class ResponseInfo {
 
 		public Builder requestId(final UUID requestId) {
 			this.requestId = requestId;
+			return this;
+		}
+
+		public Builder protocol(final Protocol protocol) {
+			this.protocol = protocol;
 			return this;
 		}
 

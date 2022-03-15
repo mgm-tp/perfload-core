@@ -32,18 +32,17 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import okhttp3.Cookie;
-import okhttp3.CookieJar;
 
-import okhttp3.Dispatcher;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
+import okhttp3.*;
+
 import okhttp3.tls.HandshakeCertificates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +62,13 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
     // redirect behaviour has been made configurable
     private boolean followRedirects = true; // old setting still is default behaviour
     private static int redirectsLogged = 0; // log the configured choice exactly once
+    private Protocol protocol_http_11 = Protocol.HTTP_1_1;
+    private boolean useHTTP20 = false;
+    private static int http20UseLogged = 0;
 
     private List<String> insecureHostsList = new ArrayList<>();
     private boolean dumpCookiesFlag = false;
+    private OkHttpClient client=null;
 
     /**
      * Sets an optional list of hosts, which are set as unsecure hosts, checking
@@ -120,6 +123,24 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
     }
 
     /**
+     * Sets an optional boolean whether to attempt to use HTTP 2.0 (default: false)
+     *
+     * @param useHTTP20 If present value is taken from testplan.xml where
+     * it may be configured in the following way:
+     * <properties>
+     * ...
+     * <property name="useHTTP20">true</property>
+     * </properties>
+     */
+    @Inject(optional = true)
+    public void setUseHTTP20(@Named("useHTTP20") final String useHTTP20) {
+        this.useHTTP20 = Boolean.valueOf(useHTTP20);
+        if (http20UseLogged++ < 5) {
+            LoggerFactory.getLogger(getClass()).warn("test tries to use HTTP 2.0: " + (this.useHTTP20?"yes":"no"));
+        }
+    }
+
+    /**
      * Set an optional {@link Dispatcher} for better control of asynchronous
      * requests.
      *
@@ -131,7 +152,6 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
     }
 
     /**
-     * @param cookieHandler the cookie handler
      * @param localAddressProvider the local address provider
      */
     @Inject
@@ -146,47 +166,55 @@ public class OkHttpClientProvider implements Provider<OkHttpClient> {
      */
     @Override
     public OkHttpClient get() {
-        boolean withProxy = false;
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().followRedirects(followRedirects).followSslRedirects(followRedirects);
-        builder = builder.connectTimeout(180, TimeUnit.SECONDS).writeTimeout(180, TimeUnit.SECONDS).readTimeout(180, TimeUnit.SECONDS);
-        if (withProxy) {
-            Proxy localProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8083));
-            builder = builder.proxy(localProxy);
-        }
-        builder.cookieJar(new MyCookieJar(dumpCookiesFlag));
+        if (client==null) {
+            boolean withProxy = false;
+            OkHttpClient.Builder builder = new OkHttpClient.Builder().followRedirects(followRedirects).followSslRedirects(followRedirects);
+            List<Protocol> protocols = new ArrayList<Protocol>(2);
+            protocols.add(protocol_http_11);
+            if (useHTTP20)
+                protocols.add(Protocol.HTTP_2);
+            builder = builder.protocols(protocols);
+            builder.retryOnConnectionFailure(true);
+            builder = builder.connectTimeout(180, TimeUnit.SECONDS).writeTimeout(180, TimeUnit.SECONDS).readTimeout(180, TimeUnit.SECONDS);
+            if (withProxy) {
+                Proxy localProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8083));
+                builder = builder.proxy(localProxy);
+            }
+            builder.cookieJar(new MyCookieJar(dumpCookiesFlag));
 
-        if (insecureHostsList.size() > 0) {
-            LOG.warn("Using HandshakeCertificate.Builder for ssl factory");
-            HandshakeCertificates.Builder handshakeBuilder = new HandshakeCertificates.Builder();
-            handshakeBuilder = handshakeBuilder.addPlatformTrustedCertificates();
-            for (String insecureHost : insecureHostsList) {
-                LOG.warn("Adding insecure host '" + insecureHost + "'");
-                handshakeBuilder.addInsecureHost(insecureHost);
+            if (insecureHostsList.size() > 0) {
+                LOG.warn("Using HandshakeCertificate.Builder for ssl factory");
+                HandshakeCertificates.Builder handshakeBuilder = new HandshakeCertificates.Builder();
+                handshakeBuilder = handshakeBuilder.addPlatformTrustedCertificates();
+                for (String insecureHost : insecureHostsList) {
+                    LOG.warn("Adding insecure host '" + insecureHost + "'");
+                    handshakeBuilder.addInsecureHost(insecureHost);
+                }
+                HandshakeCertificates clientCertificates = handshakeBuilder.build();
+                builder.sslSocketFactory(clientCertificates.sslSocketFactory(), clientCertificates.trustManager());
+            } else {
+                LOG.warn("Using ssl context and TrustAllManager for ssl factory");
+                try {
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    sslContext.init(null, new TrustManager[]{new TrustAllManager()}, null);
+                    final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                    builder.sslSocketFactory(sslSocketFactory, new TrustAllManager());
+                } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                    LOG.error("Could not create SocketFactory due to " + e);
+                }
             }
-            HandshakeCertificates clientCertificates = handshakeBuilder.build();
-            builder.sslSocketFactory(clientCertificates.sslSocketFactory(), clientCertificates.trustManager());
-        } else {
-            LOG.warn("Using ssl context and TrustAllManager for ssl factory");
-            try {
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, new TrustManager[]{new TrustAllManager()}, null);
-                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-                builder.sslSocketFactory(sslSocketFactory, new TrustAllManager());
-            } catch (KeyManagementException | NoSuchAlgorithmException e) {
-                LOG.error("Could not create SocketFactory due to " + e);
+            builder.socketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+            if (dispatcher != null) {
+                builder.dispatcher(dispatcher);
             }
+            client = builder.build();
         }
-        builder.socketFactory(new LocalAddressSocketFactory(SocketFactory.getDefault(), localAddressProvider));
-        builder.hostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        });
-        if (dispatcher != null) {
-            builder.dispatcher(dispatcher);
-        }
-        OkHttpClient client = builder.build();
         return client;
     }
 

@@ -33,6 +33,7 @@ import javax.inject.Singleton;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
+import okhttp3.*;
 import org.apache.commons.lang3.text.StrBuilder;
 
 import com.google.common.base.Throwables;
@@ -49,15 +50,8 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.logging.TimeInterval;
 
 import java.io.IOException;
-import okhttp3.Call;
-import okhttp3.FormBody;
-import okhttp3.Headers;
-import okhttp3.MediaType;
-import okhttp3.Request;
+
 import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +126,8 @@ public class OkHttpRequestHandler implements RequestHandler {
 
 		Response response = call.execute();
 
+		Protocol protocol = response.protocol();
+
 		tiBeforeBody.stop();
 
 		int statusCode = response.code();
@@ -173,6 +169,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 					.timeIntervalTotal(tiTotal)
 					.executionId(executionIdProvider.get())
 					.requestId(requestId)
+					.protocol(protocol)
 					.build();
 		}
 	}

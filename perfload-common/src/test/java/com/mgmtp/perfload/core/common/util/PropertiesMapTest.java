@@ -127,7 +127,7 @@ public class PropertiesMapTest {
 		br.readLine();
 
 		for (char ch = 'A'; ch <= 'Z'; ++ch) {
-			assertTrue(br.readLine().startsWith(String.valueOf(ch) + String.valueOf(ch)));
+			assertTrue(br.readLine().startsWith(String.valueOf(ch) + String.valueOf(ch)),"for character "+String.valueOf(ch));
 		}
 	}
 }

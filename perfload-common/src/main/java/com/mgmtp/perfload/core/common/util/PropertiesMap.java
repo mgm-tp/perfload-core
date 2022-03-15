@@ -18,13 +18,7 @@ package com.mgmtp.perfload.core.common.util;
 import static com.google.common.collect.Iterators.asEnumeration;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import net.jcip.annotations.ThreadSafe;
@@ -248,6 +242,9 @@ public final class PropertiesMap extends ForwardingMap<String, String> implement
 			this.sorted = sorted;
 		}
 
+		/*
+		 * up to Java 8 Properties.store0() is implemented using keys(): override
+		 */
 		@Override
 		public synchronized Enumeration<Object> keys() {
 			if (!sorted) {
@@ -259,6 +256,28 @@ public final class PropertiesMap extends ForwardingMap<String, String> implement
 				sortedSet.add(en.nextElement());
 			}
 			return asEnumeration(sortedSet.iterator());
+		}
+
+		/*
+		 * newer JDK versions use entrySet() instead of keys() to implement Properties.store0()
+		 */
+		@Override
+		public Set<Map.Entry<Object, Object>> entrySet() {
+			Set<Map.Entry<Object, Object>> unsortedSet = super.entrySet();
+			if (!sorted) {
+				return unsortedSet;
+			}
+			SortedSet<Map.Entry<Object,Object>> sortedSet = new TreeSet<>(new Comparator<Map.Entry<Object,Object>>() {
+					@Override
+					public int compare(Map.Entry<Object,Object> m1, Map.Entry<Object,Object> m2) {
+						return m1.getKey().toString().compareTo(m2.getKey().toString());
+					}
+				}
+			);
+			for ( Map.Entry<Object,Object> el : unsortedSet) {
+				sortedSet.add(el);
+			}
+			return sortedSet;
 		}
 	}
 }
