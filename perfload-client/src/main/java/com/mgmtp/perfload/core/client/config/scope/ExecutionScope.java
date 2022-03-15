@@ -96,7 +96,18 @@ public final class ExecutionScope implements Scope {
 
 				@SuppressWarnings("unchecked")
 				// cast ok, because we know what we'd put in before
+				/* computeIfAbsent can no longer be used since Java 9 because it now throws a
+				ConcurrentModificationException in this context
 				T result = (T) scopeCache.computeIfAbsent(key, k -> unscoped.get());
+				therefore, it has been replaced by this code: */
+				T result;
+				synchronized(this) {
+					result = (T) scopeCache.get(key);
+					if (result == null) {
+						result = unscoped.get();
+						scopeCache.put(key, result);
+					}
+				}
 				return result;
 			}
 		}

@@ -242,7 +242,7 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>18.0</version>
+				<version>29.0-jre</version>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.jackson</groupId>
@@ -404,7 +404,7 @@
 	</profiles>
 	<properties>
 		<jetty.version>9.2.10.v20150310</jetty.version>
-		<guice.version>4.0-beta5</guice.version>
+		<guice.version>4.2.3</guice.version>
 		<okhttp.version>2.4.0</okhttp.version>
 	</properties>
 </project>
