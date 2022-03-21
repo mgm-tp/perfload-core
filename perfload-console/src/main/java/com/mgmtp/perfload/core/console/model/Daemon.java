@@ -37,7 +37,7 @@ public class Daemon implements Comparable<Daemon> {
 	}
 
 	public static Daemon fromHostAndPort(final int id, final HostAndPort hostAndPort) {
-		String host = hostAndPort.getHostText();
+		String host = hostAndPort.getHost();
 		int port = hostAndPort.getPort();
 		return new Daemon(id, host, port);
 	}

@@ -69,12 +69,20 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.squareup.okhttp</groupId>
+			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
+			<version>4.9.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.squareup.okhttp</groupId>
-			<artifactId>okhttp-ws</artifactId>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp-tls</artifactId>
+			<version>4.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<version>4.9.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

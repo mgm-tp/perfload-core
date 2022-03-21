@@ -34,7 +34,6 @@ import com.mgmtp.perfload.core.client.web.response.DefaultResponseValidator;
 import com.mgmtp.perfload.core.client.web.template.DefaultTemplateTransformer;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.logging.ResultLogger;
-import com.squareup.okhttp.OkHttpClient;
 import org.testng.annotations.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -42,13 +41,14 @@ import static java.util.Arrays.asList;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
 
-import com.squareup.okhttp.mockwebserver.MockResponse;
-import com.squareup.okhttp.mockwebserver.MockWebServer;
-import com.squareup.okhttp.Request;
 
 import javax.inject.Provider;
 import java.util.*;
 import java.util.regex.Pattern;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 
 /**
  * Testing the followRedirect parameter (which is configurable for each test)
@@ -97,7 +97,7 @@ public class OkHttpClientProviderTest {
         server.enqueue(mockResponse2);
         server.enqueue(mockResponse3);
         server.start();
-        Provider<String> targetHostProvider = () -> server.getUrl("").toString();
+        Provider<String> targetHostProvider = () -> server.url("").toString();
         Provider<Request.Builder> requestBuilderProvider = () -> new Request.Builder();
 
         List<RequestTemplate> templates = newArrayList(getTemplate, getTemplate2);
@@ -131,9 +131,8 @@ public class OkHttpClientProviderTest {
 
     // build the client by hand because it is hard to inject the followRedirect parameter
     private static OkHttpClient getOkHttpClient(boolean followRedirects) {
-        OkHttpClient cl = new OkHttpClient();
-        cl.setFollowRedirects(followRedirects);
-        cl.setFollowSslRedirects(followRedirects);
+        OkHttpClient.Builder builder = new OkHttpClient.Builder().followRedirects(followRedirects).followSslRedirects(followRedirects);
+        OkHttpClient cl = builder.build();
         return cl;
     }
 }

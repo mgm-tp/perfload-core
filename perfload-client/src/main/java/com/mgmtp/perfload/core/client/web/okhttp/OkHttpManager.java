@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
-import com.squareup.okhttp.OkHttpClient;
+import okhttp3.OkHttpClient;
 
 /**
  * Manages a thread's OkHttpClient. The client is cached internally and released by calling
@@ -62,7 +62,7 @@ public class OkHttpManager implements AutoCloseable {
 	 */
 	@Override
 	public void close() throws Exception {
-		client.getConnectionPool().evictAll();
+		client.connectionPool().evictAll();
 		client = null;
 	}
 }

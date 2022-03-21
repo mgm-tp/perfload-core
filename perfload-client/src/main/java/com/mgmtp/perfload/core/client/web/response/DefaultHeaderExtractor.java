@@ -52,7 +52,7 @@ public class DefaultHeaderExtractor implements HeaderExtractor {
 		log.debug("Extracting headers from response...");
 
 		for (HeaderExtraction headerExtraction : headerExtractions) {
-			String name = headerExtraction.getName();
+			String name = headerExtraction.getName().toLowerCase();
 			SetMultimap<String, String> headers = responseInfo.getHeaders();
 			String value = headers.get(name).stream().collect(Collectors.joining("; "));
 			log.debug("Extracting header '{}={}'", name, value);

@@ -18,9 +18,6 @@ package com.mgmtp.perfload.core.client.web.okhttp;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
 import java.lang.annotation.Annotation;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.List;
 import java.util.Map;
 
@@ -34,12 +31,11 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
 import com.mgmtp.perfload.core.client.config.annotations.PerfLoadVersion;
-import com.mgmtp.perfload.core.client.config.scope.ExecutionScoped;
 import com.mgmtp.perfload.core.client.web.config.AbstractWebLtModule;
 import com.mgmtp.perfload.core.client.web.request.RequestHandler;
 import com.mgmtp.perfload.core.common.util.PropertiesMap;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 /**
  * Guice module for {@link OkHttpClient} configuration.
@@ -87,19 +83,6 @@ public class OkHttpModule extends AbstractWebLtModule {
 		return requestBuilder;
 	}
 
-	/**
-	 * Creates a {@link CookieManager} instance with policy {@link CookiePolicy#ACCEPT_ALL
-	 * ACCEPT_ALL}.
-	 *
-	 * @return the cookie manager
-	 */
-	@Provides
-	@ExecutionScoped
-	protected CookieHandler provideCookieHandler() {
-		CookieManager cookieManager = new CookieManager();
-		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-		return cookieManager;
-	}
 
 	/**
 	 * <p>

@@ -59,10 +59,11 @@ import com.mgmtp.perfload.core.client.web.template.RequestTemplate.HeaderExtract
 import com.mgmtp.perfload.core.common.util.AbortionException;
 import com.mgmtp.perfload.core.common.util.LtStatus;
 import com.mgmtp.perfload.logging.ResultLogger;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.mockwebserver.MockResponse;
-import com.squareup.okhttp.mockwebserver.MockWebServer;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+
 
 /**
  * @author rnaegele
@@ -112,7 +113,7 @@ public class DefaultRequestFlowHandlerTest {
 
 		IntStream.range(0, 10).forEach(i -> server.enqueue(mockResponse));
 		server.start();
-		Provider<String> targetHostProvider = () -> server.getUrl("").toString();
+		Provider<String> targetHostProvider = () -> server.url("").toString();
 		Provider<Request.Builder> requestBuilderProvider = () -> new Request.Builder();
 
 		List<RequestTemplate> templates = newArrayList(getTemplate1, getTemplate2, getTemplate3, getTemplate4, postTemplate);

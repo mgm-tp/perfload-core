@@ -30,10 +30,10 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import com.squareup.okhttp.internal.Util;
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
+import okhttp3.*;
 import org.apache.commons.lang3.text.StrBuilder;
 
 import com.google.common.base.Throwables;
@@ -48,15 +48,13 @@ import com.mgmtp.perfload.core.client.web.response.ResponseInfo;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate;
 import com.mgmtp.perfload.core.client.web.template.RequestTemplate.Body;
 import com.mgmtp.perfload.logging.TimeInterval;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Request.Builder;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
+
+import java.io.IOException;
+
+import okhttp3.Request.Builder;
+import okio.Buffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link RequestHandler} that uses <a href="http://square.github.io/okhttp/">OkHttp</a> as the
@@ -68,6 +66,7 @@ import com.squareup.okhttp.ResponseBody;
 @ThreadSafe
 @Immutable
 public class OkHttpRequestHandler implements RequestHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(OkHttpRequestHandler.class);
 
 	private static enum HttpMethod {
 		GET,
@@ -84,6 +83,8 @@ public class OkHttpRequestHandler implements RequestHandler {
 	private final Provider<UUID> executionIdProvider;
 	private final Provider<String> operationProvider;
 	private final Provider<Builder> requestBuilderProvider;
+        
+        private final boolean dumpBody = false;
 
 	@Inject
 	public OkHttpRequestHandler(final Provider<OkHttpManager> okHttpClientManagerProvider, @TargetHost final Provider<String> targetHostProvider,
@@ -102,6 +103,18 @@ public class OkHttpRequestHandler implements RequestHandler {
 		String method = template.getType();
 
 		Request request = prepareRequest(uri, method, template, requestId);
+                if (dumpBody) {
+                     if (HttpMethod.valueOf(method) == HttpMethod.POST) {
+                        long contentLength = request.body().contentLength();
+                        String contentType = "null";
+                        if (request.body().contentType() != null) {
+                            contentType = request.body().contentType().toString();
+                        }
+                        String requestBody = request.body().toString();
+                        LOG.warn("<Dump>RequestBody of type "+contentType+" and length "+contentLength+":\n"+requestBody);
+                    }
+                }
+
 		Call call = okHttpClientManagerProvider.get().getClient().newCall(request);
 
 		TimeInterval tiBeforeBody = new TimeInterval();
@@ -113,15 +126,18 @@ public class OkHttpRequestHandler implements RequestHandler {
 
 		Response response = call.execute();
 
+		Protocol protocol = response.protocol();
+
 		tiBeforeBody.stop();
 
 		int statusCode = response.code();
 		String statusMsg = response.message();
 
+//                LOG.warn("Response body: "+response.body());
 		try (ResponseBody body = response.body()) {
 			MediaType contentType = body != null ? body.contentType() : null;
 			String contentTypeString = contentType != null ? contentType.toString() : null;
-			Charset charset = contentType!=null?contentType.charset(Util.UTF_8):Util.UTF_8;
+			Charset charset = contentType!=null?contentType.charset(StandardCharsets.UTF_8):StandardCharsets.UTF_8;
 			String responseCharset = charset != null ? charset.name() : null;
 			byte[] bodyBytes = body != null ? body.bytes() : null;
 			String bodyAsString = bodyAsString(bodyBytes, responseCharset);
@@ -132,8 +148,10 @@ public class OkHttpRequestHandler implements RequestHandler {
 			tiTotal.stop();
 
 			Headers responseHeaders = response.headers();
+//                        LOG.warn(responseHeaders.size()+" response headers:");
 			SetMultimap<String, String> headers = HashMultimap.create(responseHeaders.size(), 2);
-			responseHeaders.names().forEach(name -> headers.putAll(name, responseHeaders.values(name)));
+			responseHeaders.names().forEach(name -> headers.putAll(name.toLowerCase(), responseHeaders.values(name)));                      
+//                        responseHeaders.names().forEach(name -> LOG.warn("Header: "+name.toLowerCase()+", value: "+responseHeaders.values(name)));
 
 			return new ResponseInfo.Builder()
 					.methodType(method)
@@ -151,6 +169,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 					.timeIntervalTotal(tiTotal)
 					.executionId(executionIdProvider.get())
 					.requestId(requestId)
+					.protocol(protocol)
 					.build();
 		}
 	}
@@ -198,10 +217,39 @@ public class OkHttpRequestHandler implements RequestHandler {
 				Body body = template.getBody();
 				if (body != null) {
 					requestBody = RequestBody.create(null, body.getContent());
+                                        if (dumpBody) {
+                                            LOG.warn("<Dump>Using body \n"+new String(body.getContent())+"\n--------------------");
+                                            if (requestBody!=null) {
+                                                Buffer sink = new Buffer();
+                                                try {
+                                                    requestBody.writeTo(sink);
+                                                } catch (IOException e) {
+                                                    LOG.warn("Could not write to sink due to ",e);
+                                                }
+                                                String bodyFromRequestBody = sink.readUtf8();
+                                                LOG.warn(">Dump>Sending request body created via RequestBody.create()\n"+bodyFromRequestBody+"\n--------------------");
+                                            } else {
+                                                LOG.warn(">Dump>RequestBody is null");
+                                            }
+                                        }
 				} else {
-					FormEncodingBuilder feb = new FormEncodingBuilder();
-					parameters.entries().forEach(entry -> feb.add(entry.getKey(), entry.getValue()));
-					requestBody = feb.build();
+                                        FormBody.Builder feb = new FormBody.Builder();
+                                        parameters.entries().forEach(entry -> feb.add(entry.getKey(), entry.getValue()));
+                                        requestBody = feb.build();
+                                        if (dumpBody) {
+                                            if (requestBody!=null) {
+                                                Buffer sink = new Buffer();
+                                                try {
+                                                    requestBody.writeTo(sink);
+                                                } catch (IOException e) {
+                                                    LOG.warn("Could not write to sink due to ",e);
+                                                }
+                                                String bodyFromRequestBody = sink.readUtf8();
+                                                LOG.warn(">Dump>Sending request body created via RequestBody.create()\n"+bodyFromRequestBody+"\n--------------------");
+                                            } else {
+                                                LOG.warn(">Dump>RequestBody is null");
+                                            }
+                                        }
 				}
 				break;
 			default:
