@@ -144,7 +144,8 @@ public class OkHttpRequestHandler implements RequestHandler {
 			if  (contentType == null 
 					|| contentType.subtype().equals("json") 
 					|| contentType.type().equals("application") && contentType.subtype().equals("octet-stream") 
-					|| contentType.type().equals("text") && !contentType.subtype().equals("javascript") && !contentType.subtype().equals("css")) {
+					|| contentType.type().equals("text") && !contentType.subtype().equals("javascript") && !contentType.subtype().equals("css")) 
+					|| contentType.type().equals("application") && contentType.subtype().equals("elster-payloadcontainer")) {
 				bodyAsString = bodyAsString(bodyBytes, responseCharset);
 			}
 			if (responseCharset == null && bodyAsString != null) {
