@@ -140,7 +140,13 @@ public class OkHttpRequestHandler implements RequestHandler {
 			Charset charset = contentType!=null?contentType.charset(StandardCharsets.UTF_8):StandardCharsets.UTF_8;
 			String responseCharset = charset != null ? charset.name() : null;
 			byte[] bodyBytes = body != null ? body.bytes() : null;
-			String bodyAsString = bodyAsString(bodyBytes, responseCharset);
+			String bodyAsString = "";
+			if  (contentType == null 
+					|| contentType.subtype().equals("json") 
+					|| contentType.type().equals("application") && contentType.subtype().equals("octet-stream") 
+					|| contentType.type().equals("text") && !contentType.subtype().equals("javascript") && !contentType.subtype().equals("css")) {
+				bodyAsString = bodyAsString(bodyBytes, responseCharset);
+			}
 			if (responseCharset == null && bodyAsString != null) {
 				responseCharset = StandardCharsets.UTF_8.name();
 			}
@@ -270,7 +276,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 		if (body != null && contentCharset != null) {
 			return new String(body, contentCharset);
 		}
-		return null;
+		return "";
 	}
 
 	private String createQueryStringFromParams(final SetMultimap<String, String> parameters) {
