@@ -49,7 +49,8 @@ public final class RequestTemplate {
 	private final SetMultimap<String, String> requestHeaders;
 	private final List<HeaderExtraction> headerExtractions;
 	private final List<DetailExtraction> detailExtractions;
-	private final Body body;
+	private Body body;
+
 	private final String skip;
 	private final String validateResponse;
 
@@ -160,6 +161,14 @@ public final class RequestTemplate {
 	 */
 	public Body getBody() {
 		return body;
+	}
+	
+	/**
+	 * 
+	 * @param body
+	 */
+	public void setBody(Body body) {
+		this.body = body;
 	}
 
 	/**
