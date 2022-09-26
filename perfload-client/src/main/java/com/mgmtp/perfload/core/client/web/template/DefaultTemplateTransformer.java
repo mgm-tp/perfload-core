@@ -105,10 +105,12 @@ public final class DefaultTemplateTransformer implements TemplateTransformer {
 		if (body != null) {
 			byte[] content = body.getContent();
 			if (content != null) {
-				// content comes from request flow and is always considered UTF-8
-				String bodyAsString = new String(content, Charsets.UTF_8);
-				bodyAsString = resolvePlaceholders(bodyAsString, placeholderContainer);
-				body = Body.create(bodyAsString);
+				if(body.getResourceType() != ResourceType.binary.name()) {
+					// content comes from request flow and is always considered UTF-8
+					String bodyAsString = new String(content, Charsets.UTF_8);
+					bodyAsString = resolvePlaceholders(bodyAsString, placeholderContainer);
+					body = Body.create(bodyAsString);					
+				}
 			} else {
 				String resourcePath = resolvePlaceholders(body.getResourcePath(), placeholderContainer);
 				ResourceType resourceType = ResourceType

@@ -606,13 +606,15 @@ public final class RequestTemplate {
 
 		/**
 		 * Creates a new Body instance from the specified binary content.
+		 * 
+		 * Placeholders can be resolved in String content only.
 		 *
 		 * @param content
 		 *            the body content
 		 * @return the Body object
 		 */
-		public static Body create(final byte[] content) {
-			return new Body(content, null, null);
+		public static Body create(final byte[] content) {			
+			return new Body(content, null, ResourceType.binary.name());
 		}
 
 		/**
