@@ -21,7 +21,7 @@
 	<parent>
 		<artifactId>perfload-core</artifactId>
 		<groupId>com.mgmtp.perfload.core</groupId>
-		<version>4.9.4</version>
+		<version>4.9.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>perfload-common</artifactId>
 	<name>mgm perfLoad Common</name>
