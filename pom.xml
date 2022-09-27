@@ -26,7 +26,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.mgmtp.perfload.core</groupId>
 	<artifactId>perfload-core</artifactId>
-	<version>4.9.4-SNAPSHOT</version>
+	<version>4.9.4</version>
 	<packaging>pom</packaging>
 	<name>mgm perfLoad Core Components</name>
 	<description>mgm perfLoad Core Components</description>
@@ -44,7 +44,7 @@
 		<connection>scm:git:git://github.com/mgm-tp/perfload-core.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/mgm-tp/perfload-core.git</developerConnection>
 		<url>https://github.com/mgm-tp/perfload-core</url>
-		<tag>perfload-core-4.9.3</tag>
+		<tag>perfload-core-4.9.4</tag>
 	</scm>
 
 	<licenses>

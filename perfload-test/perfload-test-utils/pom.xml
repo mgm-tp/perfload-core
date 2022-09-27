@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>com.mgmtp.perfload.core</groupId>
 		<artifactId>perfload-test</artifactId>
-		<version>4.9.4-SNAPSHOT</version>
+		<version>4.9.4</version>
 	</parent>
 
 	<artifactId>perfload-test-utils</artifactId>

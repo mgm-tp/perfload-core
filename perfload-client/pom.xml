@@ -22,7 +22,7 @@
 	<parent>
 		<artifactId>perfload-core</artifactId>
 		<groupId>com.mgmtp.perfload.core</groupId>
-		<version>4.9.4-SNAPSHOT</version>
+		<version>4.9.4</version>
 	</parent>
 	<artifactId>perfload-client</artifactId>
 	<name>mgm perfLoad Client</name>
