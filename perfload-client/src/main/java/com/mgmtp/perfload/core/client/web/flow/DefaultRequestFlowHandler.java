@@ -153,8 +153,8 @@ public final class DefaultRequestFlowHandler implements RequestFlowHandler {
 							continue;
 						}
 
-						log.info("Executing request: {}", executableTemplate);
-
+						log.debug("Executing request template: {}", executableTemplate);
+						
 						// look up request handler for the request's type
 						String type = template.getType();
 						RequestHandler handler = requestHandlers.get(type);

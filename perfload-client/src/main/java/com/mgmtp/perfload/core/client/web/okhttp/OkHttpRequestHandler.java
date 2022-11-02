@@ -83,9 +83,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 	private final Provider<UUID> executionIdProvider;
 	private final Provider<String> operationProvider;
 	private final Provider<Builder> requestBuilderProvider;
-        
-        private final boolean dumpBody = false;
-
+	
 	@Inject
 	public OkHttpRequestHandler(final Provider<OkHttpManager> okHttpClientManagerProvider, @TargetHost final Provider<String> targetHostProvider,
 			@ExecutionId final Provider<UUID> executionIdProvider, @Operation final Provider<String> operationProvider,
@@ -103,18 +101,27 @@ public class OkHttpRequestHandler implements RequestHandler {
 		String method = template.getType();
 
 		Request request = prepareRequest(uri, method, template, requestId);
-                if (dumpBody) {
-                     if (HttpMethod.valueOf(method) == HttpMethod.POST) {
-                        long contentLength = request.body().contentLength();
-                        String contentType = "null";
-                        if (request.body().contentType() != null) {
-                            contentType = request.body().contentType().toString();
-                        }
-                        String requestBody = request.body().toString();
-                        LOG.warn("<Dump>RequestBody of type "+contentType+" and length "+contentLength+":\n"+requestBody);
-                    }
-                }
+		
+		LOG.info("Executing request: {}", request.toString());
 
+		// Requestbody soll nur im DEBUG-Modus geloggt werden 
+		if (LOG.isDebugEnabled()) {			
+			if (request.body() != null) {
+				long contentLength = 0;
+				String contentType = "null";
+				
+				contentLength = request.body().contentLength();
+				String requestBodyString =  requestBodyToString(request.body());
+				if (request.body().contentType() != null) {
+                    contentType = request.body().contentType().toString();
+                }
+				
+				LOG.debug("RequestBody of type "+contentType+" and length "+contentLength+":\n" + requestBodyString);
+			} else {
+				LOG.debug("RequestBody: <null>");
+			}
+		}
+		
 		Call call = okHttpClientManagerProvider.get().getClient().newCall(request);
 
 		TimeInterval tiBeforeBody = new TimeInterval();
@@ -146,7 +153,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 					|| contentType.type().equals("application") && contentType.subtype().equals("octet-stream") 
 					|| contentType.type().equals("text") && !contentType.subtype().equals("javascript") && !contentType.subtype().equals("css") 
 					|| contentType.type().equals("application") && contentType.subtype().equals("elster-payloadcontainer")) {
-				bodyAsString = bodyAsString(bodyBytes, responseCharset);
+				bodyAsString = responseBodyAsString(bodyBytes, responseCharset);
 			}
 			if (responseCharset == null && bodyAsString != null) {
 				responseCharset = StandardCharsets.UTF_8.name();
@@ -223,40 +230,11 @@ public class OkHttpRequestHandler implements RequestHandler {
 						String query = createQueryStringFromParams(parameters);
 						uri = new URI(uri.getRawQuery() == null ? uri.toString() + '?' + query : uri.toString() + '&' + query);
 					}
-					requestBody = RequestBody.create(null, body.getContent());
-                                        if (dumpBody) {
-                                            LOG.warn("<Dump>Using body \n"+new String(body.getContent())+"\n--------------------");
-                                            if (requestBody!=null) {
-                                                Buffer sink = new Buffer();
-                                                try {
-                                                    requestBody.writeTo(sink);
-                                                } catch (IOException e) {
-                                                    LOG.warn("Could not write to sink due to ",e);
-                                                }
-                                                String bodyFromRequestBody = sink.readUtf8();
-                                                LOG.warn(">Dump>Sending request body created via RequestBody.create()\n"+bodyFromRequestBody+"\n--------------------");
-                                            } else {
-                                                LOG.warn(">Dump>RequestBody is null");
-                                            }
-                                        }
+					requestBody = RequestBody.create(body.getContent(), null);
 				} else {
-                                        FormBody.Builder feb = new FormBody.Builder();
-                                        parameters.entries().forEach(entry -> feb.add(entry.getKey(), entry.getValue()));
-                                        requestBody = feb.build();
-                                        if (dumpBody) {
-                                            if (requestBody!=null) {
-                                                Buffer sink = new Buffer();
-                                                try {
-                                                    requestBody.writeTo(sink);
-                                                } catch (IOException e) {
-                                                    LOG.warn("Could not write to sink due to ",e);
-                                                }
-                                                String bodyFromRequestBody = sink.readUtf8();
-                                                LOG.warn(">Dump>Sending request body created via RequestBody.create()\n"+bodyFromRequestBody+"\n--------------------");
-                                            } else {
-                                                LOG.warn(">Dump>RequestBody is null");
-                                            }
-                                        }
+                    FormBody.Builder feb = new FormBody.Builder();
+                    parameters.entries().forEach(entry -> feb.add(entry.getKey(), entry.getValue()));
+                    requestBody = feb.build();
 				}
 				break;
 			default:
@@ -273,12 +251,29 @@ public class OkHttpRequestHandler implements RequestHandler {
 		return requestBuilder.method(method, requestBody).build();
 	}
 
-	private String bodyAsString(final byte[] body, final String contentCharset) throws UnsupportedEncodingException {
+	private String responseBodyAsString(final byte[] body, final String contentCharset) throws UnsupportedEncodingException {
 		if (body != null && contentCharset != null) {
 			return new String(body, contentCharset);
 		}
 		return "";
 	}
+	
+	/**
+	 * writes the Requestbody of a OkHttpRequest to String 
+	 * @param request
+	 * @return
+	 */
+	private static String requestBodyToString(final RequestBody request){
+        try {
+            final RequestBody copy = request;
+            final Buffer buffer = new Buffer();
+            copy.writeTo(buffer);
+            return buffer.readUtf8();
+        } 
+        catch (final IOException e) {
+            return "Error: Could not parse Body for Logging!" + e.getMessage();
+        }
+}
 
 	private String createQueryStringFromParams(final SetMultimap<String, String> parameters) {
 		StrBuilder sb = new StrBuilder();
@@ -294,4 +289,7 @@ public class OkHttpRequestHandler implements RequestHandler {
 		});
 		return sb.toString();
 	}
+	
+	
+	
 }
